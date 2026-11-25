@@ -14,9 +14,10 @@ the wrapping and saturating forms (`+%=`, `+|=`, ...) are in [Numbers](numbers.m
 
 - The result must have the target's type. `n /= 2` on an `int` is E1001, because `/` gives a
   `float`; use `//=`.
-- On a list, `+=` extends the list in place, so every name bound to it sees the change. On a
-  tuple or a str it makes a new value: `key += ("b", "c")` leaves other names bound to the old
-  tuple as they were.
+- On a list, `+=` extends the list in place, so every name bound to it sees the change. It is
+  typed as `xs.extend(ys)` is, a `list[any]` on either side too (see
+  [any](types-any.md#an-any-reaching-a-typed-place)). On a tuple or a str it makes a new value:
+  `key += ("b", "c")` leaves other names bound to the old tuple as they were.
 - On an object, `x op= y` calls the class's `__iop__` (`__iadd__`, ...) when it has one, and keeps
   what it returns; otherwise it is `x = x op y`, a new object. When the left operand's type has no
   method for the right one, the right one's reflected method (`__radd__`, ...) is used, and its

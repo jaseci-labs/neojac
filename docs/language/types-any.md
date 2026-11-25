@@ -111,10 +111,14 @@ TypeError: expected ValueError, found int
 
 `+` of a typed list and a `list[any]`, in either order, is a new `list[any]` of both's items,
 as a typed list is a `list[any]` where one is wanted: `[1, 2] + held` and `held + [1, 2]` are
-`list[any]`s, and `held += ns` puts the items of a typed list `ns` into the `list[any]` `held`.
-The other way, `ns += held` is refused (E1110) but in a cpython space: `ns` holds only its own
-type's items. Two lists of different item types, a `list[int]` and a `list[str]`, are not
-joined either (E1110): a list's item type is one type, never one made of both.
+`list[any]`s. Two lists of different item types, a `list[int]` and a `list[str]`, are not
+joined (E1110): a list's item type is one type, never one made of both.
+
+`xs += ys` of two lists is typed as `xs.extend(ys)` is, on every host: `ys` is given to a place
+of `xs`'s type. So `held += ns` puts the items of a typed list `ns` into the `list[any]` `held`,
+and `ns += held` puts `held`'s items into `ns`, each checked as it arrives: an item of another
+type raises `TypeError` and leaves `ns` as it was. A list of another item type is refused
+(E1001).
 
 A `tuple[int, str]` assigns to a `tuple[int, any]` item by item. `v as list[any]` asserts that an
 `any` holds a list and lets typed code walk it: `for (i, w) in enumerate(v as list[any])`.
