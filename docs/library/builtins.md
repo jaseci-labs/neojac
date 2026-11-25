@@ -222,7 +222,7 @@ OverflowError: integer overflow
 | Call | Result |
 |---|---|
 | `len(x)` | The number of items of a str (in characters), bytes, list, tuple, dict, set or range; an object's `__len__` |
-| `iter(x)` | An iterator over `x`. The two-argument form `iter(callable, sentinel)` is refused (E1051) |
+| `iter(x)`, `iter(f, sentinel)` | An iterator over `x`; or a `callable_iterator`, which calls `f` with no arguments for each item and ends, for good, at the first that equals `sentinel` or when `f` raises `StopIteration`. Its items are `any`, and an `f` that is not callable raises `TypeError` at the `iter()` call |
 | `next(it)`, `next(it, default)` | The iterator's next item; at its end, `default`, or `StopIteration` without one. `default` has the item's type, and is evaluated before the item is asked for, whether it is used or not |
 | `enumerate(iterable, start=0)` | Pairs `(index, item)`. `start` is positional: `enumerate(xs, 1)` |
 | `zip(a, b, ...)` | Tuples of one item from each iterable, until the shortest ends. There is no `strict=` |

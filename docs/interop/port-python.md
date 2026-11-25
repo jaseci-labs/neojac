@@ -39,7 +39,7 @@ default's value (`inspect.signature` shows it).
 | `a, b = v`, `(a, b)`, `return a, b`; `first, *rest = v`, `a, (b, c) = v`; `a = b = v` | `(a, b) = v as any;` (Jac unpacks only a tuple or a list it knows, and an `any` holding any iterable, as Python unpacks it), `(a, b)`, `return (a, b);`; a starred or nested target takes the items of `list(v)` one at a time, raising Python's `ValueError` when they do not fit; `v` is held in a variable and assigned to each target in turn |
 | `if`/`elif`/`else`, `while`, a loop's `else` | The same, with braces |
 | `for x in xs:`, `for k, v in d.items():` | `for x in xs { }`, `for (k, v) in d.items() { }` |
-| `return`, `break`, `continue`, `assert c, m` | The same, each with its `;` |
+| `return`, `break`, `continue`, `assert c`, `assert c, m` | The same, each with its `;`; `assert c, m` whose message is no str literal or f-string is `if not c { raise AssertionError(m); }`, as Jac's `assert` takes a str |
 | `pass` | Nothing: an empty block is `{}` |
 | `raise E(...)`, `raise E`, `raise E(...) from c`, `raise` | `raise E(...);`, `raise E();` for a class, `raise E(...) from c;`, `raise;` |
 | `with a() as x, b():`, a tuple of targets after `as` | `with a() as x, b() { }`, each name bound by `as` declared before it |

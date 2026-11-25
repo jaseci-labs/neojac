@@ -11,7 +11,7 @@ Python's `list`, with Python's results and error messages.
 
 | Expression | Result |
 |---|---|
-| `xs + ys`, `xs * n` | A new list: concatenation, repetition |
+| `xs + ys`, `xs * n` | A new list: concatenation, repetition. Of a typed list and a `list[any]`, a `list[any]` ([any](../language/types-any.md#an-any-reaching-a-typed-place)) |
 | `xs[i]`, `xs[a:b:c]` | An item (`IndexError` out of range), a new list |
 | `xs[i] = v`, `xs[a:b] = ys` | Replaces an item, or a slice by the items of a list |
 | `del xs[i]`, `del xs[a:b:c]` | Removes an item or a slice |

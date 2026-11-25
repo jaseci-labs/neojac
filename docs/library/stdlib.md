@@ -201,7 +201,7 @@ what the operator raises: `operator.abs("x")` raises
 
 | Module | What it is | State |
 |---|---|---|
-| [`os`, `os.path`, `posixpath`, `ntpath`, `genericpath`](os.md) | The operating system's interface and path names | Nearly complete: no `fdopen`, `popen`, `wait3`, `wait4` |
+| [`os`, `os.path`, `posixpath`, `ntpath`, `genericpath`](os.md) | The operating system's interface and path names | Nearly complete: no `popen`, `wait3` |
 | [`sys`](sys.md), `atexit` | The command line, the standard streams, `exit`; what runs as the program ends | `sys` partial; `atexit` complete |
 | [`io`](io.md) | `open`, the file classes, in-memory streams | Complete; `Reader` and `Writer` left out |
 | [`pathlib`](pathlib.md) | `Path`, `PurePath` and the flavoured classes | Nearly complete: no `Path.cwd`, `Path.home`, `Path.from_uri`, `PurePath.parser` |

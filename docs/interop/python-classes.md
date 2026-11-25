@@ -318,6 +318,11 @@ with entry {
 21
 ```
 
+Its bases and its attributes' values are evaluated where the statement runs, as Python evaluates
+them, so they may read the body's names too: a base an import in the function gives
+(`import ctypes;` then `class iovec(ctypes.Structure) { ... }`), or an attribute made from a local
+(`static has wide: any = width;`). A base that names a class of the program is that class.
+
 On a JavaScript host, which makes a class in a code body too, such a class is refused (E5177).
 
 ### In a space of another host

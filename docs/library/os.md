@@ -1,6 +1,6 @@
 ---
 description: The native os module and os.path (posixpath, ntpath, genericpath): files, directories, the environment and path names, and where they differ from CPython's.
-keywords: os, os.path, posixpath, ntpath, genericpath, os.environ, os.getenv, os.putenv, os.unsetenv, os.getcwd, os.chdir, os.listdir, os.walk, os.mkdir, os.makedirs, os.rmdir, os.removedirs, os.remove, os.unlink, os.rename, os.replace, os.symlink, os.readlink, os.stat, os.lstat, os.stat_result, os.utime, os.chmod, os.access, os.system, os.getpid, os.urandom, os.cpu_count, os.process_cpu_count, os.fspath, os.name, os.sep, os.linesep, os.path.join, os.path.split, os.path.splitext, os.path.basename, os.path.dirname, os.path.exists, os.path.isfile, os.path.isdir, os.path.islink, os.path.getsize, os.path.getmtime, os.path.abspath, os.path.realpath, os.path.relpath, os.path.normpath, os.path.expanduser, os.path.commonpath, ntpath.isreserved, os.open, os.fdopen, os.read, os.write, os.close, os.pipe, os.dup, os.dup2, os.fork, os.execv, os.waitpid, os.kill, os.scandir, os.DirEntry, os.getuid, os.uname, os.strerror, os.get_terminal_size, os.fsencode, os.fsdecode, os.environb, os.PathLike, os.posix_spawn, os.sendfile
+keywords: os, os.path, posixpath, ntpath, genericpath, os.environ, os.getenv, os.putenv, os.unsetenv, os.getcwd, os.chdir, os.listdir, os.walk, os.mkdir, os.makedirs, os.rmdir, os.removedirs, os.remove, os.unlink, os.rename, os.replace, os.symlink, os.readlink, os.stat, os.lstat, os.stat_result, os.utime, os.chmod, os.access, os.system, os.getpid, os.urandom, os.cpu_count, os.process_cpu_count, os.fspath, os.name, os.sep, os.linesep, os.path.join, os.path.split, os.path.splitext, os.path.basename, os.path.dirname, os.path.exists, os.path.isfile, os.path.isdir, os.path.islink, os.path.getsize, os.path.getmtime, os.path.abspath, os.path.realpath, os.path.relpath, os.path.normpath, os.path.expanduser, os.path.commonpath, ntpath.isreserved, os.open, os.fdopen, os.read, os.write, os.close, os.pipe, os.dup, os.dup2, os.fork, os.execv, os.waitpid, os.wait4, os.kill, os.scandir, os.DirEntry, os.getuid, os.uname, os.strerror, os.get_terminal_size, os.fsencode, os.fsdecode, os.environb, os.PathLike, os.posix_spawn, os.sendfile
 ---
 # os and os.path
 
@@ -56,7 +56,7 @@ compile.
 | Constants | `name` (`"posix"` or `"nt"`), `linesep`, `sep`, `altsep`, `curdir`, `pardir`, `extsep`, `pathsep`, `defpath`, `devnull`, `F_OK`, `R_OK`, `W_OK`, `X_OK`, the `O_*`, `SEEK_*`, `W*`, `P_*`, `SCHED_*`, `ST_*` and `XATTR_*` constants of the target |
 | Environment | `environ`, `environb`, `getenv`, `getenvb`, `putenv`, `unsetenv`, `get_exec_path` |
 | Process | `getpid`, `getppid`, `getuid`, `geteuid`, `getgid`, `getgroups`, `setsid`, `umask`, `nice`, `times`, `uname`, `cpu_count`, `process_cpu_count`, `sched_getaffinity`, `getloadavg`, `urandom`, `getrandom`, `strerror` |
-| Children | `system`, `fork`, `forkpty`, `execv`, `execve` and the other `exec*`, `spawn*`, `posix_spawn`, `posix_spawnp`, `kill`, `killpg`, `wait`, `waitpid`, `waitstatus_to_exitcode`, `WIFEXITED`, `WEXITSTATUS` and the other status tests, `_exit`, `abort`, `pidfd_open` |
+| Children | `system`, `fork`, `forkpty`, `execv`, `execve` and the other `exec*`, `spawn*`, `posix_spawn`, `posix_spawnp`, `kill`, `killpg`, `wait`, `waitpid`, `wait4` (the child, its status and its `resource.struct_rusage`), `waitstatus_to_exitcode`, `WIFEXITED`, `WEXITSTATUS` and the other status tests, `_exit`, `abort`, `pidfd_open` |
 | File descriptors | `open`, `fdopen`, `read`, `write`, `pread`, `pwrite`, `readv`, `writev`, `close`, `closerange`, `dup`, `dup2`, `pipe`, `pipe2`, `lseek`, `fstat`, `fsync`, `ftruncate`, `isatty`, `ttyname`, `openpty`, `get_blocking`, `set_blocking`, `get_inheritable`, `set_inheritable`, `sendfile`, `copy_file_range`, `get_terminal_size`, `terminal_size` |
 | Directories | `listdir`, `scandir`, `DirEntry`, `walk`, `fwalk`, `mkdir`, `makedirs`, `rmdir`, `removedirs`, `getcwd`, `chdir`, `fchdir` |
 | Files | `remove`, `unlink`, `rename`, `renames`, `replace`, `link`, `symlink`, `readlink`, `chmod`, `chown`, `lchown`, `utime`, `truncate`, `access`, `mkfifo`, `mknod`, `statvfs`, `getxattr`, `setxattr`, `listxattr`, `fspath`, `fsencode`, `fsdecode`, `PathLike` |
@@ -217,7 +217,7 @@ runs gives an `any`.
 
 ## Not there yet
 
-`popen`, `wait3` and `wait4` are not written yet (E1145 when named);
+`popen` and `wait3` are not written yet (E1145 when named);
 `POSIX_SPAWN_CLOSEFROM` is left out on purpose (E5142: it needs glibc 2.34, and a neojac program
 runs on glibc 2.29 and later). On Windows, the `l` and `p` forms of `exec` and `spawn`
 (`execlp`, `spawnlp`, ...) are not written yet.
