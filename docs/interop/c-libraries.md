@@ -225,11 +225,57 @@ function pointer there, as the pointer it is: `ptr(f)` (see [Callbacks](#callbac
 argument is refused (E1157), a function value as it is among them. A C function takes no
 `**kwargs` (E1158).
 
-A Jac function that takes arguments as C's `...` does, and passes them on to a variadic C
-function, takes them as a [type parameter pack](../language/generics.md#type-parameter-packs):
-`def say[*Ts](fmt: ptr[i8], *args: *Ts) -> i32 { return printf(fmt, *args); }` is compiled for
-each call's arguments, and passes each with its own type. This is how `neojac port` writes a C
-function defined with `...` ([Porting C](port-c.md)); C cannot call it.
+A parameter typed `VaList` without the star is C's `va_list`: `def vsnprintf(buf: ptr[i8], n: int,
+fmt: ptr[i8], ap: VaList) -> i32;` takes the list a function of C's `...` is given.
+
+### Functions of C's variadic arguments
+
+A Jac function defined with `*args: VaList` last takes C's variadic arguments by the C ABI: it
+is compiled once, as the C function `int32_t say(const char *fmt, ...)` is, so C calls it through
+its module's face ([Calling Jac from C](c-modules.md#calling-jac-from-c)) and Jac calls it as an
+imported variadic function, with the same promotions (E1157). In its body `args` is the list:
+
+- `args.next[T]()` reads the next argument as `T`, as C's `va_arg` does. `T` is what C's `...`
+  carries after its promotions: `i32`, `u32`, `i64`, `u64`, `int` (C's word), `float` (a
+  `double`) or a `ptr`; another type is refused (E1644).
+- `args.copy()` is a list at the same place, which reads on apart from `args` (C's `va_copy`).
+- `args` given to a parameter typed `VaList`, of a C function or of a Jac one, is C's `va_list`
+  passed on.
+- The list ends where its scope does, as C's `va_end` ends it.
+
+```jac
+import from c {
+    def vsnprintf(buf: ptr[i8], n: int, fmt: ptr[i8], ap: VaList) -> i32;
+    def calloc(n: int, size: int) -> ptr[i8];
+}
+
+def total(n: i32, *args: VaList) -> i64 {
+    t = i64(0);
+    for i in range(n) {
+        t += i64(args.next[i32]());
+    }
+    return t;
+}
+
+def say(buf: ptr[i8], fmt: ptr[i8], *args: VaList) -> i32 {
+    return vsnprintf(buf, 64, fmt, args);
+}
+
+with entry {
+    buf = calloc(64, 1);
+    print(total(i32(3), i32(1), i32(2), i32(3)), say(buf, ptr[i8]("%d-%.1f"), i32(7), 1.5));
+}
+```
+
+```output
+6 5
+```
+
+Such a function is C's: what it raises reaches no Jac caller, and is reported where it returns
+to its caller, as an exception of any Jac function C calls is. A `VaList` is a parameter or a
+local of the function that holds it, never a field, a global, a result or an item of a
+collection (E1169). Native and wasm; refused on any other host (E5090). This is how `neojac
+port` writes a C function defined with `...` ([Porting C](port-c.md)).
 
 C's `printf` writes through the C library's own buffer, which Jac's `print` does not share:
 mixing the two can reorder a program's output. Format into a buffer with `snprintf`, as above,

@@ -329,8 +329,9 @@ module it is in (the `cmodule.toml` above it).
   `archwire.jac` or a `jac.toml`.
 - **The files of a C module port together.** Nothing wires a Jac module into the C that stays,
   so a file is refused while a source that calls it stays C (E4002). A function defined with
-  `...` is a Jac function with a [type parameter pack](../language/generics.md#type-parameter-packs),
-  which C cannot call in a project either: it ports with the C files that call it (E4031).
+  `...` is a Jac function of C's variadic arguments, by the C ABI
+  ([Functions of C's variadic arguments](../interop/c-libraries.md#functions-of-cs-variadic-arguments)),
+  which C calls as it called the C.
 
 ## Platforms
 
@@ -420,7 +421,6 @@ tail.py:3:1: error[E4005]: port writes no Jac yet that keeps the meaning of modu
 | E4017 | A Python module only a system neojac builds for no target of loads: it stays Python |
 | E4018 | A Python module whose Jac fails the check of the one system that loads it: it stays Python |
 | E4030 | A C file calling a header's `static inline` function, where no C module holds the header |
-| E4031 | A C function defined with `...`, which a C file the run does not port calls |
 | E4043 | A unity build's source, held back because a file it includes is refused |
 | E4044 | In a project, a path under a directory neojac never reads as source (`node_modules`, a name beginning with `.`, `replaced-by-neojac/`) |
 | E4045 | In a project, a path into a C module or a crate `jac.toml` holds no table of: a dependency |

@@ -25,7 +25,9 @@ the module `geom`.
 | `int f(int a, double b) { }`, `void g(void) { }` | `def f(a: i32, b: float) -> i32 { }`, `def g { }` |
 | `__func__`, `__FUNCTION__`, `__PRETTY_FUNCTION__` (as glibc's `assert` gives them), GNU's `__extension__ e` | the function's name as a C string literal is, `ptr[i8]("name")`; `e` |
 | `CFSTR("name")` (CoreFoundation's `__builtin___CFStringMakeConstantString`) | `__CFStringMakeConstantString(ptr[i8]("name"))`, the function CoreFoundation's header names for it where the compiler has no builtin, declared in `import from c` |
-| `int say(const char *fmt, ...) { va_list ap; va_start(ap, fmt); n = vprintf(fmt, ap); va_end(ap); }` | `def say[*Ts](fmt: ptr[i8], *ap: *Ts) -> i32 { n = printf(fmt, *ap); }`: a pack of type parameters, compiled for each call's arguments; `va_start` and `va_end` are nothing, and a `v` function of the C library or CPython given the `va_list` is its plain one given the pack (`vsnprintf` is `snprintf`, `PyErr_FormatV` is `PyErr_Format`). C cannot call it: a C file that calls it ports in the same run (E4031) |
+| `int say(const char *fmt, ...) { va_list ap; va_start(ap, fmt); n = vprintf(fmt, ap); va_end(ap); }` | `def say(fmt: ptr[i8], *ap: VaList) -> i32 { n = vprintf(fmt, ap); }`: a function of C's variadic arguments, by the C ABI, which C calls as it called the C; `va_start` is the parameter, `va_end` is where the list's scope ends, and a function given the `va_list` (`vprintf`, `PyErr_FormatV`) is given `ap` |
+| `va_arg(ap, int)`, `va_arg(ap, double)`, `va_arg(ap, const char *)` | `ap.next[i32]()`, `ap.next[float]()`, `ap.next[ptr[i8]]()`: the next argument, read as C reads it |
+| `va_list cp; va_copy(cp, ap);`, `int vsay(const char *fmt, va_list ap)` | `cp = ap.copy();`, `def vsay(fmt: ptr[i8], ap: VaList) -> i32` |
 | `int main(void) { }` | `def main -> i32 { }` and `with entry { sys.exit(int(main())); }` |
 | `int total = 0;` at file scope, `int x = 1;` in a function, `int x;`, a local of a name another variable of the function or of the file has | `glob total: i32 = 0;`, `x: i32 = 1;`, `x: i32 = 0;`, the name with `_2` (`_3`, ...): a Jac function has one variable of a name, of one type |
 | `int x; f(&x);`, `g(&total);`, `h(&n);` of a parameter `n`, `&p.y`, `&xs[2]`, `int xs[3] = {1, 2};`, `char name[] = "ab";`, `f(xs)`: a local, a global or a parameter whose address is taken, a field or an item of one, a local array | `x: i32 = 0; f(addressof(x));`, `g(addressof(total));`, `h(addressof(n));`, `addressof(p.y)`, `addressof(xs) + 2`, `xs: array[i32, 3] = array[i32, 3](1, 2, 0);`, `name: array[i8, 3] = array[i8, 3](97, 98, 0);`, `f(addressof(xs))`: an ordinary variable, the place C's `&` names; an array's address is its first item's |
@@ -86,9 +88,8 @@ the module `geom`.
 Anything not in the table is refused with E4001, and nothing is written for the file: a record
 with no name and a bit-field the file declares, a copy of a union a system header
 declares, a `goto` into a block from outside it or into the loop a `goto` back makes, a `goto`
-back whose loop would take a `break` or a `continue` of a statement around it, a `va_list` read
-by `va_arg`, by `va_copy`, by more than one call or anywhere but the last
-argument of a `v` function, a pointer to an array (the address of an array given where C takes
+back whose loop would take a `break` or a `continue` of a statement around it, a `va_list`
+that is read from a record or a global, a pointer to an array (the address of an array given where C takes
 another pointer is the address of its first item), an array of function pointers in a
 function's frame, a record
 or a field with an attribute other than packed or aligned, a thread-local variable. So is a
