@@ -62,7 +62,7 @@ A Rust crate is kept under the rustc that compiles it, its command line and ever
 
 Nothing in the cache is ever out of date: an entry is named by everything it was made from, so an edit makes a build look for another entry and leaves the old one as it was. What is deleted is deleted to keep the cache to a size, and only costs compiling it again.
 
-`NEOJAC_CACHE_SIZE` is that size: a number of bytes, or one followed by `K`, `M` or `G` (`500M`, `20G`). Unset, it is 10G.
+`NEOJAC_CACHE_SIZE` gives that size: a number of bytes, or one followed by `K`, `M` or `G` (`500M`, `20G`). The size is the cache's: a run given it records it in the cache (`budget` beside the entries), and every run keeps the cache to the size recorded there, 10G where no run ever gave one, until a run is given another. So a run that gives no size never trims what another put there under a larger one.
 
 ```sh
 NEOJAC_CACHE_SIZE=20G neojac build main.jac -o main
