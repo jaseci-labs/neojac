@@ -170,8 +170,8 @@ ownership annotation holds one as a managed place, from which no `own` binding t
 
 4. **Call Jac from C.** A wire gives a C module a Jac function by name
    (`jhelp --> shapes.shapes { jhelp_scale }` for the project's own C file), and the C includes
-   `jac/jhelp.h`, which neojac writes. Such a function takes and gives integers, floats and
-   pointers (E1249). A C++ class is an `obj` Jac uses, and derives with `super.init(...)` as
+   `jac/jhelp.h`, which neojac writes. Such a function takes and gives integers, floats,
+   pointers and C records by value (E1249). A C++ class is an `obj` Jac uses, and derives with `super.init(...)` as
    the first statement of its `init` (E2335 elsewhere); a class template's instance is named by its template form, `Box[i32]`,
    and a member template's or a header library's function template's by its type arguments,
    `c.to[float]()`, `kept_[Counter](c)` (`neojac docs C module`).

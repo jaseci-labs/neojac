@@ -1568,7 +1568,10 @@ double shapes_jac_scaled(double x, int32_t *calls) {
 - **The named functions are C functions of the program** of those names, as a wire into a crate
   makes them. A C file's use of one is held to its wires as any import of C is (E1575, E1147).
 - **A function C calls takes and gives** `int`, `i8` to `u64`, `float`, `f32` and `ptr[...]` (a
-  pointer to anything but a number is `void *` in the header), and is neither generic nor
+  pointer to anything but a number is `void *` in the header), and a C record or union of a
+  tag by value, `struct <tag>` in the header, passed as the target's C calling convention
+  passes it (`def:pub moved(p: point, step: float) -> point` is
+  `struct point moved(struct point, double);`), and is neither generic nor
   `async` (E1249). It also takes a `Callable[[P, ...], R]` of those types, a function pointer:
   `def:pub twice_with(f: Callable[[int], int], x: int) -> int` is
   `int64_t twice_with(int64_t (*)(int64_t), int64_t);` in the header, and calls what C passed
