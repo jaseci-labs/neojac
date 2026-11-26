@@ -95,7 +95,7 @@ the module `geom`.
 
 Anything not in the table is refused with E4001, and nothing is written for the file: a record
 with no name that no field names, a copy of a union a system header
-declares, a `va_list` that is read from a record or a global, a null `va_list *`, a pointer
+declares, a `va_list` that is read from a record or a global, a pointer
 to an array (the address of an array given where C takes
 another pointer is the address of its first item), a record
 or a field with an attribute other than packed or aligned, a thread-local variable. So is a
