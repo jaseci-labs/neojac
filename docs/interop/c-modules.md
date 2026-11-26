@@ -401,8 +401,8 @@ as a call of a Jac generic method may ([Generics](../language/generics.md)): `o.
   vector; `said.emplace_back[&mut std_string](s)` is `emplace_back<std::string &>`, the instance
   C++ makes for `said.emplace_back(s)` of a local, which copies it, and `[&std_string]` the one
   for a `const` string. A number given by reference is its place, a `ptr`:
-  `duos.emplace_back[&mut i32, &mut i32](a, b)` takes two cells (`a = ptr[i32](__alloca(4))`),
-  as port writes an `int` local whose address C++ takes.
+  `duos.emplace_back[&mut i32, &mut i32](addressof(a), addressof(b))` takes the addresses of
+  two `i32` locals, as port writes an `int` local whose address C++ takes.
 - **A template is named by its C++ name** where the class has one template of that name. Templates
   of one name are named as an overload set's members are, by the types of the parameters that do
   not name the template's own: `add(const T &)` is `add_`, `add(const char *, const T &)` is
@@ -1441,10 +1441,9 @@ with entry {
     m: own std_unordered_map[i32, Box[i32]] = boxes();
     fresh: own std_unordered_map[i32, Box[i32]] = std_unordered_map[i32, Box[i32]]();
     fresh.op_assign(m);
-    key = ptr[i32](__alloca(4));
-    key[0] = 3;
+    key: i32 = i32(3);
     m.emplace[i32, Box[i32]](i32(2), Box[i32].make(i32(20)));
-    m.emplace[&mut i32, Box[i32]](key, Box[i32].make(i32(30)));
+    m.emplace[&mut i32, Box[i32]](addressof(key), Box[i32].make(i32(30)));
     found: std_unordered_map_iterator[i32, Box[i32]] = m.find(i32(3));
     print(m.size(), fresh.size(), found.op_ne(m.end_()), found.op_deref().second.get());
     small: own std_unordered_map[i32, Box[i16]] = std_unordered_map[i32, Box[i16]]();
