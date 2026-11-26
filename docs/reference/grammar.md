@@ -466,6 +466,10 @@ pipe_call ::= ("|>" | ":>") atomic_chain | atomic_chain
 
 # Lexical rules
 
+# A word that is no keyword, or a word behind a backtick: a keyword (in an archwire, an
+# archwire keyword too) or a word that holds `$`, which is legal in a name nowhere else.
+NAME ::= /[A-Za-z_][A-Za-z0-9_]*/ | "`" /[A-Za-z_$][A-Za-z0-9_$]*/
+
 KEYWORD ::=
     "str" | "int" | "float" | "list" | "tuple" | "set" | "dict" | "bool" | "bytes"
     | "any" | "type" | "i8" | "u8" | "i16" | "u16" | "i32" | "u32" | "i64" | "u64"

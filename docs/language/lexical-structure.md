@@ -65,6 +65,11 @@ README or docs, and `neojac fmt --fix` removes it; where `jac.toml`'s `[fmt]` sa
 A name starts with a letter or `_` and continues with letters, digits and `_`. Case matters: `Total`
 and `total` are two names.
 
+Behind a backtick a name may also hold `$`: `` `$set_stdout `` and `` `$ `` are names, written as a
+JavaScript API spells them. `$` is legal in a name nowhere else. Such a name is a name on every host:
+the JavaScript name on a JS host, and on CPython and natively a variable or an attribute of that
+spelling, reached as any name is.
+
 A name refers to a local variable, a parameter, a global, a function, an archetype, a module or one
 of their members. Which one is decided by the scope rules in [Variables](variables.md).
 
@@ -161,8 +166,9 @@ because a JSON document, a Python API or a JavaScript API names it that way.
   as the keyword: `` has `type: str ``, `` def f(`type: str) ``, and `` return `type; `` in the body
   (`type` alone is the builtin).
 - Do not write it where any word is taken (the table above): `r.type`, `f(type="x")`.
-  After `.`, in a module path and in an `impl` target the backtick is an error (E0157).
-- A backtick before a word that is not a keyword is an error (E0014).
+  After `.`, in a module path and in an `impl` target the backtick is an error (E0157), but for a
+  name that holds `$`, which is never written bare: `` box.`$count ``.
+- A backtick before a word that is not a keyword and holds no `$` is an error (E0014).
 
 ```jac
 obj Record {
@@ -186,6 +192,26 @@ with entry {
 kind 2
 x:4 y:0
 Record
+```
+
+```jac
+obj Shelf {
+    has `$count: int = 0;
+
+    def `$add(n: int) -> int {
+        self.`$count += n;
+        return self.`$count;
+    }
+}
+
+with entry {
+    `$ = Shelf();
+    print(`$.`$add(2), `$.`$add(3), `$.`$count);
+}
+```
+
+```output
+2 5 5
 ```
 
 ```jac
