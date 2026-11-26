@@ -44,7 +44,7 @@ neojac run hello.rs                       # build it, then run it
 neojac run -- input.txt                   # the program in this directory, with an argument
 ```
 
-`neojac run` builds a program as `build` does, in its project's `.jac/build/` unless `-o` says where, then runs it with what follows `--` and exits with its status. It takes the options of a build for this machine that is then run: `-o`, `--release`, `--cpu`, `--gui`, `--monitor`, `--memory` and `--rt`. One it does not take is named with the command that does: ``it has no option '--lib' (`neojac build` and `neojac check` have it)``.
+`neojac run` builds a program as `build` does, in its project's `.jac/build/` unless `-o` says where, then runs it with what follows `--` and exits with its status. A Jac module that a `cpython` or a `node` space of its project holds runs on that space's host, as `__main__`: `neojac run scripts/gen.jac` of a module of `space oracle: cpython { scripts.gen; }` builds the space's program with that module as its entry, whatever entry the space names (a space with none too), and runs it on CPython. It takes the options of a build for this machine that is then run: `-o`, `--release`, `--cpu`, `--gui`, `--monitor`, `--memory` and `--rt`. One it does not take is named with the command that does: ``it has no option '--lib' (`neojac build` and `neojac check` have it)``.
 
 What is no program is refused: a file of another extension (E5150), a directory with none of the manifests (E5151), a Jac project with no `main.jac` (E5152). A Python project (`pyproject.toml`), an npm package (`package.json`) and a JavaScript or TypeScript file are recognized and refused until their builds are made (E5090).
 

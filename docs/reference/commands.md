@@ -172,6 +172,8 @@ neojac run <app> [<option>...] [-- <argument>...]
 
 A program is named as `neojac build` names one, and built as it builds one; then it runs, and neojac exits with its status.
 
+A Jac module that a cpython or a node space of its project holds runs on that space's host, as `__main__`: the space's program, built with the module as its entry, whatever entry the space names.
+
 An app is run from its project's root. It is built as `neojac build <app>` builds it, then runs in neojac's place: a signal sent to `neojac run` is sent to the app, and the status it ends with is the app's.
 
 A phone app (one that runs a hermes space) is installed on the Android phone or emulator that is connected, an emulator started when none is, and started there; a space it reaches at this machine's own address is reached from the phone as this machine's port.
