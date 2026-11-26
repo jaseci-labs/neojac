@@ -31,6 +31,9 @@ the module `geom`.
 | `static int n = 0;` in a function `next`, `&n` | `glob next_n: i32 = 0;`, beside the function, `addressof(next_n)` |
 | `extern int counted;` at file scope or in a function, of a global another file of the module defines, and `counted` where it is used | Nothing where it is declared, and `counted`, which the wire from the file that defines it gives, `native.unity ++> native.count { counted }` |
 | `struct point { double x; int n; };`, `struct point p = {1.5, 2};`, `p.x` | `struct point { has x: float = 0.0, n: i32 = 0; }`, `p: point = point(x=1.5, n=2);`, `p.x` |
+| `union word { unsigned whole; unsigned short half; };`, `union word w; w.whole = 1;`: a union the file declares | `union word { has whole: u32, half: u16; }`, `w: word = word(); w.whole = 1;`: a Jac union, made zeroed, its fields with no default |
+| `#include "Python.h"` then `#include "pycore_long.h"`, and `#define NEEDS_ONE 1` above them, in a source of a C module of the project | The Jac module's table in jac.toml, `[c.cpython.files."Objects/boolobject.jac"] headers = ["<Python.h>", "<pycore_long.h>"]` and `defines = ["NEEDS_ONE=1"]`, beside the flags the table gave the source: the Jac module binds what its source's translation unit declared, its headers read in that order under those flags. A header beside the source is named by its path from the module, `Objects/clinic.h`; a macro set between two of them is refused |
+| `_Static_assert(sizeof(int) == 4, "four bytes");` at file scope or in a function | `comptime assert i32(u64(4) == 4) != 0, "four bytes";`, its condition as each target's reading has it |
 | `lldiv_t q = lldiv(47, 5);`, `union sigval v; v.sival_int = 9;`: a record or a union a system header declares, held by value, or a record of no name a named one's field has (`extern_proc`'s `p_un`); a record of a header of the project's C module | `obj lldiv_t { has quot: int, rem: int; }` and `union sigval { has sival_int: i32, sival_ptr: ptr; }` in `import from c`, the fields from Clang's layout, a record of no name by the two names (`extern_proc_p_un`); the module's record by the wire from its header |
 | `enum { RED, GREEN = 5 };` | `comptime RED: i32 = 0;`, `comptime GREEN: i32 = 5;` |
 | `typedef struct { } point;`, `typedef int count;` | The record by its typedef's name; any other typedef is the type it names |
@@ -60,7 +63,7 @@ the module `geom`.
 | A conversion to an integer type that does not hold every value; of a float to an integer | `u8.wrap(x)`, and `int(i64.wrap(x))` to a signed 64-bit integer: it keeps the low bits, as Clang defines; `i32(x)`: toward zero |
 | `(char *)p`, `(void *)p`, `(intptr_t)p`, `(int *)n`, a string literal where its address is taken | `ptr[i8](p)`, `ptr(p)`, `int(p)`, `ptr[i32](int(n))`, `ptr[i8]("...")` |
 | `(void *)f` of a function pointer a variable holds, `(release_fn)-1`, `f == g` of function pointers, a function given to C's `...`; `f = NULL`, `if (f)`, `!f`, `f == NULL` of a function pointer | `ptr(f)`, `Callable[[ptr], None](ptr(int(-1)))`, `ptr(f) == ptr(g)`, `ptr(f)`: the C address the value holds; a function's value gives its C trampoline; `f = None`, `if f is not None`, `f is None`, `f is None`: a null C address is `None`, and `ptr(f)` of `None` is the null address |
-| `f(a, b)`; `printf("%d\n", n)` of the C library | `f(a, b)`; `printf("%d\n", n)`, with `import from c { def printf(format: str, *args: any) -> i32; }` |
+| `f(a, b)`; `printf("%d\n", n)` of the C library | `f(a, b)`; `printf("%d\n", n)`, with `import from c { def printf(format: str, *args: VaList) -> i32; }` |
 | `__builtin___strcpy_chk(d, s, n)`, `__builtin___snprintf_chk(b, n, f, k, fmt, ...)`: what `strcpy` and `snprintf` expand to where a header fortifies them | `strcpy(d, s)`, `snprintf(b, n, fmt, ...)`: the C library's function, without the check of a size the compiler would have known |
 | `__builtin_memset(p, 0, n)`, `__builtin_memcpy`, `__builtin_memmove`, `__builtin_memcmp`, `__builtin_strlen` | `memset(p, 0, n)` and the like: the C library's function, which the builtin is |
 | `__builtin_isnan(x)`, `__builtin_isinf(x)`, `__builtin_isfinite(x)`, `__builtin_isinf_sign(x)`, `__builtin_inff()`, `__builtin_nan("")`, `__builtin_fabs(x)`, `__builtin_copysign(x, y)`, `__builtin_expect(c, 0)`, `__builtin_unreachable();` | `math.isnan(x)`, `math.isinf(x)`, `math.isfinite(x)`, `(i32(1) if x > 0.0 else i32(-1)) if math.isinf(x) else i32(0)` (of a value with side effects taken once in a `do` block), `f32(float("inf"))`, `float("nan")`, `math.fabs(x)`, `math.copysign(x, y)`, `c`, `raise AssertionError("unreachable code was reached");`: the library's function of the builtin's meaning; Jac raises where C's program would be undefined |
@@ -71,13 +74,16 @@ the module `geom`.
 | `struct __attribute__((aligned(4), packed)) buf { uint32_t size; uint64_t used; };`, `#pragma pack(2)` | `@packed @align(4) struct buf { has size: u32 = u32(0), used: u64 = u64(0); }` (`@packed(2)`), with `import from jaclang.comptime { align, packed }`: C's offsets, size and alignment; another attribute of a record, or one of a field, is refused |
 | `struct { ... } buf;` in a function `f` | `struct f_buf { ... }` of the module, named for the function and the variable |
 | `struct sysinfo info; sysinfo(&info);` (a system record whose tag is also a function's or a global's name) | `obj sysinfo as struct_sysinfo { ... }` beside `def sysinfo(a0: ptr[struct_sysinfo]) -> i32;` in `import from c` |
+| `_Generic(x, int: abs, double: fabs, default: labs)(x)`, the tgmath macros | The association Clang chooses for the operand's type, on each target: `fabs(x)` of a `double` |
+| `__builtin_choose_expr(sizeof(long) == 8, a, b)` | The operand its constant chooses, on each target: `a` |
+| `__builtin_types_compatible_p(T, U)` | Its answer on each target, `1` or `0` |
 | `sizeof(int)`, `_Alignof(double)` | Its value on each target, `u64(4)`, `u64(8)`: every size and alignment C folds to a constant; one of no fixed size (a variable-length array's) is refused |
 | `offsetof(struct s, f)` | Its value on each target, `u64(8)` |
 
 ## What is refused
 
-Anything not in the table is refused with E4001, and nothing is written for the file: a union,
-a record with no name and a bit-field the file declares, a copy of a union a system header
+Anything not in the table is refused with E4001, and nothing is written for the file: a record
+with no name and a bit-field the file declares, a copy of a union a system header
 declares, a `goto` into a block from outside it or into the loop a `goto` back makes, a `goto`
 back whose loop would take a `break` or a `continue` of a statement around it, a `va_list` read
 by `va_arg`, by `va_copy`, by more than one call or anywhere but the last

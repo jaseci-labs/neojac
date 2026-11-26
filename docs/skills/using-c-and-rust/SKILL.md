@@ -41,7 +41,7 @@ function's `i32` parameter takes no `int` but by `i32(n)`.
 import from c {
     def strlen(s: str) -> u64;
     def abs(x: i32) -> i32;
-    def snprintf(buf: bytearray, n: int, fmt: str, *args: any) -> i32;
+    def snprintf(buf: bytearray, n: int, fmt: str, *args: VaList) -> i32;
     def calloc(n: int, size: int) -> ptr[i32];
     def free(p: ptr[i32]) -> None;
     def qsort(base: ptr[i32], n: int, size: int, cmp: Callable[[ptr[i32], ptr[i32]], i32]) -> None;

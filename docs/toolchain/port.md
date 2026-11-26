@@ -260,7 +260,10 @@ shop/use.py -> replaced-by-neojac/shop/use.py
 - **A C module's ported sources stay its code.** Port takes each off the module's `sources` and
   lists its Jac in the table's `jac` ([C modules](../interop/c-modules.md#the-manifest)): native
   code the module is built from, never an npm tree's space, even in a directory the tree's
-  `files` names. A module all of whose C++ sources are ported keeps `language = "c++"`. A header
+  `files` names. The Jac module's files table keeps the flags the source was compiled with, and
+  holds the headers its source included, in their order, with the macros it set before them:
+  the Jac binds what its source's translation unit declared, read as the source read it. A
+  module all of whose C++ sources are ported keeps `language = "c++"`. A header
   library under `node_modules` the module includes (node-addon-api's) is wired to the Jac as any C
   module is (`node_modules.kit.kit ++> addon.twin { Tally }`). So a Node addon built from the
   module is built from the Jac and loads in Node as the C++'s did

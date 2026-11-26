@@ -126,7 +126,7 @@ that module instead, even when a library file of the name exists too.
 import sys;
 
 import from c {
-    def printf(fmt: str, *args: any) -> i32;
+    def printf(fmt: str, *args: VaList) -> i32;
     def atexit(f: Callable[[], None]) -> i32;
 }
 

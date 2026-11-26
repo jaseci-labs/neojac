@@ -153,7 +153,7 @@ call fixes, a loop over it sees each value as it is, and a call spreads it
 
 ```jac
 import from c {
-    def snprintf(buf: bytearray, n: int, fmt: ptr[i8], *args: any) -> i32;
+    def snprintf(buf: bytearray, n: int, fmt: ptr[i8], *args: VaList) -> i32;
 }
 
 def described[*Ts](head: str, *args: *Ts, sep: str = ",") -> str {

@@ -177,7 +177,7 @@ True
 
 ```jac
 import from c {
-    def snprintf(buf: bytearray, n: int, fmt: str, *args: any) -> i32;
+    def snprintf(buf: bytearray, n: int, fmt: str, *args: VaList) -> i32;
 }
 
 with entry {
@@ -217,7 +217,8 @@ with entry {
 
 ### Variadic functions
 
-`*args: any` as the last parameter makes the declaration variadic. Each extra argument is passed
+`*args: VaList` as the last parameter makes the declaration variadic: C's `...`, which it is
+the one way to write. Each extra argument is passed
 as C's default promotions pass it: an integer as a 64-bit word, a float as a `double`, a `str`,
 `bytes`, `bytearray` or pointer as an address. A function is passed through `...` as C passes a
 function pointer there, as the pointer it is: `ptr(f)` (see [Callbacks](#callbacks)). Any other
@@ -991,7 +992,7 @@ import from c {
 
     glob table: list[i32] = [1, 2, 3];
     def abs(x: i32) -> i32;
-    def printf(fmt: str, *args: any) -> i32;
+    def printf(fmt: str, *args: VaList) -> i32;
     def qsort(base: ptr[i32], n: int, size: int, cmp: Callable[[ptr[i32], ptr[i32]], i32]) -> None;
 }
 

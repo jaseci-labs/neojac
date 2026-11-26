@@ -207,7 +207,9 @@ frameworks = ["CoreFoundation"]    # macOS frameworks its code calls
   (`[c."probe/arch"] name = "_probe"`, `_probe ++> main { ... }`); the table stays keyed by its
   directory. It is identifiers joined by `.`, and a key no Jac or Python module of the program
   has (E2270). `neojac absorb --record` writes it, as the last part of the extension module the
-  module is built into. Without it the module's key is its directory. A program that reaches the
+  module is built into. Without it the module's key is its directory. A module at the
+  project's root, whose directory names no module, takes a `name` (E5132 otherwise), which
+  `neojac absorb` writes as the directory's own name. A program that reaches the
   module both by its `name` and through the wires of the files it holds (a ported file's
   `_probe ++> probe.arch.osx { ... }` beside a C file's own `-->` wires) reaches one module,
   built and linked once. A wire from the module, where its directory is also a Python package,
@@ -282,6 +284,14 @@ frameworks = ["CoreFoundation"]    # macOS frameworks its code calls
   and no npm tree's space takes them, whatever the tree's `files` names. A module all of whose
   C++ sources were ported keeps `language = "c++"`, which port writes, so that its headers are
   still read as C++ ([C++ sources](#c-sources)).
+- **A Jac module of `jac` binds what its source's translation unit declared**: its files table
+  holds `headers`, the headers its source included, in their order (a path from the module's
+  directory, or `<name>` for one found on the include path), and the flags the source was
+  compiled with (`include`, `defines`, `cflags`), which port writes. Its interface is those
+  headers read in that order under the module's flags and its own, with what the module's other
+  sources define that its wires name and the headers do not declare. A target table holds a
+  target's own headers, after the base table's. The module's interface proper is read only
+  where something other than its own Jac modules binds from it.
 - `interpreter = true` says the module is an interpreter's C API, which the interpreter that
   loads an extension module gives it: a program that is an extension module
   ([Extension modules](../toolchain/packages.md#extension-modules)) compiles against the
@@ -1485,8 +1495,9 @@ A C module of the project's own is wired by its files:
   an enumerator or a macro. A name another file gives is E1145.
 - **A C file to a C file** (`shapes.shapes --> geom.geom { shape }`): declares what `geom.c` uses of
   `shapes.h`, which Clang holds to the sources ([A C module's files](#a-c-modules-files)). The
-  module that holds `geom.c` is then built with the other on its include path, and the other is
-  in every program it is in.
+  other module is in every program the one that holds `geom.c` is in. No wire gives a module of
+  the project an include path: its table's `include` names every directory its sources read
+  headers from, outside its own directory too (`include = ["../Include"]`).
 - A wire from the module itself (`shapes ++> main { point }`, `shapes ++> geom;`) is E1576, whose
   message gives the wires to write in its place.
 
@@ -1596,7 +1607,14 @@ double scale(double);
 ```
 
 and `calc.c`'s `return scale(x) + bias;` gives `2.25` for `1.0`. C data a wire gives C is of
-`int`, `i8` to `u64`, `float`, `f32` or `ptr[...]` (E1237).
+`int`, `i8` to `u64`, `float`, `f32`, `ptr[...]` or a C record or union with a tag, which the
+header declares by its tag (E1237).
+
+A `glob` of C plain data whose value is made of constants, of `addressof` of other globs and of
+named functions given to a C record's function pointer fields is **static data**: it has its
+value before any code runs, at the symbol C names, as a C static initializer has. So a ported
+CPython type object, `glob PyBool_Type: _typeobject = _typeobject(...)`, is there for the C
+that takes its address, whenever that C runs.
 
 An extension module of Python whose C calls Jac is built the same way: with
 `counted --> csrc.spam { counted_words }` in `archwire.jac`, `csrc/spam.c` keeps its
