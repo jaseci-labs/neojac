@@ -52,7 +52,7 @@ the module `geom`.
 | `for (int i = 0; i < n; i++) { }`, `for (p = head; p; p = p->next) { }` | `for i = i32(0) while i < n with i += 1 { }`, `for p = head while p != ptr[link](ptr()) with p = p[0].next { }` |
 | `do { } while (c);`; one with a `continue` of its own; a `for` whose step is more than one assignment, `for (i = 0, j = n; i < j; i++, j--)`, with a `continue` | `while True { ... if not c { break; } }`; `while True { do:pass_1 { ... break:pass_1; ... } if not c { break; } }`, `i = 0; j = n; while i < j { do:pass_2 { ... break:pass_2; ... } i += 1; j -= 1; }`: the body a named `do` block its `continue` leaves, to the condition or the step as C's goes |
 | `return v;`, `break;`, `continue;` | The same |
-| `goto error;` forward, to a label of a block that holds the `goto`, from anywhere before the label: a nested loop, a `switch`, an earlier label's code; `goto again;` back, to a label before it | `break:error;`, out of `do:error { ... }`, a block that ends where the label stands; `continue:again;` of `forever:again { ... break:again; }`, a loop from the label to the last `goto` back to it: a named `break` and `continue` leave the loops and switches between, at any depth |
+| `goto error;` forward, to a label of a block that holds the `goto`, from anywhere before the label: a nested loop, a `switch`, an earlier label's code; `goto again;` back, to a label before it | `break:error;`, out of `do:error { ... }`, a block that ends where the label stands; `continue:again;` of `forever:again { ... break:again; }`, a loop from the label to the last `goto` back to it: a named `break` and `continue` leave the loops and switches between, at any depth. Flow these cannot say (a `goto` into a block, or into the loop a `goto` back makes, from outside it; a `goto` back across a `break` of a statement around it; a `case` label inside a block of its `switch`) is a state loop, `jump: i32 = 0; forever:jumps_1 { switch jump { case 0: ... case 1: ... } break:jumps_1; }`: each region of straight code a case, each jump `jump = 1; continue:jumps_1;`, a statement that holds a place a jump goes to taken apart into its regions, and the locals they share declared before the loop |
 | `error: free(buf); return NULL;` that a forward `goto` reaches, or that none does; its code may return, go to a later label, or leave its loop | `do:error { ... } free(buf); return None;`: the label's code follows the block a `goto` to it leaves, and the code before falls into it; a label no `goto` names is its statement; C's `skip:` is `label_skip`, a name Jac keeps |
 | `a + b`, `a - b`, `a * b` of signed integers and of floats | `a + b`, `a - b`, `a * b`: C leaves a signed overflow undefined, and Jac raises OverflowError |
 | `a + b`, `a - b`, `a * b`, `a << k` of unsigned integers | `a +% b`, `a -% b`, `a *% b`, `wrapping_shl(a, k)`: they wrap, as C defines |
@@ -95,9 +95,8 @@ the module `geom`.
 
 Anything not in the table is refused with E4001, and nothing is written for the file: a record
 with no name that no field names, a copy of a union a system header
-declares, a `goto` into a block from outside it or into the loop a `goto` back makes, a `goto`
-back whose loop would take a `break` or a `continue` of a statement around it, a `va_list`
-that is read from a record or a global, a pointer to an array (the address of an array given where C takes
+declares, a `va_list` that is read from a record or a global, a null `va_list *`, a pointer
+to an array (the address of an array given where C takes
 another pointer is the address of its first item), a record
 or a field with an attribute other than packed or aligned, a thread-local variable. So is a
 construct in the table whose Jac would mean something else (E4005):

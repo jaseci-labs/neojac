@@ -217,7 +217,10 @@ together.
   ([a module whose name is no identifier](../language/modules.md#a-module-whose-name-is-no-identifier));
 - keeps the wires of the files that stay in their language and use it: a `-->` wire declares an
   import their own source writes (C's `#include` and calls, JavaScript's `import`), and it now
-  names what they take of a Jac module; a C source leaves its module's table in `jac.toml`;
+  names what they take of a Jac module; a name such a wire gives from a C source that the Jac
+  module no longer gives (a macro the source set before a header that reads it, as CPython's
+  getargs.c sets `PY_CXX_CONST` for `pyport.h`) leaves it; a C source leaves its module's table
+  in `jac.toml`;
 - and makes all of it only if the project then checks. Otherwise nothing of that step is
   written (E4008, at its first source, after the errors the check found): its sources stay, and
   `archwire.jac`, `jac.toml` and every manifest written from it are as they were for it.
@@ -229,8 +232,12 @@ shop/use.py -> replaced-by-neojac/shop/use.py
 ```
 
 - **The C that stays calls the Jac.** A C source of the module that is not ported, and called a
-  function of the ported file, calls the Jac module's function through its wire, by the header
-  beside the Jac module ([C modules](../interop/c-modules.md#calling-jac-from-c)).
+  function of the ported file or read its data, calls the Jac module's function and reads its C
+  data through its wire, by the header beside the Jac module or the module's own headers
+  ([C modules](../interop/c-modules.md#calling-jac-from-c)). Which module gives a name is a fact
+  of each target: of two parts of a source that define one function, each for the platforms
+  that include it (CPython's `thread_pthread.h` and `thread_nt.h`), the C of a target calls the
+  one its own build has.
 - **A header ported with its source stays only while C that stays reads it.** A header beside a
   source of its stem (`count.h` beside `count.c`) is, once the source is Jac, the Jac module's
   face to C, which the C that stays includes to call it. It moves to `replaced-by-neojac/`,

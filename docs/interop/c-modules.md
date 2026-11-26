@@ -135,7 +135,7 @@ headers (`<stdio.h>`, `<stdint.h>`) are not part of the module.
 | `double`, `float` | `float`, `f32` |
 | `const char *` parameter | `str \| bytes \| bytearray \| ptr[i8] \| None`: the text, the bytes of a buffer, a pointer passed as it is, or `NULL` |
 | `const unsigned char *` parameter | `str \| bytes \| bytearray \| ptr[u8] \| None`, as a `const char *` is, with a pointer to bytes passed as it is: `shape_octet_sum(b"\x01\x02\x03", 3)` |
-| `const char *` result | `str \| None`, `None` for `NULL`; a C++ class's member gives `ptr[i8]` instead ([below](#what-jac-uses-of-c)) |
+| `const char *` result | `str \| None`, `None` for `NULL`; a C++ class's member gives `ptr[i8]` instead ([below](#what-jac-uses-of-c)), and so does the interface of a source a Jac module of `jac` replaces, for a parameter too ([below](#the-manifest)) |
 | `char *` | `ptr[i8]`, whatever the target's `char` signedness |
 | Any other pointer `T *` | `ptr[T]`; a parameter also takes `&x` or `&mut x` of a `T` variable, its address for the call |
 | A pointer to a function | `Callable[[P, ...], R] \| None`, which a named Jac function is passed as, or `None` for `NULL`; a C function of a module is passed as its own address, to a parameter or a record's field: with `int64_t pick(int64_t (*f)(int64_t), int64_t x)` and `twice` of one module wired in, `pick(twice, 21)` is C's `pick(twice, 21)` |
@@ -144,7 +144,7 @@ headers (`<stdio.h>`, `<stdint.h>`) are not part of the module.
 | A `struct` holding bit-fields, or arrays of numbers, pointers, function pointers or records | A record with [bit-fields and arrays](c-libraries.md#bit-fields-and-arrays), checked against Clang's layout: `void (*callbacks[32])(void);` is `callbacks: array[Callable[[], None] \| None, 32]` |
 | A bit-field with no name, which only pads (`unsigned : 24;`, `unsigned : 0;`) | `_: u32: 24`, `_: u32: 0`: laid out as C lays it out, with no name a program reads |
 | A trailing array of no length (`int32_t data[];`) | Left out of the record, whose size stays C's: it is the memory past the record |
-| A `union`, a `typedef union` | A [union](../language/structs.md#unions), used by address and as a field |
+| A `union`, a `typedef union` | A [union](../language/structs.md#unions), used by address and as a field, and passed and returned by value as the target's C calling convention passes it (`double number_value(union number n)` is `number_value(number(f=1.5))`) |
 | A record with no name that is a field's type (`struct { union { ... } amount; }`) | A record named by its record and field (`shape_tagged_amount`), reached through the field |
 | An anonymous member, a record with no name and no field name (`struct value { int32_t kind; union { int64_t whole; double real; }; }`) | A field `anon0` (the next anonymous member `anon1`) of a record named by its record and that name (`value_anon0`): C's `v.whole` is `v.anon0.whole`. Where the record has a field of its own named `anon0`, the member stays unnamed, and `neojac port` refuses a use of it |
 | A record whose tag is also a function's name (`struct extent` beside `int64_t extent(struct extent *e)`) | A record named `struct_` and its tag, `obj extent as struct_extent` in the interface: `struct_extent(w=i32(6), h=i32(7))`. It is the one type `struct extent` is across the program, and a wire names it `struct_extent` (see [A record named in Jac other than by its tag](c-libraries.md#a-record-named-in-jac-other-than-by-its-tag)) |
@@ -291,10 +291,15 @@ frameworks = ["CoreFoundation"]    # macOS frameworks its code calls
   between two of them where it stood (`{ define = "OFF(x)=offsetof(PyFunctionObject, x)" }`,
   `{ undef = "X" }`: `headers = ["Python.h", { define = "OFF(x)=offsetof(PyFunctionObject, x)" }, "structmember.h"]`),
   and the flags the source was compiled with (`include`, `defines`, `cflags`), which port writes.
-  Its interface is those headers read in that order, each macro set where it stands, under the
+  Its interface is those headers read in that order, each macro set where it stands, and what a
+  part of the source (a header only it includes that defines functions, ported with it) includes,
+  where the part stood, under the
   module's flags and its own, with what the module's other
-  sources define that its wires name and the headers do not declare. A target table holds a
-  target's own headers, after the base table's. The module's interface proper is read only
+  sources define that its wires name and the headers do not declare. A C string there is the
+  pointer C has, with its `NULL` and its identity, as the ported C keeps it: a `const char *`
+  parameter and result are `ptr[i8]` (a `const unsigned char *` `ptr[u8]`), as a field and a
+  global are, where the interface a program writes against the module gives a `str`, a copy.
+  A target table holds a target's own headers, after the base table's. The module's interface proper is read only
   where something other than its own Jac modules binds from it.
 - `interpreter = true` says the module is an interpreter's C API, which the interpreter that
   loads an extension module gives it: a program that is an extension module
@@ -1545,7 +1550,8 @@ def:pub jhelp_calls -> int {
 ```
 
 neojac writes the header `jac/jhelp.h`, which declares exactly the functions the wires give that
-C module, before Clang reads any of its files:
+C module, before Clang reads any of its files (for a Jac module a C module's table lists, those
+no header of its source's translation unit declares, below):
 
 ```c
 int64_t jhelp_calls(void);
@@ -1577,6 +1583,13 @@ double shapes_jac_scaled(double x, int32_t *calls) {
   `int64_t twice_with(int64_t (*)(int64_t), int64_t);` in the header, and calls what C passed
   as C's function, `f(f(x))`. `ptr(f)` is the address C passed (see
   [Callbacks](c-libraries.md#callbacks)).
+- **The header of a Jac module that replaces a C source** (one a C module's table lists under
+  `jac`) declares only what no header of the source's translation unit declares: those headers
+  are what the module's C goes on including, and they already declare what the source defined,
+  which the header repeating could only disagree with. A record what is left takes or gives is
+  spelled as its header spells it, `struct <tag>`, or the typedef that alone names a record with
+  no tag (`PyStatus`, `span`), and that header is included: `int32_t span_width(span);` after
+  `#include "scale.h"`. A record no name of C spells is E1237 or E1249.
 - **A header beside a Jac module of its stem** (`cpu.h` beside `cpu.jac`) is that module's face to
   C: a C use of a name it declares is a use of the Jac module. This is how a C file that
   [`neojac port`](../toolchain/port.md#in-a-project) made Jac is still called by the C of its
