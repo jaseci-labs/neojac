@@ -45,6 +45,7 @@ which converts an operand as JavaScript does.
 | `for (const k in o) { }` | `for k in js_for_in(o) { }`: the keys JavaScript visits, as it visits them |
 | `return v;`, `break;`, `continue;` | The same |
 | `3`, `2.5`, `0xff` | `3.0`, `2.5`, `255.0`: a number is a float |
+| `10n`, in a JavaScript space | `globalThis.BigInt("10")`: JavaScript's own big integer, and its arithmetic JavaScript's, through `js`'s operators (`js_add`, `js_lt`), as of any value that is no number |
 | `"a"`, `'a'`, `` `a${s}b` `` of strings | `"a"`, `"a" + s + "b"` |
 | `null`, `x === null`, `x == null` | `JsNull`, `x is JsNull`, `(x is None or x is JsNull)`, of `import from js { JsNull }` |
 | `if (x)`, `!x`, `a \|\| b`, `a && b` of values that are not booleans; `o[k]`, `o[k] = v` but of an array's literal index | `if js_truthy(x)`, `not js_truthy(x)`, `(a if js_truthy(a) else b)`, `(b if js_truthy(a) else a)`; `js_item(o, k)`, `js_set_item(o, k, v);`, of `js` |
