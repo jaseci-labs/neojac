@@ -106,6 +106,104 @@ records are (see [Decorators](decorators.md#packed)).
 A struct never holds itself (E1501): a field of its own type would have no
 size.
 
+### Bit-fields
+
+A width after an integer field's type makes it a **bit-field**, as C's `unsigned ready : 1;`:
+`has ready: u32: 1`. Its type is an integer type, or `bool`, at least that wide (E2263), and its
+width an integer literal (E0181). A run of bit-fields packs into units of their type, and one that
+would cross its unit's end starts the next, as the Itanium and AAPCS layouts place it. Reading one
+gives its bits as its type, sign-extended for a signed type; writing one writes its bits and keeps
+the rest of its unit, truncating the value as C does. A struct, a union and a C record have
+bit-fields (E2262 on any other archetype).
+
+A bit-field named `_` only pads, as C's unnamed one does: `has _: u32: 4;` takes four bits, and
+`has _: u32: 0;` closes the unit it is in, so that what follows starts at the next boundary of its
+type. It has no name: any number of them stand in one struct, it takes no value where the struct
+is made (E2265), and `s._` is no field (E1030). Its type does not raise the struct's alignment.
+Only `_` is 0 bits wide (E2264); a field named `_` with no width is an ordinary field.
+
+```jac
+import from jaclang.comptime { sizeof }
+
+struct Flags {
+    has ready: u32: 1 = 0,
+        kind: u32: 3 = 0,
+        _: u32: 4,
+        level: i32: 5 = 0,
+        _: u32: 0,
+        after: u8 = 0;
+}
+
+with entry {
+    f = Flags(ready=1, kind=5, level=-3, after=7);
+    f.kind = 9;
+    print(f.ready, f.kind, f.level, f.after, sizeof(Flags));
+}
+```
+
+```output
+1 1 -3 7 8
+```
+
+`kind` is three bits wide, so 9 is stored as 1, as C truncates it; `level` is signed and reads
+-3; the padding and the unit `_: u32: 0` closes put `after` at byte 4, and the struct is 8 bytes.
+
+A bit-field has no address (E1154). Bit-fields are native: in a `cpython` or JavaScript space
+they are E5090.
+
+### C function pointers
+
+A field of a `Callable` type holds C's function pointer, the function's address, as a C record's
+field does ([C libraries](../interop/c-libraries.md#callbacks)), and the struct stays plain data:
+copied byte for byte, held in C memory, given to C by `addressof`. Writing the field takes a named
+function, `None` (C's `NULL`) or `Callable[[P], R](p)` of an address (E1195 otherwise); reading it
+gives a function value that calls the address. `Callable[[P], R] | None` says the pointer may be
+null; its signature is one C has (E1152). Two structs compare equal where their pointers hold the
+same address.
+
+An `array[Callable[[P], R] | None, N]` holds `N` of them: in a struct, a C record, a `glob` or a
+local, made zeroed (every item `None`) or from its items, each a named function or `None`. An item
+is read and written as such a field is, and `addressof(a[i])` is a `ptr[Callable[[P], R] | None]`
+to it, as `addressof(s.f)` is to a field.
+
+```jac
+import from jaclang.comptime { sizeof }
+
+def twice(x: i32) -> i32 {
+    return 2 * x;
+}
+
+def thrice(x: i32) -> i32 {
+    return 3 * x;
+}
+
+struct Ops {
+    has run: Callable[[i32], i32] | None = None,
+        n: i32 = 0;
+}
+
+glob steps: array[Callable[[i32], i32] | None, 3] = array[Callable[[i32], i32] | None, 3](
+    twice, None, thrice
+);
+
+with entry {
+    o = Ops(run=twice, n=4);
+    print(o.run(o.n), sizeof(Ops));
+    o.run = thrice;
+    last = steps[2];
+    if last is not None and steps[1] is None {
+        print(o.run(o.n), last(7));
+    }
+}
+```
+
+```output
+8 16
+12 21
+```
+
+Function pointers are native: in a `cpython` or JavaScript space they are E5090.
+
 ## Copies
 
 A struct is copied when it is

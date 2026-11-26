@@ -402,12 +402,18 @@ an integer type, or `bool`, at least that wide (E2263), and its width an integer
 A run of bit-fields packs into units of their type, and one that would cross its unit's end starts
 the next, as the Itanium and AAPCS layouts place it. Reading one gives its bits as its type,
 sign-extended for a signed type; writing one writes its bits and keeps the rest of its unit,
-truncating the value as C does. Only a C record has bit-fields (E2262): a Jac struct's layout is
-not C's.
+truncating the value as C does. A bit-field named `_` only pads, as C's unnamed one does:
+`_: u32: 3` is `unsigned : 3;` and `_: u32: 0` is `unsigned : 0;`, which closes its unit. Any
+number of them stand in one record, and none is a field a program reads or makes the record with.
+A struct and a union have bit-fields too, laid out the same way
+([Structs](../language/structs.md#bit-fields)); any other archetype has none (E2262).
 
-A field of type `array[T, N]`, `T` a number, a pointer, a C record or an array of them, is a C
-array in the record, laid out as C lays it out: C's `const char *names[3];` is `names: array[ptr[i8], 3]`. `r.name` is the array in place, so `r.name[0] = v` writes the record's
-memory, and assigning the field copies a whole array in.
+A field of type `array[T, N]`, `T` a number, a pointer, a C function pointer
+(`Callable[[P], R] | None`), a C record or an array of them, is a C array in the record, laid out
+as C lays it out: C's `const char *names[3];` is `names: array[ptr[i8], 3]`, and
+`void (*callbacks[32])(void);` is `callbacks: array[Callable[[], None] | None, 32]`. `r.name` is
+the array in place, so `r.name[0] = v` writes the record's memory, and assigning the field copies
+a whole array in.
 
 ```jac
 import from c {

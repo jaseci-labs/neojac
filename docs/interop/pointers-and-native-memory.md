@@ -388,7 +388,10 @@ place's type. A place is:
 `T` is C plain data, as a pointer's item is ([What a pointer does](#what-a-pointer-does)): a sized
 number, `int`, `float`, `bool`, a pointer, a C record, a plain struct, a union, or an `array` of
 those. Of an `array[T, N]` place, and of a C array an import block defines, it is a `ptr[T]` to the
-first item.
+first item. A place that holds C's function pointer, a struct's or a C record's `Callable` field
+or an item of an `array[Callable[[P], R] | None, N]`, gives a `ptr[Callable[[P], R] | None]`
+([A pointer to a function pointer](c-libraries.md#a-pointer-to-a-function-pointer)); a variable
+of a `Callable` type holds a function value, which is no C data.
 
 ```jac
 import from c {
@@ -438,7 +441,8 @@ with entry {
   which Jac holds widened to a float.
 
 It takes nothing else (E1154): a value no variable, field or item holds (`addressof(f())`), an
-item of a `list` or a field of an `obj` of a type Jac lays out, a `str`, an object, a function.
+item of a `list` or a field of an `obj` of a type Jac lays out, a bit-field, a `str`, an object, a
+function, a variable of a `Callable` type.
 [C libraries](c-libraries.md) shows it with a C global.
 
 ## Accesses that say more: `load`, `store`, `vector`
