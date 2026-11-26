@@ -91,7 +91,8 @@ limited to what the compiler evaluates:
 | Arithmetic, comparison, `and`, `or`, `not`, bitwise operators on ints | A comprehension |
 | `+` of strs, lists and tuples; `*` of a str by an int | An f-string |
 | Indexing (`xs[0]`, `xs[-1]`, `d["k"]`, `s[0]`) | A slice (`xs[1:]`) |
-| `in` and `not in` on a list, tuple, set or dict, and of a str in a str | A conditional expression (`a if c else b`), a chained comparison (`a < b < c`) |
+| `in` and `not in` on a list, tuple, set or dict, and of a str in a str | A chained comparison (`a < b < c`) |
+| A conditional expression of a bool condition (`a if c else b`), its arm the condition takes alone | A conditional expression whose condition is no bool (`1 if n else 2`) |
 | `len`, `min`, `max`, `abs`, `round`, `int`, `float` | `str()`, `sum()`, `sorted()`, `divmod()` |
 | `list(...)`, `tuple(...)`, `range(...)` | Methods of strs and lists (`.upper()`, `.append()`) |
 | `d.keys()`, `d.values()` | `d.items()`, `d.get()` |
