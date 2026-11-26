@@ -20,7 +20,7 @@ the module `geom`.
 | C | Jac |
 |---|---|
 | `int`, `unsigned`, `long long`, `int64_t`, `signed char`, `unsigned char`, `short`, `double`, `float`, `_Bool` | `i32`, `u32`, `int`, `int`, `i8`, `u8`, `i16`, `float`, `f32`, `bool`: an integer by its width on each target, and a signed 64-bit one is `int`, as a C module's interface declares it |
-| `int *`, `void *`, `const char *`, `FILE *`, `int (*)(int, int)`, `int (**)(int)`, `long long (*)()` (a function of no prototype, as `FARPROC`), `char [16]` in a record or at file scope | `ptr[i32]`, `ptr`, `ptr[i8]` on every target, `ptr[FILE]` with `obj FILE;` in `import from c`, `Callable[[i32, i32], i32] \| None`, `ptr[Callable[[i32], i32] \| None]` (its item `p[0]` read and written as the function pointer, and a local function pointer whose address is taken the item in the frame, `__alloca` memory, since a `Callable` is no C plain data), `ptr` (converted to a prototype before each call, as C does), `array[i8, 16]` |
+| `int *`, `void *`, `const char *`, `FILE *`, `int (*)(int, int)`, `int (**)(int)`, `long long (*)()` (a function of no prototype, as `FARPROC`), `char [16]` in a record or at file scope | `ptr[i32]`, `ptr`, `ptr[i8]` on every target, `ptr[FILE]` with `obj FILE;` in `import from c`, `Callable[[i32, i32], i32] \| None`, `ptr[Callable[[i32], i32] \| None]` (its item `p[0]` read and written as the function pointer, and a local function pointer whose address is taken the item in the frame, `__alloca` memory, since a local of a `Callable` type holds a function value, no C data), `ptr` (converted to a prototype before each call, as C does), `array[i8, 16]` |
 | `char`, whose sign is the target's: `int n = c;`, `c == 'a'` | `i8` on every target. Its value as a number is the target's: `n = i32(c);`, and `n = i32(u8.wrap(c));` where `char` is unsigned (Linux arm64), the two under `comptime if` where the targets differ |
 | `int f(int a, double b) { }`, `void g(void) { }` | `def f(a: i32, b: float) -> i32 { }`, `def g { }` |
 | `__func__`, `__FUNCTION__`, `__PRETTY_FUNCTION__` (as glibc's `assert` gives them), GNU's `__extension__ e` | the function's name as a C string literal is, `ptr[i8]("name")`; `e` |
@@ -35,6 +35,10 @@ the module `geom`.
 | `extern int counted;` at file scope or in a function, of a global another file of the module defines, and `counted` where it is used | Nothing where it is declared, and `counted`, which the wire from the file that defines it gives, `native.unity ++> native.count { counted }` |
 | `struct point { double x; int n; };`, `struct point p = {1.5, 2};`, `p.x` | `struct point { has x: float = 0.0, n: i32 = 0; }`, `p: point = point(x=1.5, n=2);`, `p.x` |
 | `union word { unsigned whole; unsigned short half; };`, `union word w; w.whole = 1;`: a union the file declares, at file scope or in a function | `union word { has whole: u32, half: u16; }`, `w: word = word(); w.whole = 1;`: a Jac union, made zeroed, its fields with no default |
+| `struct header { unsigned ready : 1; unsigned kind : 3; unsigned : 4; signed level : 5; unsigned : 0; unsigned char after; };`: bit-fields a record the file declares holds | `struct header { has ready: u32: 1 = 0, kind: u32: 3 = 0, _: u32: 4, level: i32: 5 = 0, _: u32: 0, after: u8 = 0; }`: a width on the field, laid out as C lays it out; a bit-field of no name only pads, `_`. On a target whose C lays bit-fields out otherwise (Windows' Microsoft layout) the record is refused |
+| `struct dispatch { long long (*run)(long long, long long); long long (*table[3])(long long, long long); };`, `static long long (*handlers[3])(long long, long long) = {added, NULL, larger};`, the same array in a function, `&handlers[2]` | `struct dispatch { has run: Callable[[int, int], int] \| None = None, table: array[Callable[[int, int], int] \| None, 3] = array[Callable[[int, int], int] \| None, 3](); }`, `glob handlers: array[Callable[[int, int], int] \| None, 3] = array[Callable[[int, int], int] \| None, 3](added, None, larger);`, `addressof(handlers[2])`: C's function pointers, held as the addresses they are |
+| `struct dispatch { int kind; union { int tag; unsigned flags; }; };`, `d.tag = 2;`: an anonymous member | `struct dispatch_anon0 { ... }` and the field `anon0: dispatch_anon0 = dispatch_anon0()`, `d.anon0.tag = 2;`: a record of no name, named for its record and the member, as a C module's interface names one |
+| `m->items[i]` of `int items[1];`, C's struct hack, and any index of an array that is not a constant its length keeps in range | `addressof(m[0].items[0])[i]`: the item at the address C reads, unchecked as C's index is; a constant index in range is the array's own, `m[0].items[0]` |
 | `#include "Python.h"` then `#include "pycore_long.h"`, and `#define NEEDS_ONE 1` above them, in a source of a C module of the project | The Jac module's table in jac.toml, `[c.cpython.files."Objects/boolobject.jac"] headers = ["<Python.h>", "<pycore_long.h>"]` and `defines = ["NEEDS_ONE=1"]`, beside the flags the table gave the source: the Jac module binds what its source's translation unit declared, its headers read in that order under those flags. A header beside the source is named by its path from the module, `Objects/clinic.h`; a macro set between two of them is refused |
 | `_Static_assert(sizeof(int) == 4, "four bytes");` at file scope or in a function | `comptime assert i32(u64(4) == 4) != 0, "four bytes";`, its condition as each target's reading has it |
 | `lldiv_t q = lldiv(47, 5);`, `union sigval v; v.sival_int = 9;`: a record or a union a system header declares, held by value, or a record of no name a named one's field has (`extern_proc`'s `p_un`); a record of a header of the project's C module | `obj lldiv_t { has quot: int, rem: int; }` and `union sigval { has sival_int: i32, sival_ptr: ptr; }` in `import from c`, the fields from Clang's layout, a record of no name by the two names (`extern_proc_p_un`); the module's record by the wire from its header |
@@ -89,12 +93,11 @@ the module `geom`.
 ## What is refused
 
 Anything not in the table is refused with E4001, and nothing is written for the file: a record
-with no name and a bit-field the file declares, a copy of a union a system header
+with no name that no field names, a copy of a union a system header
 declares, a `goto` into a block from outside it or into the loop a `goto` back makes, a `goto`
 back whose loop would take a `break` or a `continue` of a statement around it, a `va_list`
 that is read from a record or a global, a pointer to an array (the address of an array given where C takes
-another pointer is the address of its first item), an array of function pointers in a
-function's frame, a record
+another pointer is the address of its first item), a record
 or a field with an attribute other than packed or aligned, a thread-local variable. So is a
 construct in the table whose Jac would mean something else (E4005):
 
