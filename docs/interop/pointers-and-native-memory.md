@@ -375,11 +375,71 @@ TypeError: held[Tally]() of an address C does not hold
 
 ## `addressof`
 
-`addressof(x)` is the address of a C global or of a C record value, as a `ptr[T]`. For a C array
-defined in an import block it points at the first element. For a C record field of an `obj` or a
-struct (`addressof(t.pair)`) it is the field's own address inside the object, good while the object
-lives ([An object found by a record it keeps](#an-object-found-by-a-record-it-keeps)). It takes
-nothing else (E1154). [C libraries](c-libraries.md) shows it with a global.
+`addressof(place)` is the address of a place that holds C plain data, as a `ptr[T]`, `T` the
+place's type. A place is:
+
+- a `glob`, a C global of an import block among them;
+- a local variable or a parameter;
+- a field of a place: `addressof(p.x)` of a struct `p`, a C record's field wherever the record is,
+  and a field of an `obj` whose type is a C record, a struct or an array, kept in the object's own
+  memory (`addressof(t.pair)`, [An object found by a record it keeps](#an-object-found-by-a-record-it-keeps));
+- an item of an `array` place, `addressof(a[i])`, or of a pointer, `addressof(p[i])`.
+
+`T` is C plain data, as a pointer's item is ([What a pointer does](#what-a-pointer-does)): a sized
+number, `int`, `float`, `bool`, a pointer, a C record, a plain struct, a union, or an `array` of
+those. Of an `array[T, N]` place, and of a C array an import block defines, it is a `ptr[T]` to the
+first item.
+
+```jac
+import from c {
+    def memset(p: ptr, c: i32, n: int) -> ptr;
+}
+
+struct Point {
+    has x: f32 = f32(0.0),
+        n: i32 = i32(0);
+}
+
+glob calls: i32 = i32(0);
+
+def bump(p: ptr[i32]) {
+    p[0] = p[0] + i32(1);
+}
+
+with entry {
+    n: i32 = i32(41);
+    bump(addressof(n));
+    bump(addressof(calls));
+    pt = Point(x=f32(1.5), n=i32(2));
+    bump(addressof(pt.n));
+    xs = array[i32, 3](i32(1), i32(2), i32(3));
+    bump(addressof(xs[1]));
+    first = addressof(xs);
+    first[2] = i32(30);
+    memset(addressof(n), 0, 4);
+    print(n, calls, pt.n, xs[1], xs[2]);
+}
+```
+
+```output
+0 1 3 3 30
+```
+
+- **The place and the pointer are one memory.** A write through the pointer is what the name reads
+  next, and a write to the name is what the pointer reads.
+- **The pointer is good while the place lives**, as in C: a `glob` for the whole run, a local or a
+  parameter until its function returns, a field or an item while what holds it lives. Nothing
+  checks it, as nothing checks any `ptr`.
+- **Native and wasm.** On a JavaScript or CPython host, whose memory is not laid out as C's, it is
+  E5090, as a union is.
+- **A local whose memory is no frame of C's** is refused (E5090): a local of a generator or of an
+  async function, whose frame lives apart from the stack, a local a closure captures, which a cell
+  of its own holds, and a variable of a small float type (`f16`, `bf16`, the 8- and 4-bit ones),
+  which Jac holds widened to a float.
+
+It takes nothing else (E1154): a value no variable, field or item holds (`addressof(f())`), an
+item of a `list` or a field of an `obj` of a type Jac lays out, a `str`, an object, a function.
+[C libraries](c-libraries.md) shows it with a C global.
 
 ## Accesses that say more: `load`, `store`, `vector`
 
@@ -462,7 +522,7 @@ atomic ones are in [Atomic integers](../language/numbers-atomics.md).
 ## What is rejected
 
 ```jac
-# expect: E1040, E1191, E1199, E1152 x2, E1001, E1465, E1052, E1466, E1467, E1410, E1411, E1635 x2, E1638
+# expect: E1040, E1191, E1199, E1152 x2, E1001, E1465, E1052, E1466, E1467, E1410, E1411, E1635 x2, E1638, E1154 x2
 import from c {
     obj Pair {
         has a: i32,
@@ -497,6 +557,8 @@ with entry {
     lent = hold(5);
     held[Pair](bare);
     held[Box](v=bare);
+    names = ["a"];
+    print(addressof(names[0]), addressof(len(names)));
 }
 ```
 
@@ -511,7 +573,7 @@ with entry {
 | E1466 | `load` or `store` with no keyword |
 | E1467 | `load` or `store` of a C record or a struct |
 | E1410, E1411 | A vector of something that is no int or float type, or of a length that is not a power of two from 2 to 64 |
-| E1154 | `addressof()` of anything but a C record or a C global |
+| E1154 | `addressof()` of what is no place of C plain data: a call's value, an item of a `list`, a field an `obj` lays out |
 | E1635 | `hold()` of what is no counted object, or `held[T]` of a `T` that is none: `hold(5)`, `held[Pair](p)` |
 | E1638 | `held[T](f=p)` where `f` is no C record field `T` keeps in place, or `p` no `ptr` to that record: `held[Box](v=bare)` |
 

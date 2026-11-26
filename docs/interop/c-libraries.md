@@ -937,8 +937,9 @@ with entry {
 10 10 3.5 9.0
 ```
 
-`addressof(x)` gives the address of a C global or of a C record value, as a `ptr[T]`. It takes
-nothing else (E1154).
+`addressof(x)` gives the address of a C global or of a C record value, as a `ptr[T]`, and of any
+other place of C plain data: a `glob`, a local, a parameter, a field or an item of one
+([`addressof`](pointers-and-native-memory.md#addressof)). It takes nothing else (E1154).
 
 - **`glob:priv name: T = value;`** in an import block is C data that is the module's alone, as C's
   `static` at file scope: its symbol is internal and named for the module, so it never meets a
@@ -999,7 +1000,7 @@ with entry {
     print(abs(i64(n)));
     qsort(ptr[i32](), 0, 4, lambda (a: ptr[i32], b: ptr[i32]) -> i32 { return a[0] - b[0]; });
     printf("%d\n", [1, 2]);
-    print(addressof(n));
+    print(addressof([n]));
     f = FILE();
     print(table[2]);
     table = [4, 5, 6];
@@ -1017,7 +1018,7 @@ with entry {
 | E1152 | A borrow parameter, or `pin()`, of something that is not C plain data |
 | E1053 | An argument of another type than the parameter's, an `i64` where an `i32` is declared among them |
 | E1153 | A C array's name used as a list: indexed, assigned or passed, where only `addressof()` of it is a value |
-| E1154 | `addressof()` of something that is neither a C record nor a C global |
+| E1154 | `addressof()` of what is no place of C plain data: a value no variable, field or item holds |
 | E1155 | A C array defined by anything but a list literal |
 | E1157 | A variadic argument that is no C scalar, pointer, `str`, `bytes` or `bytearray` |
 | E1158 | A C function declared with `**kwargs` |
