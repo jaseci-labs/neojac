@@ -55,7 +55,7 @@ import_stmt ::= "comptime"? ("include" | "import" "type"?) ("from" from_path imp
 
 archetype ::= decorators "async"? ("union" | "struct" | "class" | "walker" | "edge" | "obj" | "node") access_tag NAME ("as" NAME)? ("[" type_params "]")? ("(" inherit_list ")")? (":" pipe "-->" pipe)? where_clause? ("{" archetype_member* "}" | ";")
 
-enum_decl ::= decorators "enum" access_tag NAME (":" atomic_chain | "(" atomic_chain ("," atomic_chain)* ")")? ("{" (enum_member "," | module_code)* "}" | ";")
+enum_decl ::= decorators "enum" access_tag NAME ("[" type_params "]")? (":" atomic_chain | "(" atomic_chain ("," atomic_chain)* ")")? ("{" (enum_member "," | module_code)* "}" | ";")
 
 test_decl ::= decorators "test" STRING? block
 
@@ -118,7 +118,7 @@ archetype_member ::= (STRING? (ability | has_stmt | members_if | members_try | c
 
 atomic_chain ::= atom ("?" (("<." | "." | ".>")? attr_name | index_slice) | ("<." | "." | ".>") attr_name | "(" ("=" (kw_arg ("," kw_arg)* ","?)? | call_args) ")" | "[" filter_body | index_slice)*
 
-enum_member ::= NAME ("=" expression)?
+enum_member ::= NAME ("(" member_fields ")")? ("=" expression)?
 
 block ::= "{" block_rest
 
@@ -235,6 +235,8 @@ call_args ::= (call_arg ("," call_arg)* ","?)?
 
 filter_body ::= "?" (":" expression ","?)? (compare ("," compare)*)? "]"
 
+member_fields ::= member_field ("," member_field)* ","?
+
 func_params ::= (("*" | "/" | param) ("," ("*" | "/" | param))* ","?)?
 
 lambda_expr ::= "lambda" ("(" func_params ")")? ("->" expression)? ("{" expression "}" | block)
@@ -320,6 +322,8 @@ brace_expr ::= "{" ("}" | dict_entry ("," dict_entry)* ","? "}" | expression (":
 slice_from ::= ":" expression? (":" expression?)?
 
 compare ::= cast (("==" | "!=" | "<" | ">" | "<=" | ">=" | "in" | "is" | "not in" | "is not") cast)*
+
+member_field ::= NAME ":" pipe ("=" expression)?
 
 param ::= "comptime"? ("*" | "**")? ("self" | NAME) (":" ownership_prefix pipe)? ("=" expression)?
 

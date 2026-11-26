@@ -1,5 +1,5 @@
 ---
-description: The match statement and every kind of pattern: literals, captures and _, dotted values, or-patterns and as, sequence, mapping and class patterns, and guards.
+description: The match statement and every kind of pattern: literals, captures and _, dotted values, or-patterns and as, sequence, mapping and class patterns, a sum's members, and guards.
 keywords: match, case, pattern, pattern matching, wildcard, capture pattern, class pattern, sequence pattern, mapping pattern, or-pattern, guard
 grammar: match_stmt, match_case, pattern, or_pattern, single_pattern, list_pattern, tuple_pattern, mapping_pattern, literal_pattern, name_pattern, seq_item, mapping_entry, mapping_key, class_pattern, class_pattern_arg
 ---
@@ -367,6 +367,52 @@ with entry {
 rex knows 3 tom has 9 pup knows nothing
 ```
 
+### Sums
+
+A class pattern whose name is a member of a [sum](enums.md#sums-members-that-hold-fields)
+matches a value that is that member, its patterns matching the member's fields
+by name or by position, in the order the member declares them. A member with no
+fields is matched by its name alone, as a value pattern (`case Shape.Empty:`).
+
+- **The case narrows the subject to the member**: in its guard and statements
+  the member's fields are read through the subject, and through a name `as`
+  binds, which they are nowhere else.
+- **A match whose subject is a sum covers every member** (E1172 names those left
+  out), or ends with a case that takes what is left, `case _:` or a capture.
+  A case covers its member when it has no guard and each of its sub-patterns
+  takes every value: a capture, `_`, or an `|` with one among its alternatives.
+  Such a match is known to run one of its cases, so a function that returns
+  from each of them needs no return after it.
+
+```jac
+enum Shape {
+    Circle(r: float),
+    Rect(w: float, h: float),
+    Empty,
+}
+
+def describe(s: Shape) -> str {
+    match s {
+        case Shape.Circle(r) if r > 5.0:
+            return "big circle";
+        case Shape.Circle() as c:
+            return f"circle {c.r}";
+        case Shape.Rect(w=1.0) | Shape.Empty:
+            return "unit or empty";
+        case Shape.Rect():
+            return f"rect {s.w}x{s.h}";
+    }
+}
+
+with entry {
+    print([describe(s) for s in [Shape.Circle(6.0), Shape.Circle(1.5), Shape.Rect(1.0, 2.0), Shape.Rect(2.0, 3.0), Shape.Empty]]);
+}
+```
+
+```output
+['big circle', 'circle 1.5', 'unit or empty', 'rect 2.0x3.0', 'unit or empty']
+```
+
 ## What is rejected
 
 | Code | Condition |
@@ -379,6 +425,8 @@ rex knows 3 tom has 9 pup knows nothing
 | E1036 | A class pattern of a container type: `case list(xs)` |
 | E1110 | A literal that cannot equal a value of the subject's type |
 | E1452 | One name captured as two different types in different cases |
+| E1172 | A match over a sum that leaves members out, with no case that takes what is left |
+| E1183 | A case naming a sum's member that holds fields without its parentheses: `case Shape.Circle:` |
 | E0001 | An expression that is not a pattern, such as `case 1 + 1:` |
 
 ```jac
@@ -429,4 +477,6 @@ def test_point(p: Pt, n: int) {
   `__match_args__`.
 - `case list(xs)` and the other container class patterns are not available.
 - A literal that can never equal the subject is a compile error.
+- Python has no sums, and checks no match for the cases it leaves out; a match
+  over a sum here covers every member.
 - `switch` is the form with C's fallthrough; see [Control flow](control-flow.md#switch).

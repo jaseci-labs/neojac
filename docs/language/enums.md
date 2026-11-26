@@ -1,20 +1,26 @@
 ---
-description: Enums, their members' names and values, int-typed and str-typed enums, looking a member up by value or name, iterating an enum, and methods written in an enum's body.
-keywords: enum, enums, enum member, enumeration, typed enum, int enum, str enum, auto value
-grammar: enum_decl, enum_member
+description: Enums, their members' names and values, int-typed and str-typed enums, looking a member up by value or name, iterating an enum, methods written in an enum's body, and sums, enums whose members hold fields.
+keywords: enum, enums, enum member, enumeration, typed enum, int enum, str enum, auto value, sum type, sums, tagged union, member field
+grammar: enum_decl, enum_member, member_fields, member_field
 ---
 # Enums
 
 An `enum` is a type with a fixed set of named members. Each member has a
 `name` and a `value`, is a single object for the whole program, and is
-compared by identity.
+compared by identity. An enum some of whose members hold fields is a
+[sum](#sums-members-that-hold-fields): a value, held in place as a struct is,
+that is one of its members with that member's fields.
 
 ## Syntax
 
 ```ebnf
-enum_decl ::= decorators "enum" access_tag NAME (":" atomic_chain | "(" atomic_chain ("," atomic_chain)* ")")? ("{" (enum_member "," | module_code)* "}" | ";")
+enum_decl ::= decorators "enum" access_tag NAME ("[" type_params "]")? (":" atomic_chain | "(" atomic_chain ("," atomic_chain)* ")")? ("{" (enum_member "," | module_code)* "}" | ";")
 
-enum_member ::= NAME ("=" expression)?
+enum_member ::= NAME ("(" member_fields ")")? ("=" expression)?
+
+member_fields ::= member_field ("," member_field)* ","?
+
+member_field ::= NAME ":" pipe ("=" expression)?
 ```
 
 - Every member is followed by a comma, the last one too. A member without
@@ -25,6 +31,9 @@ enum_member ::= NAME ("=" expression)?
 - An enum takes an [access tag](access.md) (`enum:pub Level {`) and
   [decorators](decorators.md).
 - An enum is declared at module level.
+- A member followed by parentheses holds the fields they declare, and the enum
+  is then a sum; type parameters in brackets after an enum's name make a
+  generic sum (see [Sums](#sums-members-that-hold-fields)).
 
 ## Members, names and values
 
@@ -262,6 +271,125 @@ with entry {
 The block holds `def`s only. Any other statement in an enum's body is
 refused (E5090).
 
+## Sums: members that hold fields
+
+A member may hold fields, declared in parentheses after its name as a struct's
+are, each a name, a type and an optional default. An enum any of whose members
+holds fields is a **sum**: a value of it is one of its members, with that
+member's fields. A member with no fields is a value of it too.
+
+```jac
+enum Shape {
+    Circle(r: float),
+    Rect(w: float, h: float),
+    Empty,
+}
+
+def area(s: Shape) -> float {
+    match s {
+        case Shape.Circle(r=r):
+            return 3.0 * r * r;
+        case Shape.Rect(w, h):
+            return w * h;
+        case Shape.Empty:
+            return 0.0;
+    }
+}
+
+with entry {
+    shapes = [Shape.Circle(r=1.0), Shape.Rect(2.0, 3.0), Shape.Empty];
+    print([area(s) for s in shapes], shapes[0], shapes[0] == Shape.Circle(1.0), shapes[2].name);
+}
+```
+
+```output
+[3.0, 6.0, 0.0] Shape.Circle(r=1.0) True Empty
+```
+
+- **A sum is a value, held in place and copied where it goes, exactly as a
+  [struct](structs.md) is**: assigning, passing, returning and storing one
+  copies it, and a field of an `obj` or a struct, or an item of a list, of a
+  sum's type holds it in place. A member's fields are typed, owned and dropped
+  as a struct's fields are: a reference one holds is counted in every place
+  that holds the sum. Natively a sum is a 4-byte tag followed by the storage
+  of its largest member, laid out as C lays out a tag followed by a union of
+  structs.
+- **Making one**: `Shape.Circle(r=1.0)` or by position, `Shape.Circle(1.0)`,
+  checked as a struct's construction is, a field with a default left out as
+  it may be. A member with no fields is `Shape.Empty`, with no parentheses.
+- **Reading one**: a `match` whose cases are class patterns on its members,
+  `case Shape.Circle(r=x):`, `case Shape.Rect(w, h):`, with sub-patterns,
+  guards, `|` and `as` as class patterns have them, and `case Shape.Empty:`
+  for a member with no fields (see [Pattern matching](pattern-matching.md#sums)).
+  In such a case the subject, and a name `as` binds, is narrowed to that
+  member, and its fields are read through it (`s.r`). Outside such a case a
+  member's field is not read (E1030).
+- **A `match` whose subject is a sum covers every member, or ends with a case
+  that takes what is left** (`case _:` or a capture); one that does not is
+  E1172, which names the members left out. A case covers its member when it
+  has no guard and its sub-patterns take every value.
+- `==` and `!=` compare the member and then its fields, as a struct's equality
+  compares its fields, and a sum is hashed likewise, so it is a dict's key or a
+  set's member where its fields hash. `str` and `repr` give `Shape.Circle(r=1.0)`
+  and `Shape.Empty`, and `.name` is the member's name.
+- A sum has no `.value`, and is not iterated, measured with `len`, called or
+  looked up by name (`Shape(1)`, `Shape["Empty"]`, E1184). `members(Shape)` of
+  `jaclang.comptime` gives its members at compile time, as any enum's, each
+  with its `.name`.
+- Methods are written in a sum's body as in any enum's, and `self` there is
+  the value.
+- Writing a member's field in place, `s.r = 2.0` in a case that narrows `s`,
+  is not built yet (E5090): make the member anew.
+
+### Generic sums
+
+Type parameters in brackets after an enum's name make a generic sum, as they
+make a [generic class](generics-classes.md). A use of a member finds the type
+arguments from the fields it is given, or from the type the place that takes
+it wants, or takes them as written; each set of arguments is an instance of
+its own, laid out for its types, as a generic struct's is.
+
+```jac
+enum Maybe[T] {
+    Some(value: T),
+    Nothing,
+
+    with entry {
+        def present(self: Maybe[T]) -> bool {
+            match self {
+                case Maybe.Some():
+                    return True;
+                case Maybe.Nothing:
+                    return False;
+            }
+        }
+    }
+}
+
+def first_word(words: list[str]) -> Maybe[str] {
+    if len(words) == 0 {
+        return Maybe.Nothing;
+    }
+    return Maybe.Some(words[0]);
+}
+
+with entry {
+    none: Maybe[int] = Maybe.Nothing;
+    print(Maybe.Some(3), none == Maybe[int].Nothing, Maybe.Some(1).present());
+    print(first_word(["hi", "there"]), first_word([]));
+}
+```
+
+```output
+Maybe.Some(value=3) True True
+Maybe.Some(value='hi') Maybe.Nothing
+```
+
+A sum is built natively: in a `cpython` or JavaScript space it is refused
+(E5090), as are a bound or a compile-time value parameter on a sum's type
+parameter, a `Callable` or borrowed field of a member, and a sum in a
+[kernel](../accel/kernels.md).
+
 ## What is rejected
 
 | Code | When |
@@ -272,7 +400,14 @@ refused (E5090).
 | E1030 | `Color.PINK`, a member the enum does not have; assigning a member or its `value` |
 | E1001 | A value that is not a member where the enum is wanted: `c: Color = 1`, and `s: Severity = "low"` for a str-typed one; a member of a str-typed enum whose value is not a str literal, or that has none |
 | E1110 | A member of a plain enum compared or computed with an int, or ordered with `<` |
-| E5090 | A value that is not an int or str literal (`X = 1 + 1`, `X = 1.5`); two members with the same value; a value type other than `int` and `str`; a base list; a statement other than a `def` in the body |
+| E5090 | A value that is not an int or str literal (`X = 1 + 1`, `X = 1.5`); two members with the same value; a value type other than `int` and `str`; a base list; a statement other than a `def` in the body; of a sum, what [Sums](#sums-members-that-hold-fields) lists as not built |
+| W3005 | Empty parentheses after a member: `Empty(),` is `Empty,` |
+| E2107 | A sum gives a member a value (`A(x: int) = 1`) or has a value type (`enum S: int`) |
+| E1501 | A member's field holds the sum itself in place, directly or through a struct |
+| E1172 | A `match` over a sum leaves members out, with no case that takes what is left |
+| E1183 | A member that holds fields named without its parentheses: `Shape.Circle` as a value, `case Shape.Circle:` |
+| E1030 | A member's field read outside a case that matches it; `.value` of a sum |
+| E1184 | A sum called (`Shape(1)`) or looked up by a member's name (`Shape["Empty"]`) |
 
 ```jac
 # expect: E0002
@@ -316,6 +451,62 @@ with entry {
 }
 ```
 
+A sum's declaration errors are reported as the program's declarations are
+read:
+
+```jac
+# expect: E2107 x2, E1501
+enum Valued {
+    A(x: int) = 1,
+    B,
+}
+
+enum Typed: int {
+    A(x: int),
+    B,
+}
+
+enum Holds {
+    Here(inner: Holds),
+    Nil,
+}
+```
+
+Then the errors of its uses:
+
+```jac
+# expect: E1172, E1183 x2, E1030 x2, E1184
+enum Shape {
+    Circle(r: float),
+    Rect(w: float, h: float),
+    Empty,
+}
+
+def area(s: Shape) -> float {
+    match s {
+        case Shape.Circle(r=r):
+            return r;
+        case Shape.Rect(w, h) if w > 0.0:
+            return w * h;
+    }
+    return 0.0;
+}
+
+def wrong(s: Shape) -> float {
+    made = Shape.Circle;
+    match s {
+        case Shape.Circle:
+            return 1.0;
+        case _:
+            return s.r;
+    }
+}
+
+with entry {
+    print(Shape.Circle(1.0).value, Shape(1));
+}
+```
+
 ## Differences from Python and from the reference design
 
 - **In Python an enum is a class deriving from `Enum`, `IntEnum`, `StrEnum`
@@ -336,9 +527,14 @@ with entry {
 - **In the reference design the last member needs no comma; here every member has one.**
 - **Methods live in a `with entry` block and write `self` out**, unlike an
   archetype's methods.
+- **Python and the reference design have no sums**: a Python program writes a
+  class for each member and a union of them, with `match` unchecked for
+  members left out. A sum is Rust's enum and C's tagged union.
 
 ## See also
 
 - [Archetypes](archetypes.md): types with fields.
-- [Pattern matching](pattern-matching.md): `match` on members.
+- [Pattern matching](pattern-matching.md): `match` on members, and on a
+  sum's members with their fields.
+- [Structs](structs.md): values held in place, which a sum is too.
 - [Reflection](reflection.md): `members(E)` and `kind(E)` at compile time.

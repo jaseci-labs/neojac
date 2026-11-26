@@ -1,7 +1,7 @@
 ---
 description: What a Jac source file is made of: encoding, comments, names, reserved words and the backtick escape, literals, and how statements and blocks are delimited.
 keywords: comment, #, #*, name, identifier, keyword, reserved word, backtick, literal, None, True, False, ..., ellipsis, ;, block, statement
-grammar: block, block_rest, stmt, stmts, any_word, KEYWORD, ARCHWIRE_KEYWORD, OPERATOR
+grammar: block, block_rest, stmt, stmts, any_word, NAME, KEYWORD, ARCHWIRE_KEYWORD, OPERATOR
 ---
 # Lexical structure
 
@@ -61,6 +61,10 @@ README or docs, and `neojac fmt --fix` removes it; where `jac.toml`'s `[fmt]` sa
 ([Lint rules](../toolchain/lint.md#the-notes-annex)).
 
 ## Names
+
+```ebnf
+NAME ::= /[A-Za-z_][A-Za-z0-9_]*/ | "`" /[A-Za-z_$][A-Za-z0-9_$]*/
+```
 
 A name starts with a letter or `_` and continues with letters, digits and `_`. Case matters: `Total`
 and `total` are two names.
