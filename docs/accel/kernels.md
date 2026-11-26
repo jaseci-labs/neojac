@@ -124,7 +124,8 @@ A kernel's code may use:
   tensor; a tensor it makes over an array of its own ([Arrays](arrays.md))
 - arithmetic and comparison of numbers, `and`, `or`, `not`, a conditional
   expression
-- `if`, `while`, and `for` over a `range`
+- `if`, `while`, and `for` over a `range`, named or not, with `break` and `continue` (a `do`
+  block is `E5090`)
 - conversions by a type's name: `f32(x)`, `int(x)`, `u64(x)`. A float converted to an int
   truncates toward zero, as in ordinary code: `u64(1.5)` is 1 and `u64(-0.5)` is 0
 - a sized int's least value as a negated literal: `x: i32 = -2147483648`, `y: i8 = -128`
