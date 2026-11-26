@@ -503,7 +503,9 @@ big (15) small (2)
   another way gives a value, is an error (E1171). A `break` gives a value only to a `do` block
   (E0119).
 - **Where a statement starts with a `do` block, the block is the whole statement**, and it takes no
-  `;`, as `if` takes none. To go on with an expression from it, parenthesize it.
+  `;`, as `if` takes none. To go on with an expression from it, parenthesize it. The one exception
+  is a `do` block that stands last in a `do` block, with nothing after it: like any expression
+  there, it is that block's final expression, so `do { do { 1 } }` is 1.
 - **`do` is a word only where an expression starts with `do {` or `do:name {`**: elsewhere it is an
   ordinary name.
 - **Some places hold no block.** A `do` block among a generator expression's items leaves none of
@@ -535,8 +537,9 @@ AB
 ```
 
 On a JS host and in a cpython space, a `do` block runs before its statement where it is the
-statement's first value: a statement of its own, the whole value of an assignment, a return or a
-global, or a statement's condition, iterable or subject. On a JS host one elsewhere in an
+statement's first value: a statement of its own, the whole value of an assignment, a return, a
+global or a `break` (a `do` block's final expression among them), or a statement's condition,
+iterable or subject. On a JS host one elsewhere in an
 expression runs as a function called in place, and is refused (E5090) when its statements return,
 yield, await, or leave a statement around it; in a cpython space one elsewhere is refused (E5090).
 
