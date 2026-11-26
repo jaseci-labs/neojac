@@ -452,8 +452,15 @@ no `this`, as a JavaScript arrow function takes none.
 Jac's operators mean what Jac says of Jac's types. Where a program needs what JavaScript does
 with values of any type (code `neojac port` made of untyped JavaScript, or of TypeScript where a
 value TypeScript took on trust reaches it), the runtime's `js`
-module gives JavaScript's own operations, each a function. On a JavaScript host each is the
-operator it names; natively each runs in the program's Node.
+module gives JavaScript's own operations, each a function. Natively each runs in the program's
+Node. On a JavaScript host most are one of JavaScript's operators or forms, and a call of one is
+written as that operator where it stands, with nothing imported for it: `js_add(a, b)` is
+`a + b`. These are `js_truthy`, `js_typeof`, `js_number`, `js_neg`, `js_bnot`, `js_add`,
+`js_sub`, `js_mul`, `js_div`, `js_pow`, `js_mod`, `js_lt`, `js_le`, `js_gt`, `js_ge`, `js_shl`,
+`js_shr`, `js_ushr`, `js_band`, `js_bor`, `js_bxor`, `js_same`, `js_loose_eq`, `js_item`,
+`js_set_item`, `js_delete`, `js_iter`, `js_meta` and `js_new_target`, `js_method` and
+`js_global` where the method's or the global's name is written as a string, and `new(C, ...)`.
+The others are functions of the JavaScript host's runtime.
 
 | Function | JavaScript |
 |---|---|
@@ -462,8 +469,9 @@ operator it names; natively each runs in the program's Node.
 | `js_lt`, `js_le`, `js_gt`, `js_ge` | `<`, `<=`, `>`, `>=`: strings by their UTF-16 code units, else as numbers |
 | `js_mod(a, b)` | `a % b`: the remainder, with the dividend's sign |
 | `js_shl`, `js_shr`, `js_ushr`, `js_band`, `js_bor`, `js_bxor` | `<<`, `>>`, `>>>`, `&`, `\|`, `^`: each operand made a 32-bit integer (both BigInts, or neither), `>>>`'s result unsigned |
-| `js_inc(x)`, `js_dec(x)`, `js_number(x)` | What `x++` and `x--` make `x`; `+x` |
-| `js_same(a, b)` | `a === b` |
+| `js_inc(x)`, `js_dec(x)`, `js_number(x)`, `js_numeric(x)` | What `x++` and `x--` make `x`; `+x`; what `x++` gives, `x` made a number or a BigInt, which stays one |
+| `js_neg(x)`, `js_bnot(x)` | `-x`, `~x` |
+| `js_same(a, b)`, `js_loose_eq(a, b)` | `a === b`; `a == b`, JavaScript's own loose equality (`not js_loose_eq(a, b)` is `a != b`) |
 | `js_array(items)` | JavaScript's own array of `items`, which crosses to JavaScript as itself, not as a copy as a Jac list does; natively a `JsObject` |
 | `js_typeof(x)` | `typeof x` |
 | `js_item(o, k)`, `js_set_item(o, k, v)` | `o[k]`; `o[k] = v`, whose value is `v` |
@@ -491,9 +499,12 @@ import from js {
     js_bor,
     js_bxor,
     js_for_in,
+    js_bnot,
+    js_loose_eq,
     js_lt,
     js_method,
     js_mod,
+    js_neg,
     js_same,
     js_shl,
     js_shr,
@@ -508,6 +519,7 @@ with entry {
     print(js_method([3, 1, 2], "join", "-"), list(js_for_in({"a": 1, "b": 2})));
     print(js_mod(-7, 2), js_mod(7.5, 2), js_shl(1, 33), js_shr(-8, 1), js_ushr(-1, 0));
     print(js_band("6", 3), js_bor(4, "3"), js_bxor(5, 1));
+    print(js_neg("3"), js_bnot(5), js_loose_eq(1, "1"), js_loose_eq(0, None));
 }
 ```
 
@@ -517,6 +529,7 @@ True False undefined True
 3-1-2 ['a', 'b']
 -1 1.5 2 -4 4294967295
 2 7 4
+-3 -6 True False
 ```
 
 ## A class with a JavaScript base
