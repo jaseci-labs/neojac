@@ -22,7 +22,7 @@ ranges. `flow e` on an expression, which makes a task, is a different construct
 ([Control flow](control-flow.md)):
 
 ```ebnf
-for_stmt ::= "comptime"? "async"? "flow"? "for" atomic_chain ("=" expression "while" expression "with" atomic_chain assignment? | "in" expression) block else_stmt?
+for_stmt ::= "comptime"? "async"? "flow"? "for" (":" NAME)? atomic_chain ("=" expression "while" expression "with" atomic_chain assignment? | "in" expression) block else_stmt?
 ```
 
 It takes three forms:
@@ -98,7 +98,9 @@ with entry {
 [0, 2, 4, 6, 8, 10, 12, 14, 16, 18] 4
 ```
 
-`continue` ends one iteration and is allowed. A range may step down by a
+`continue` ends one iteration and is allowed, as is `continue:name` of the
+`flow for` itself; a `break`, named or not, that would leave the body is refused
+(E1313). A range may step down by a
 constant, `flow for i in range(len(out) - 1, -1, -3)`, each index writing its
 own element.
 

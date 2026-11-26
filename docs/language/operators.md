@@ -92,6 +92,7 @@ atom ::=
     | INT
     | FLOAT
     | multistring
+    | do_block
     | NAME
     | "None"
     | KEYWORD

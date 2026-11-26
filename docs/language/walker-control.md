@@ -22,11 +22,11 @@ when abilities run.
 ```ebnf
 report_stmt ::= "report" expression ";"
 
-ctrl_stmt ::= ("break" | "continue" | "skip" | "disengage") ";"
+ctrl_stmt ::= ("break" (":" NAME expression?)? | "continue" (":" NAME)? | "skip" | "disengage") ";"
 ```
 
-`break` and `continue` are the loop statements; they have nothing to do with
-walks.
+`break` and `continue` are the loop statements, named or not; they have nothing
+to do with walks ([Control flow](control-flow.md#named-loops-and-switches)).
 
 ## report
 

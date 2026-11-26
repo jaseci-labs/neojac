@@ -185,6 +185,7 @@ stmt ::=
     | for_stmt
     | with_stmt
     | defer_stmt
+    | do_block
     | try_stmt
     | match_stmt
     | switch_stmt
@@ -211,6 +212,7 @@ atom ::=
     | INT
     | FLOAT
     | multistring
+    | do_block
     | NAME
     | "None"
     | KEYWORD
@@ -269,29 +271,31 @@ comptime_stmt ::=
 
 if_stmt ::= "comptime"? "if" expression block (elif_stmt | else_stmt)?
 
-while_stmt ::= "while" expression block else_stmt?
+while_stmt ::= "while" (":" NAME)? expression block else_stmt?
 
 open_stmt ::= "in" expression block
 
-forever_stmt ::= "forever" block
+forever_stmt ::= "forever" (":" NAME)? block
 
-for_stmt ::= "comptime"? "async"? "flow"? "for" atomic_chain ("=" expression "while" expression "with" atomic_chain assignment? | "in" expression) block else_stmt?
+for_stmt ::= "comptime"? "async"? "flow"? "for" (":" NAME)? atomic_chain ("=" expression "while" expression "with" atomic_chain assignment? | "in" expression) block else_stmt?
 
 with_stmt ::= "async"? "with" with_item ("," with_item)* block
 
-defer_stmt ::= "defer" block stmts
+defer_stmt ::= "defer" block (do_stmts | stmts)
+
+do_block ::= "do" (":" NAME)? "{" do_stmts "}"
 
 try_stmt ::= "try" block ("awaiting" block)? except_clause* else_stmt? ("finally" block)?
 
 match_stmt ::= "match" expression "{" match_case* "}"
 
-switch_stmt ::= "switch" expression "{" switch_case* "}"
+switch_stmt ::= "switch" (":" NAME)? expression "{" switch_case* "}"
 
 return_stmt ::= "return" "tail"? expression? ";"
 
 yield_expr ::= "yield" "from"? expression?
 
-ctrl_stmt ::= ("break" | "continue" | "skip" | "disengage") ";"
+ctrl_stmt ::= ("break" (":" NAME expression?)? | "continue" (":" NAME)? | "skip" | "disengage") ";"
 
 raise_stmt ::= "raise" expression? ("from" expression)? ";"
 
@@ -338,6 +342,8 @@ elif_stmt ::= "elif" expression block (elif_stmt | else_stmt)?
 else_stmt ::= "else" block
 
 with_item ::= expression ("as" expression)?
+
+do_stmts ::= stmt* expression?
 
 except_clause ::= "except" expression ("as" NAME)? block
 

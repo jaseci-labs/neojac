@@ -1,7 +1,7 @@
 ---
-description: The statements that choose and repeat: if/elif/else, while, for over an iterable, the for-while-with loop, forever, switch with fallthrough, break and continue, the else clause of a loop, and defer.
-keywords: control flow, if, elif, else, while, for, for loop, while loop, forever, switch, default, fallthrough, break, continue, loop else, for else, defer, cleanup, scope exit
-grammar: if_stmt, elif_stmt, else_stmt, while_stmt, for_stmt, forever_stmt, switch_stmt, switch_case, defer_stmt
+description: The statements that choose and repeat: if/elif/else, while, for over an iterable, the for-while-with loop, forever, switch with fallthrough, break and continue, the else clause of a loop, defer, named loops and switches left or continued by break:name and continue:name, and the do block, an expression that runs statements and gives a value.
+keywords: control flow, if, elif, else, while, for, for loop, while loop, forever, switch, default, fallthrough, break, continue, loop else, for else, defer, cleanup, scope exit, named loop, labelled break, label, break:name, continue:name, do block, block expression, statement expression
+grammar: if_stmt, elif_stmt, else_stmt, while_stmt, for_stmt, forever_stmt, switch_stmt, switch_case, defer_stmt, do_block, do_stmts
 ---
 # Control flow
 
@@ -58,7 +58,7 @@ nothing pending
 ## `while`
 
 ```ebnf
-while_stmt ::= "while" expression block else_stmt?
+while_stmt ::= "while" (":" NAME)? expression block else_stmt?
 ```
 
 The condition is evaluated before each pass, and the loop ends when it is false.
@@ -80,7 +80,7 @@ with entry {
 ## `for`
 
 ```ebnf
-for_stmt ::= "comptime"? "async"? "flow"? "for" atomic_chain ("=" expression "while" expression "with" atomic_chain assignment? | "in" expression) block else_stmt?
+for_stmt ::= "comptime"? "async"? "flow"? "for" (":" NAME)? atomic_chain ("=" expression "while" expression "with" atomic_chain assignment? | "in" expression) block else_stmt?
 ```
 
 The rule has two loops: `for x in iterable` and the counting loop `for x = a while c with step`.
@@ -159,7 +159,7 @@ is unrolled while the program compiles (`neojac docs comptime`).
 ## `forever`
 
 ```ebnf
-forever_stmt ::= "forever" block
+forever_stmt ::= "forever" (":" NAME)? block
 ```
 
 `forever { ... }` repeats its block until a `break`, a `return` or an exception leaves it. It is
@@ -215,6 +215,73 @@ with entry {
 `break` is refused in a `flow for` body (E1313), whose passes run at once; `continue` is allowed
 there ([Parallel loops](flow-for.md)).
 
+## Named loops and switches
+
+```ebnf
+ctrl_stmt ::= ("break" (":" NAME expression?)? | "continue" (":" NAME)? | "skip" | "disengage") ";"
+```
+
+A loop or a switch is named by a tag after its keyword, as `def:pub` tags a function:
+`for:rows`, `while:w`, `forever:f`, `switch:pick`, and `async for:x` and
+`for:i i = 0 while ... with ...` too. A `break` or `continue` that names it reaches it from any
+depth of loops, switches and `do` blocks inside it:
+
+- **`break:name;`** leaves the named statement. A loop's `else` does not run.
+- **`continue:name;`** starts the named loop's next pass, its step first in a
+  `for ... while ... with` loop. It names a loop, never a switch or a `do` block (E0118).
+- **The name is known in the statement's body**: not in its condition, its iterable or its `else`,
+  and not in a function or lambda defined in the body. A name no statement around it has is an
+  error (E0058), as is a named statement inside another of the same name (E2104).
+- **A plain `break` or `continue` is as before**: the innermost loop's (or switch's, for `break`).
+- **Every rule about leaving holds**: a named `break` or `continue` leaves each `try` between it and
+  its statement through its `finally`, nothing leaves a `defer` block early (E0180), and no
+  `break` leaves a `flow for` body (E1313).
+
+```jac
+def found_at(grid: list[list[int]], want: int) -> tuple[int, int] {
+    at = (-1, -1);
+    for:rows (i, row) in enumerate(grid) {
+        for (j, cell) in enumerate(row) {
+            if cell < 0 {
+                continue:rows;
+            }
+            if cell == want {
+                at = (i, j);
+                break:rows;
+            }
+        }
+    }
+    return at;
+}
+
+with entry {
+    print(found_at([[1, 2], [-1, 7], [3, 7]], 7));
+    n = 0;
+    while:outer n < 10 {
+        n += 1;
+        switch:pick n % 3 {
+            case 0:
+                continue:outer;
+            case 1:
+                break:pick;
+            default:
+                if n > 6 {
+                    break:outer;
+                }
+        }
+        print(n, end=" ");
+    }
+    print();
+}
+```
+
+```output
+(2, 1)
+1 2 4 5 7 
+```
+
+A name on a `comptime for`, which is no loop as the program runs, is refused (E5090).
+
 ## The `else` of a loop
 
 A `while` or `for` loop may end with an `else` block. It runs when the loop ends because its
@@ -250,7 +317,7 @@ no 1
 ## `switch`
 
 ```ebnf
-switch_stmt ::= "switch" expression "{" switch_case* "}"
+switch_stmt ::= "switch" (":" NAME)? expression "{" switch_case* "}"
 
 switch_case ::= ("case" pattern | "default") ":" stmt*
 ```
@@ -309,7 +376,7 @@ with entry {
 ## `defer`
 
 ```ebnf
-defer_stmt ::= "defer" block stmts
+defer_stmt ::= "defer" block (do_stmts | stmts)
 ```
 
 `defer { ... }` runs its block when the block it is written in is left: at its end, at a
@@ -359,16 +426,132 @@ failed ['body', 'second', 'first']
 - **`defer` is a word only where a statement starts with `defer {`**: a variable or a module named
   `defer` is a name as before.
 
+## `do` blocks
+
+```ebnf
+do_block ::= "do" (":" NAME)? "{" do_stmts "}"
+
+do_stmts ::= stmt* expression?
+```
+
+`do { ... }` is an expression that runs statements and gives a value. It runs its statements where
+the expression is evaluated, in order, and its value is its final expression, the one with no `;`
+before the closing brace; with none, its value is `None`. A `do` block named by a tag, `do:found`,
+is also left by `break:found value;`, which gives it `value`.
+
+```jac
+def classify(n: int) -> str {
+    size = do { half = n // 2; "big" if half > 10 else "small" };
+    return f"{size} ({half})";
+}
+
+def first_even(xs: list[int]) -> int {
+    return do:found {
+        for x in xs {
+            if x % 2 == 0 {
+                break:found x;
+            }
+        }
+        -1
+    };
+}
+
+with entry {
+    print(classify(30), classify(4));
+    print(first_even([3, 5, 8, 10]), first_even([1]));
+    log: list[str] = [];
+    n = do {
+        defer {
+            log.append("left");
+        }
+        log.append("body");
+        len(log)
+    };
+    print(n, log);
+    total = 0;
+    for v in [1, 2, 3, 4] {
+        part = do {
+            if v == 2 {
+                continue;
+            }
+            if v == 4 {
+                break;
+            }
+            v * 10
+        };
+        total += part;
+    }
+    print(total);
+}
+```
+
+```output
+big (15) small (2)
+8 -1
+1 ['body', 'left']
+40
+```
+
+- **It is not a function.** `return`, `yield`, `await`, `raise`, and a plain `break` or `continue`,
+  mean in it what they mean in the block around it: they act on the function and the loops around
+  it, as the `continue` and `break` above act on the `for`. Its variables are the function's, as
+  any block's are (`half` above). A `defer` in it runs as it is left, after its value is computed.
+- **A plain `break` or `continue` never stops at a `do` block.** It is left early only by its name.
+- **Its type** is the type of its final expression joined with that of every `break:name value`
+  that leaves it, as the two branches of `a if c else b` are joined. It gives a value on every way
+  it is left, or on none: one whose end can be reached, or that a `break:name;` leaves, while
+  another way gives a value, is an error (E1171). A `break` gives a value only to a `do` block
+  (E0119).
+- **Where a statement starts with a `do` block, the block is the whole statement**, and it takes no
+  `;`, as `if` takes none. To go on with an expression from it, parenthesize it.
+- **`do` is a word only where an expression starts with `do {` or `do:name {`**: elsewhere it is an
+  ordinary name.
+- **Some places hold no block.** A `do` block among a generator expression's items leaves none of
+  the loops around the expression, whose items are made apart from them (E0058), and one in a
+  parameter's or a field's default is refused (E5090).
+
+```jac
+def scaled(n: int) -> float {
+    return do:k {
+        if n > 5 {
+            break:k n * 1.5;
+        }
+        n
+    };
+}
+
+with entry {
+    print(scaled(8), scaled(2));
+    x = (do { "a" + "b" }).upper();
+    print(x);
+}
+```
+
+```output
+12.0 2.0
+AB
+```
+
+On a JS host and in a cpython space, a `do` block runs before its statement where it is the
+statement's first value: a statement of its own, the whole value of an assignment, a return or a
+global, or a statement's condition, iterable or subject. On a JS host one elsewhere in an
+expression runs as a function called in place, and is refused (E5090) when its statements return,
+yield, await, or leave a statement around it; in a cpython space one elsewhere is refused (E5090).
+
 ## What is rejected
 
 | Code | Condition |
 |---|---|
 | E0001 | A body that is not a block: `if c: x;` or `if c x;` |
 | E0032 | An `elif` or `else` that follows no `if` |
-| E0058 | `break` outside a loop or a switch; `continue` outside a loop |
+| E0058 | `break` outside a loop or a switch; `continue` outside a loop; a `break:name` or `continue:name` that no statement around it is named |
+| E0118 | `continue:name` of a switch or a `do` block |
+| E0119 | `break:name value` of a loop or a switch |
 | E0152 | A second `default` in a switch |
 | E1021 | `for x in v` where `v` cannot be iterated |
 | E0180 | A `return`, `skip`, `disengage`, `break` or `continue` that would leave a `defer` block early |
+| E1171 | A `do` block that gives a value on some ways it is left and none on another |
+| E2104 | A named statement inside another of the same name |
 | W3024 | An `elif` whose condition repeats an earlier one of its chain, so its block never runs |
 | W3025 | An `if` whose two blocks are the same |
 
@@ -379,6 +562,29 @@ def scan(n: int) {
     for x in n {
         print(x);
     }
+}
+```
+
+```jac
+# expect: E0058, E0118, E0119, E1171, E2104
+def named(xs: list[int]) -> int {
+    for:rows x in xs {
+        for:rows y in xs {
+            continue:cols;
+        }
+    }
+    switch:pick len(xs) {
+        case 1:
+            continue:pick;
+    }
+    for:each x in xs {
+        break:each x;
+    }
+    return do:d {
+        if len(xs) > 1 {
+            break:d 1;
+        }
+    };
 }
 ```
 

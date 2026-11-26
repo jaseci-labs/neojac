@@ -880,7 +880,7 @@
               "page": "reference/diagnostics/e00-2.md"
             },
             {
-              "title": "E0100 to E0117: tokens, compile-time values and archwire blocks",
+              "title": "E0100 to E0119: tokens, compile-time values, archwire blocks and named jumps",
               "page": "reference/diagnostics/e01-1.md"
             },
             {
@@ -904,7 +904,7 @@
               "page": "reference/diagnostics/e11-2.md"
             },
             {
-              "title": "E1173 to E1199: expressions, edge references and assignment",
+              "title": "E1171 to E1199: expressions, edge references and assignment",
               "page": "reference/diagnostics/e11-3.md"
             },
             {

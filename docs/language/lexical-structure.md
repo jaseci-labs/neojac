@@ -97,8 +97,10 @@ Five points a reader coming from Python or from the reference design will not ex
   `list = [1]` and `def type() {...}` are errors, not shadowing.
 - **`self` is a parameter only as the receiver.** `init` and `postinit`, the names of a
   constructor's hooks, may also name a function or a method.
-- **Words the grammar uses in one construct only are not reserved.** `struct`, `tail`, `where`
-  and `dyn` are ordinary names everywhere else.
+- **Words the grammar uses in one construct only are not reserved.** `struct`, `tail`, `where`,
+  `dyn`, `defer` and `do` are ordinary names everywhere else: `defer` is a word only where a
+  statement starts with `defer {`, and `do` only where an expression starts with `do {` or
+  `do:name {` ([Control flow](control-flow.md#do-blocks)).
 - **An archwire has keywords of its own.** A file named `archwire.jac` is not a module: it is a
   project's `graph` blocks and nothing else, and in it `layers`, `layer`, `spaces`, `space`, `app`,
   `run`, `serve`, `package` and `ship` are keywords as well. In every other file they are names,
@@ -333,6 +335,7 @@ stmt ::=
     | for_stmt
     | with_stmt
     | defer_stmt
+    | do_block
     | try_stmt
     | match_stmt
     | switch_stmt
@@ -358,7 +361,7 @@ stmt ::=
 | Statement | Page |
 |---|---|
 | `expression ;` and assignment (`=`, `+=`, annotations), `del` | [Variables](variables.md) |
-| `if`, `while`, `for`, `forever`, `switch`, `break`, `continue` | [Control flow](control-flow.md) |
+| `if`, `while`, `for`, `forever`, `switch`, `break`, `continue`, `defer`, a `do` block | [Control flow](control-flow.md) |
 | `match` | [Pattern matching](pattern-matching.md) |
 | `def` inside a function, `return` | [Functions](functions.md) |
 | `try`, `raise`, `assert` | [Exceptions](exceptions.md) |
