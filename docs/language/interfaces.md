@@ -144,8 +144,8 @@ several, joined with `&`.
 
 ### Compile-time members
 
-A compile-time member is an `int`, `bool` or `str` that the interface names
-and each conforming class gives a value (`comptime BYTES: int = 4;`). It is
+A compile-time member is an `int`, `bool`, `str` or `type` that the interface
+names and each conforming class gives a value (`comptime BYTES: int = 4;`). It is
 read as `Word.BYTES` from the class, or as `T.BYTES` from a type parameter
 bounded by the interface, and it is a compile-time value: it may decide a
 `comptime if`, be a type's argument, or be used where code runs as its
@@ -216,6 +216,71 @@ copy, where the member's value is known. A type whose argument is a member
 (`Buf[T.BYTES]`), in a body or in the function's own signature, is checked
 only in each copy: `pair_size[Byte](Buf[3]())` is E1053 there, where the
 parameter is a `Buf[2]`.
+
+#### Types as members
+
+A compile-time member of type `type` names a type each conforming class
+gives: `comptime Item: type;` in the interface, `comptime Item: type = int;`
+in the class. It is read as a type wherever one is written: as `Counter.Item`
+from the class, as `S.Item` from a type parameter bounded by the interface,
+and as `Self.Item` in the interface's own signatures, which a conforming
+class's methods match with the member read as the class's type.
+
+```jac
+obj Source {
+    comptime Item: type;
+    def next -> Self.Item | None abst;
+}
+
+obj Counter(Source) {
+    comptime Item: type = int;
+    has n: int = 0;
+
+    def next -> int | None {
+        self.n += 1;
+        return self.n if self.n < 4 else None;
+    }
+}
+
+obj Words(Source) {
+    comptime Item: type = str;
+    has words: list[str] = [];
+
+    def next -> str | None {
+        return self.words.pop(0) if len(self.words) > 0 else None;
+    }
+}
+
+def first[S: Source](s: S) -> S.Item | None {
+    return s.next();
+}
+
+def drain[S: Source](s: S) -> list[S.Item] {
+    out: list[S.Item] = [];
+    got = s.next();
+    while got is not None {
+        out.append(got);
+        got = s.next();
+    }
+    return out;
+}
+
+with entry {
+    n: Counter.Item = 5;
+    print(first(Counter()), first(Words(words=["a", "b"])), n + 1);
+    print(drain(Counter()), drain(Words(words=["p", "q"])));
+}
+```
+
+```output
+1 a 6
+[1, 2, 3] ['p', 'q']
+```
+
+A class that leaves the member out is E1281, one that gives it what is no type
+E1053, and a method whose signature differs once the member is the class's
+type E1282. A `dyn` of an interface with a type member is not built yet
+(E5090).
 
 ## `dyn` references
 
@@ -338,7 +403,7 @@ program.
 | E1482 | An interface used as a type of its own |
 | E1483 | `dyn` of a class that is not an interface |
 | E1484 | `dyn` of an interface builtin values conform to |
-| E5090 | `dyn` of several interfaces |
+| E5090 | `dyn` of several interfaces, or of one with a compile-time member of type `type` |
 
 ```jac
 # expect: E1281, E1282, E1280, E1283
