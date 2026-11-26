@@ -509,6 +509,8 @@ big (15) small (2)
 - **Some places hold no block.** A `do` block among a generator expression's items leaves none of
   the loops around the expression, whose items are made apart from them (E0058), and one in a
   parameter's or a field's default is refused (E5090).
+- **Where ownership is tracked**, a `do` block that uses an `own` local which the rest of its
+  statement moves is refused (E5090): `f(take(x), do { x.n })`.
 
 ```jac
 def scaled(n: int) -> float {
