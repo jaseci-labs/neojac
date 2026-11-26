@@ -1,6 +1,6 @@
 ---
 description: Functions and methods a language model (an LLM) or another value answers (def f(...) -> T by llm();), the tools that make one an agent (ByTool values, and @reads for the ones a round runs at once), a by function that streams its answer, the By, ByStreams and ByChooser interfaces such a value conforms to, llm() and the plugin that speaks to a model, its conversations and usage, and sem strings that describe declarations to them.
-keywords: by, sem, semantic string, llm, language model, LLM, AI, agent, tool use, tools, By, ByCall, ByTool, ByError, ByStreams, ByEvent, ByEventKind, ByEnd, ByUsage, cost, rates, ByChooser, ByChoice, on_usage, latest_turns, IterationContext, ANTHROPIC_API_KEY, OPENAI_API_KEY, JAC_LLM_KEY, JAC_LLM_ADDRESS, Effort, Model, ModelRequest, ModelReply, anthropic, openai, Gemini, JAC_LLM_MODEL
+keywords: by, sem, semantic string, llm, language model, LLM, AI, agent, tool use, tools, By, ByCall, ByTool, ByError, ByStreams, ByEvent, ByEventKind, ByEnd, ByUsage, cost, rates, ByChooser, ByChoice, on_usage, latest_turns, IterationContext, ANTHROPIC_API_KEY, OPENAI_API_KEY, JAC_LLM_KEY, JAC_LLM_ADDRESS, Effort, Model, ModelRequest, ModelReply, anthropic, openai, Gemini, JAC_LLM_MODEL, media, image, PDF, pdf_part
 grammar: sem_def, by_expr
 ---
 # By and sem
@@ -591,6 +591,7 @@ with entry {
 | `conversation` | `None` | A `list[Message]`: the turns before this call ([below](#conversations)) |
 | `select` | 1 | For `visit ... by`: how many of the nodes to choose, a number or a `(least, most)` pair |
 | `intent` | `""` | For `visit ... by`: what the choice is for, said to the model |
+| `media` | `None` | Pictures and PDFs the model reads with the arguments: a `File` or `bytes`, or a list of them ([below](#pictures-and-pdfs)) |
 
 A call raises `ByError` when the model's provider cannot be reached or
 answers with an error, when every model declines the request, and when the
@@ -614,6 +615,32 @@ no tool is still running when the model is next asked.
 - **`on_iteration` is called after each round,** and `max_react_iterations`
   counts them.
 
+### Pictures and PDFs
+
+`media` gives the model pictures and PDFs with the arguments. A parameter
+passed to it is [the answerer's](#a-parameter-the-answerer-takes-whole), so
+its bytes go to the model as a file, not inside the arguments' JSON:
+
+<!-- example: not checked: it asks a model, which needs a key and the network -->
+```jac
+obj Receipt {
+    has shop: str,
+        total: float;
+}
+
+def read_receipt(scan: bytes) -> Receipt by llm(media=scan);
+
+def compare(photos: list[File]) -> str by llm(media=photos);
+```
+
+- **A `File` is sent as its `ctype` says, and `bytes` as what they begin
+  as.** PNG, JPEG, GIF, WebP and PDF are taken; anything else raises
+  `ByError`.
+- **The model has to read that type.** A model that reads only pictures
+  refuses a PDF, and its API's error is the call's `ByError`.
+- **`openai` sends a PDF as OpenAI's `file` part.** Gemini's API takes a PDF
+  as an image part instead: set `pdf_part = "image_url"`.
+
 ### The model plugins
 
 neojac ships two `llm` plugins. `anthropic`, the standard one, speaks
@@ -628,13 +655,14 @@ plugin = "openai"
 [llm.openai]
 address = "https://generativelanguage.googleapis.com/v1beta/openai"
 model = "gemini-3-flash-preview"
+pdf_part = "image_url"
 ```
 
 OpenAI's own API needs only a `model`. Another provider or local server with
 an OpenAI-compatible API (Together, Groq, OpenRouter, Ollama, vLLM) is set up
 as Gemini is here: its address and a model it serves.
 
-Both take the same settings, in `[llm.anthropic]` or `[llm.openai]`:
+Both take these settings, in `[llm.anthropic]` or `[llm.openai]`, and `pdf_part` is `openai`'s alone:
 
 | Setting | Type | `anthropic`'s default | `openai`'s default | Meaning |
 |---|---|---|---|---|
@@ -643,6 +671,7 @@ Both take the same settings, in `[llm.anthropic]` or `[llm.openai]`:
 | `timeout` | `int` | 60 | 60 | Seconds one request may take |
 | `retries` | `int` | 0 | 0 | How many times a request the API refuses for load (408, 409, 429, 5xx) or cannot be reached with is made again, after 2, 4, 8 ... seconds |
 | `rates` | `dict[str, list[float]]` | `{}` | `{}` | What each model charges, by its name: four numbers, the dollars for a million tokens of input, of output, read from the cache and written to it |
+| `pdf_part` | `str` | | `file` | How `openai` sends a PDF: as OpenAI's `file` part, or as an `image_url` part, which Gemini's API needs |
 | `key` | `Secret` | `ANTHROPIC_API_KEY` | `OPENAI_API_KEY` | The API key, read from that variable of the environment where the program runs, or from `JAC_LLM_KEY`, and never written in `jac.toml`. Without one, `anthropic` raises `ByError`, and `openai` sends none, for a local server |
 
 ```toml
@@ -714,8 +743,8 @@ caller that keeps the list keeps the conversation.
 | Name | Fields |
 |---|---|
 | `Message` | `role: str` (`"user"` or `"assistant"`), `parts: list[Part]` |
-| `Part` | `kind: PartKind`, and by its kind: `text` for `TEXT`; `name`, `input` (the arguments, as the JSON text the model wrote) and `id` for `TOOL_CALL`; `id`, `text` (what the tool gave) and `failed` for `TOOL_RESULT` |
-| `PartKind` | `TEXT`, `TOOL_CALL`, `TOOL_RESULT` |
+| `Part` | `kind: PartKind`, and by its kind: `text` for `TEXT`; `name`, `input` (the arguments, as the JSON text the model wrote) and `id` for `TOOL_CALL`; `id`, `text` (what the tool gave) and `failed` for `TOOL_RESULT`; `data` (the bytes) and `ctype` for `MEDIA` |
+| `PartKind` | `TEXT`, `TOOL_CALL`, `TOOL_RESULT`, `MEDIA` |
 
 A `Message` is an `obj` of sendable fields: a program may keep a
 conversation in a node's field, and send it across a crossing.

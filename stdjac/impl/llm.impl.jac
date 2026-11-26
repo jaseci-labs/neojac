@@ -22,6 +22,7 @@ impl llm(
     conversation: list[Message] | None = None,
     select: any = 1,
     intent: str = "",
+    media: any = None,
 ) -> LLM {
     return LLM(
         max_tokens=max_tokens,
@@ -34,7 +35,38 @@ impl llm(
         conversation=conversation,
         select=select,
         intent=intent,
+        media=media,
     );
+}
+
+impl media_parts(given: any) -> list[Part] {
+    out: list[Part] = [];
+    if given is None {
+        return out;
+    }
+    for v in (given if isinstance(given, list) else [given]) {
+        ctype = "";
+        data = b"";
+        if isinstance(v, bytes) {
+            data = v;
+            for (t, head) in MEDIA_BEGINS.items() {
+                if data.startswith(head) {
+                    ctype = t;
+                }
+            }
+        } elif hasattr(v, "ctype") and hasattr(v, "read") {
+            data = v.read();
+            ctype = str(v.ctype);
+        }
+        if ctype not in MEDIA_BEGINS {
+            raise ByError(
+                "media is a File or bytes of a PNG, JPEG, GIF or WebP image or a PDF, and this is "
+                    + (ctype if ctype != "" else type(v).__name__),
+            );
+        }
+        out.append(Part(kind=PartKind.MEDIA, data=data, ctype=ctype));
+    }
+    return out;
 }
 
 impl kept_message(m: Message) -> Message {
@@ -74,7 +106,10 @@ impl LLM.answer(call: ByCall, live: bool) -> Iterator[ByEvent] {
     kept = self.conversation;
     before: list[Message] = list(kept) if kept is not None else [];
     turn: list[Message] = [
-        Message(role="user", parts=[Part(kind=PartKind.TEXT, text=json.dumps(call.args))]),
+        Message(
+            role="user",
+            parts=[Part(kind=PartKind.TEXT, text=json.dumps(call.args))] + media_parts(self.media),
+        ),
     ];
     tools: list[ModelTool] = [];
     named: dict[str, ByTool] = {};

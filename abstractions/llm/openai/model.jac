@@ -1,3 +1,4 @@
+import base64;
 import json;
 import time;
 import urllib.request;
@@ -18,7 +19,7 @@ import from llm.contract {
     Stop,
 }
 
-def api_messages(m: Message) -> list[dict[str, any]];
+def api_messages(m: Message, pdf_part: str) -> list[dict[str, any]];
 def reply_message(m: dict[str, any]) -> Message;
 def strict_schema(schema: dict[str, any]) -> dict[str, any] | None;
 def strict_result(schema: dict[str, any]) -> dict[str, any] | None;
@@ -32,7 +33,8 @@ obj OpenAI(Model) {
         address: str = "https://api.openai.com/v1",
         timeout: int = 60,
         retries: int = 0,
-        rates: dict[str, list[float]] = {};
+        rates: dict[str, list[float]] = {},
+        pdf_part: str = "file";
 
     has given_key: str postinit;
 

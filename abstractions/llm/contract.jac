@@ -12,6 +12,7 @@ enum PartKind {
     TOOL_CALL = "tool_use",
     TOOL_RESULT = "tool_result",
     KEPT = "kept",
+    MEDIA = "media",
 }
 
 obj Part {
@@ -20,7 +21,9 @@ obj Part {
         id: str = "",
         name: str = "",
         input: str = "",
-        failed: bool = False;
+        failed: bool = False,
+        data: bytes = b"",
+        ctype: str = "";
 }
 
 obj Message {

@@ -1,7 +1,8 @@
-impl api_messages(m: Message) -> list[dict[str, any]] {
+impl api_messages(m: Message, pdf_part: str) -> list[dict[str, any]] {
     out: list[dict[str, any]] = [];
     text = "";
     calls: list[any] = [];
+    media: list[any] = [];
     kept: dict[str, any] = {};
     for p in m.parts {
         if p.kind == PartKind.TEXT {
@@ -16,6 +17,13 @@ impl api_messages(m: Message) -> list[dict[str, any]] {
             out.append({"role": "tool", "tool_call_id": p.id, "content": p.text});
         } elif p.kind == PartKind.KEPT {
             kept[p.id] = json.loads(p.text);
+        } elif p.kind == PartKind.MEDIA {
+            url = "data:" + p.ctype + ";base64," + base64.b64encode(p.data).decode("ascii");
+            if p.ctype == "application/pdf" and pdf_part == "file" {
+                media.append({"type": "file", "file": {"filename": "file.pdf", "file_data": url}});
+            } else {
+                media.append({"type": "image_url", "image_url": {"url": url}});
+            }
         }
     }
     for c in calls {
@@ -29,6 +37,10 @@ impl api_messages(m: Message) -> list[dict[str, any]] {
             said["tool_calls"] = calls;
         }
         out.append(said);
+    } elif len(media) > 0 {
+        content: list[any] = [{"type": "text", "text": text}];
+        content.extend(media);
+        out.append({"role": m.role, "content": content});
     } elif text != "" {
         out.append({"role": m.role, "content": text});
     }
@@ -152,6 +164,11 @@ impl OpenAI.postinit {
 
 impl OpenAI.open(host: dyn Host) {
     self.given_key = host.secret(self.key);
+    if self.pdf_part != "file" and self.pdf_part != "image_url" {
+        raise ByError(
+            "[llm.openai] pdf_part is 'file' or 'image_url', not '" + self.pdf_part + "'"
+        );
+    }
     for (model, rate) in self.rates.items() {
         if len(rate) != 4 {
             raise ByError(
@@ -298,7 +315,7 @@ impl OpenAI.ask(request: ModelRequest) -> Iterator[ByEvent] {
     }
     messages: list[dict[str, any]] = [{"role": "system", "content": system}];
     for m in request.messages {
-        messages.extend(api_messages(m));
+        messages.extend(api_messages(m, self.pdf_part));
     }
     body: dict[str, any] = {
         "model": self.model,
