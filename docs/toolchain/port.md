@@ -140,8 +140,10 @@ its language to Jac in one change.
 
 **What a path names is what `jac.toml` says.** A directory is every source of the trees
 `jac.toml` describes under it, in every language, and not what `[project] exclude` leaves out
-nor what neojac set aside in `replaced-by-neojac/`. A path that is no source of the project is
-E4006. A C module whose table says `vendored = true` is another project's code kept in this one
+nor what neojac set aside in `replaced-by-neojac/`. A directory with an `archwire.jac` of its own is
+read as that archwire describes it. A path `exclude` leaves out is E4006, one under a directory
+neojac never reads as source (`node_modules`, `replaced-by-neojac/`) E4044, and one into a C module
+or a crate `jac.toml` holds no table of, which its own manifest builds as a dependency, E4045. A C module whose table says `vendored = true` is another project's code kept in this one
 ([C modules](../interop/c-modules.md#the-manifest)): it is built as it is, port reads
 none of it, and a path into it is E4011.
 
@@ -401,7 +403,7 @@ tail.py:3:1: error[E4005]: port writes no Jac yet that keeps the meaning of modu
 | E4003 | An output that is already there |
 | E4004 | A file that is no source port translates |
 | E4005 | A construct whose Jac would mean something else |
-| E4006 | In a project, a path that is no source of it |
+| E4006 | In a project, a path its `[project] exclude` leaves out |
 | E4007 | In a project, a C source its module compiles for no platform |
 | E4008 | In a project, a port after which the project would not check |
 | E4009 | In a project, a module a file of no space imports |
@@ -415,6 +417,8 @@ tail.py:3:1: error[E4005]: port writes no Jac yet that keeps the meaning of modu
 | E4030 | A C file calling a header's `static inline` function, where no C module holds the header |
 | E4031 | A C function defined with `...`, which a C file the run does not port calls |
 | E4043 | A unity build's source, held back because a file it includes is refused |
+| E4044 | In a project, a path under a directory neojac never reads as source (`node_modules`, a name beginning with `.`, `replaced-by-neojac/`) |
+| E4045 | In a project, a path into a C module or a crate `jac.toml` holds no table of: a dependency |
 
 - **An object in memory nothing constructed is never ported** (E4001): a C++ placement `new` into
   storage the program gives, an explicit destructor call, and an object used in memory no
