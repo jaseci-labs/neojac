@@ -200,6 +200,10 @@ What differs from a native space:
   environment is imported as Python, and a `.py` file in the space is a module of it, wired in and
   shipped as it is (`space svc: cpython { api | helper; }` with `helper.py`): `helper ++> api
   { shout }` binds its `shout`, and `helper ++> api;` the module, read as `helper.shout`.
+- **A name of Python's `builtins` is Python's.** `compile`, `exec`, `eval`, `breakpoint`, `__import__`,
+  and `__builtins__`, which every Python module has, are read and called as Python reads and calls
+  them, where nothing of the program declares the name. Natively and on a JavaScript host they are
+  unknown names (W2001).
 - **`int` is Python's**, with no limit (`2 ** 100` is exact). A sized type (`u8`, `i32`, `i64`)
   keeps its range and raises `OverflowError` past it.
 - **An `obj` is a Python class** with the fields, `init`, `postinit`, properties, repr and
