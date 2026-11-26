@@ -287,9 +287,12 @@ frameworks = ["CoreFoundation"]    # macOS frameworks its code calls
   still read as C++ ([C++ sources](#c-sources)).
 - **A Jac module of `jac` binds what its source's translation unit declared**: its files table
   holds `headers`, the headers its source included, in their order (a path from the module's
-  directory, or `<name>` for one found on the include path), and the flags the source was
-  compiled with (`include`, `defines`, `cflags`), which port writes. Its interface is those
-  headers read in that order under the module's flags and its own, with what the module's other
+  directory, or `<name>` for one found on the include path), with each macro the source set
+  between two of them where it stood (`{ define = "OFF(x)=offsetof(PyFunctionObject, x)" }`,
+  `{ undef = "X" }`: `headers = ["Python.h", { define = "OFF(x)=offsetof(PyFunctionObject, x)" }, "structmember.h"]`),
+  and the flags the source was compiled with (`include`, `defines`, `cflags`), which port writes.
+  Its interface is those headers read in that order, each macro set where it stands, under the
+  module's flags and its own, with what the module's other
   sources define that its wires name and the headers do not declare. A target table holds a
   target's own headers, after the base table's. The module's interface proper is read only
   where something other than its own Jac modules binds from it.
