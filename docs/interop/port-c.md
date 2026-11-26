@@ -34,17 +34,17 @@ the module `geom`.
 | `enum { RED, GREEN = 5 };` | `comptime RED: i32 = 0;`, `comptime GREEN: i32 = 5;` |
 | `typedef struct { } point;`, `typedef int count;` | The record by its typedef's name; any other typedef is the type it names |
 | `if (c) { } else if (d) { } else { }`, `while (c) { }` | `if c { } elif d { } else { }`, `while c { }`; a condition that is a number is `c != 0` |
-| GNU's statement expression, `if (({ int t = f(x); t > 2; })) { }`, glibc's `CPU_SET` and `CPU_ISSET` | Its statements written before the statement whose evaluation it begins (an expression statement, an `if`'s condition, a `return`'s value, a declaration's value), then its last expression: `t = f(x);` then `if t > 2 { }`; anywhere else it is refused |
+| GNU's statement expression, `if (({ int t = f(x); t > 2; })) { }`, glibc's `CPU_SET` and `CPU_ISSET` | Its statements written before the statement whose evaluation it begins (an expression statement, an `if`'s condition, a `return`'s value, a declaration's value), then its last expression: `t = f(x);` then `if t > 2 { }`; anywhere else a `do` block where it stands, `n = g() + do { t = f(x); t > 2 };` |
 | `for (int i = 0; i < n; i++) { }`, `for (p = head; p; p = p->next) { }` | `for i = i32(0) while i < n with i += 1 { }`, `for p = head while p != ptr[link](ptr()) with p = p[0].next { }` |
-| `do { } while (c);`; one with a `continue` of its own | `while True { ... if not c { break; } }`; `was_1: bool = True; while was_1 or c { was_1 = False; ... }`, where `continue` goes to the condition as C's does |
+| `do { } while (c);`; one with a `continue` of its own; a `for` whose step is more than one assignment, `for (i = 0, j = n; i < j; i++, j--)`, with a `continue` | `while True { ... if not c { break; } }`; `while True { do:pass_1 { ... break:pass_1; ... } if not c { break; } }`, `i = 0; j = n; while i < j { do:pass_2 { ... break:pass_2; ... } i += 1; j -= 1; }`: the body a named `do` block its `continue` leaves, to the condition or the step as C's goes |
 | `return v;`, `break;`, `continue;` | The same |
-| `goto error;` forward, to a label at the top level of the function or of a loop's body, from anywhere before the label: a nested loop, a `switch`, an earlier label's code | `goto_to = 2; break;`: the code before the first label is in a `while True { ... break; }` that a `goto` leaves, with `if goto_to != 0 { break; }` after each loop or `switch` it leaves on the way |
-| `error: free(buf); return NULL;` that a forward `goto` reaches, or that none does; its code may return, go to a later label, or leave its loop | `if goto_to <= 2 { goto_to = 0; ... }`, the k-th label's code, run when the code before falls into it or a `goto` names it; in a loop's body a `continue` or `break` before the label is a `goto` past the body's end; a label no `goto` names is its statement |
+| `goto error;` forward, to a label of a block that holds the `goto`, from anywhere before the label: a nested loop, a `switch`, an earlier label's code; `goto again;` back, to a label before it | `break:error;`, out of `do:error { ... }`, a block that ends where the label stands; `continue:again;` of `forever:again { ... break:again; }`, a loop from the label to the last `goto` back to it: a named `break` and `continue` leave the loops and switches between, at any depth |
+| `error: free(buf); return NULL;` that a forward `goto` reaches, or that none does; its code may return, go to a later label, or leave its loop | `do:error { ... } free(buf); return None;`: the label's code follows the block a `goto` to it leaves, and the code before falls into it; a label no `goto` names is its statement; C's `skip:` is `label_skip`, a name Jac keeps |
 | `a + b`, `a - b`, `a * b` of signed integers and of floats | `a + b`, `a - b`, `a * b`: C leaves a signed overflow undefined, and Jac raises OverflowError |
 | `a + b`, `a - b`, `a * b`, `a << k` of unsigned integers | `a +% b`, `a -% b`, `a *% b`, `wrapping_shl(a, k)`: they wrap, as C defines |
 | `a / b`, `a % b` of signed integers | `(a // b + 1) if (a % b != 0 and (a < 0) != (b < 0)) else (a // b)`, and the like for `%`: C rounds toward zero and Jac toward negative infinity |
 | `a / b`, `a % b` of unsigned integers | `a // b`, `a % b` |
-| `a / b` of floats; `x = f() / g();`, whose operands have side effects, where the division is the first thing its statement evaluates | `a / b` where `b` is a literal other than 0; else `(a / b) if b != 0.0 else a * math.copysign(float("inf"), b)`, since Jac raises where C gives an infinity; `was_1: float = f(); was_2: float = g();` before the statement, which divides those: each operand once, in C's order |
+| `a / b` of floats; `x = f() / g();`, whose operands have side effects, where the division is the first thing its statement evaluates; `x = h() + f() / g();`, after something else | `a / b` where `b` is a literal other than 0; else `(a / b) if b != 0.0 else a * math.copysign(float("inf"), b)`, since Jac raises where C gives an infinity; `was_1: float = f(); was_2: float = g();` before the statement, which divides those: each operand once, in C's order; after something else, the same in a `do` block where it stands, `x = h() + do { was_1: float = f(); was_2: float = g(); ... };` |
 | `a < b`, `<=`, `>`, `>=`, `==`, `!=`, `a && b`, `a \\|\\| b`, `!a` | The same comparisons, `a and b`, `a or b`, `not a`; where C takes the result as a number, `i32(a < b)` |
 | `a & b`, `a \\| b`, `a ^ b`, `~a`, `a >> k`, `-a`, `c ? a : b` | `a & b`, `a \\| b`, `a ^ b`, `~a`, `a >> k`, `-a` (`-%a` of an unsigned), `a if c else b` |
 | `x = v;`, `x += v;` and the other compound assignments, `x++;`, `x--;` as statements | `x = v;`, `x += v;` (`x +%= v;` of an unsigned), `x += 1;`, `x -= 1;` |
@@ -74,25 +74,22 @@ the module `geom`.
 
 Anything not in the table is refused with E4001, and nothing is written for the file: a union,
 a record with no name and a bit-field the file declares, a copy of a union a system header
-declares, a `goto` back to a label, into a loop or to a label inside a block other than a loop's
-body, a `va_list` read by `va_arg`, by `va_copy`, by more than one call or anywhere but the last
+declares, a `goto` into a block from outside it or into the loop a `goto` back makes, a `goto`
+back whose loop would take a `break` or a `continue` of a statement around it, a `va_list` read
+by `va_arg`, by `va_copy`, by more than one call or anywhere but the last
 argument of a `v` function, a pointer to an array (the address of an array given where C takes
 another pointer is the address of its first item), an array of function pointers in a
 function's frame, a record
 or a field with an attribute other than packed or aligned, a thread-local variable. So is a
 construct in the table whose Jac would mean something else (E4005):
 
-- **A division of floats whose operands have side effects, after something else its statement
-  evaluates.** Port tests the divisor, and would evaluate the operands twice. Where the division
-  is the first thing its statement evaluates (`x = f() / g();`, `return f() / g();`), port takes
-  each operand once, in C's order, as a statement before it (`was_1: float = f();`), and divides
-  those. An integer division binds each operand once (`(was_1 := f(x)) % (was_2 := n)`) and
-  tests those, wherever it is.
-- **An assignment, `++` or `--` used for its value where C evaluates it only sometimes** (on
+- **An assignment, `++` or `--` used for its value whose target has side effects** (`*p++ = v`
+  used for a value). Port would evaluate the target twice. Where C evaluates one only sometimes (on
   the right of `&&` or `||`, in an arm of `?:`, in a `for`'s condition or step, in an `else if`'s
-  condition), **or whose target has side effects.** Elsewhere port writes it as a statement before
-  the one that uses its value. An assignment of a local that holds a number or a pointer is
-  `(c := *tail)` wherever it stands.
+  condition), port writes it as a `do` block where it stands, `a > 0 and do { t = a * 2; t > 3 }`;
+  elsewhere as a statement before the one that uses its value. An assignment of a local that
+  holds a number or a pointer is `(c := *tail)` wherever it stands. C's comma operator used for
+  its value is the same: a statement before, or a `do` block, `do { t += 1; t + 1 }`.
 - **A `case` label that is not directly in its `switch`'s braces.**
 
 In a project, a C file that stays calls the Jac module's functions through its wire and the
