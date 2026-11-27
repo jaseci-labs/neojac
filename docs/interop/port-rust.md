@@ -26,10 +26,10 @@ else its defaults.
 | `impl P { fn area(&self) -> f64 { } fn new(x: f64) -> P { } }`, `p.area()`, `P::new(1.0)` | `def area -> float;` and `static def new(x: float) -> P;` in the struct, each with its `impl P.area -> float { }`; `p.area()`, `P.new(1.0)` |
 | `#[derive(Clone, Copy)]` | Nothing: a Jac struct is copied where it is assigned or passed |
 | `const N: i32 = 5;`, `static LIMIT: i32 = 9;` | `comptime N: i32 = 5;`, `glob LIMIT: i32 = 9;` |
-| `enum Color { Red, Green = 4 }` (no variant holds fields), `Color::Red` | `enum Color { Red = 0, Green = 4, }`, `Color.Red` |
+| `enum Color { Red, Green = 4 }` (no variant holds fields), `Color::Red`; `enum Shape { Square(i32), Rect { w: i32, h: i32 }, Dot }`, `Shape::Square(3)`, `Shape::Rect { w: 2, h: 1 }`, `Shape::Dot` | `enum Color { Red = 0, Green = 4, }`, `Color.Red`; a sum, `enum Shape { Square(f0: i32), Rect(w: i32, h: i32), Dot, }`, a tuple variant's fields named `f0`, `f1`, ... and given by position, a struct variant's by name: `Shape.Square(3)`, `Shape.Rect(w=2, h=1)`, `Shape.Dot` |
 | `type Rank = u32;` | `type Rank = u32;` |
 | `use std::collections::HashSet;` | Nothing: rustc has resolved every path a `use` names |
-| `match n { 0 => a, 1 \| 2 => b, k if k > 9 => c, _ => d }` over integers, bools and enums of the crate, as a statement or as a `let`'s value | `match n { case 0: ... case 1 \| 2: ... case k if k > 9: ... case _: ... }` |
+| `match n { 0 => a, 1 \| 2 => b, k if k > 9 => c, _ => d }` over integers, bools and enums of the crate, as a statement or as a `let`'s value; `match s { Shape::Square(k) => a, Shape::Rect { w, h: 2 } => b, _ => c }` over an enum of the crate whose variants hold fields | `match n { case 0: ... case 1 \| 2: ... case k if k > 9: ... case _: ... }`; class patterns on the sum's members, by position for a tuple variant and by name for a struct variant: `case Shape.Square(k): ... case Shape.Rect(w=w, h=2): ... case _: ...` |
 | `#[cfg(test)] mod tests { #[test] fn adds() { assert!(add(1, 2) == 3); } }` | `test "adds" { if not (add(1, 2) == 3) { raise AssertionError("assertion failed: add(1, 2) == 3"); } }`: the crate is read once more as a test; a helper function of the module is a function of the file |
 | `let x = 1;`, `let mut x: i64 = 1;`, `let x = x + 1;` in the same block; `let (a, mut b) = t;` | `x: i32 = 1;`, `x: i64 = 1;`, `x: i32 = x + 1;`; `unpacked: tuple[u32, u64] = t; a: u32 = unpacked[0]; b: u64 = unpacked[1];` |
 | `if c { } else if d { } else { }`; `let x = if c { a } else { b };` | `if c { } elif d { } else { }`; `x: T = a if c else b;` |
@@ -87,7 +87,7 @@ else its defaults.
 ## What is refused
 
 Anything not in the table is refused with E4001, and nothing is written for the file: among
-them enums whose variants hold fields and their patterns, generics but the table's, another crate's methods
+them enums with type parameters, generics but the table's, another crate's methods
 generic over a closure or a trait object but in the chains the table names (`filter`,
 `sum`, `for_each`, `fold`), a `for` over an iterator that borrows its source mutably
 (`drain()`), a slice of other than numbers and bytes, a `?` that converts the error but into a `Box<dyn Error>`, a `Display` impl of more than one `write!`, a value
