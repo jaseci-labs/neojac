@@ -1,0 +1,15 @@
+{
+  "source": "https://github.com/jaseci-labs/neojac/issues/89#issuecomment-7205664713",
+  "classification": "historical research, not current verification",
+  "files": {
+    "plans/rune-ui-engine-probe/README.md": "d197c961ca61df68739f32765b44aa17d2a320a8eadca78ce9f43bfb8165059b",
+    "plans/rune-ui-engine-probe/Cargo.toml": "da715f892dc429f468b8eaa8e5437971cf6743de87b0bc34c39e292083a290a5",
+    "plans/rune-ui-engine-probe/build.rs": "f765086039f298f50c3ee8a5b9c55d4365c2663b239e8beb2bc0d87727268ca2",
+    "plans/rune-ui-engine-probe/compat.c": "dab03a95d1226883e2a2b517df99289ec438706d64ac4aae750817d49959eb19",
+    "plans/rune-ui-engine-probe/src/lib.rs": "eb24399da58358016a7c19eb23c9a6207ef911b7f4676571880a63799b4f4689",
+    "plans/rune-ui-engine-probe/src/main.rs": "c40d791960e7638677d82e5a970a294164475f7737a5497b303cbcb1d2711f34",
+    "plans/rune-ui-engine-probe/main.jac": "edebb15917a0e8565ebfbb2a46ed835784fd16087d456489218e30b07396d2b8",
+    "plans/rune-ui-probes.py": "820a34435e52cf40c5cb6368dcb69eb532e8a2684c67317116d508de4853a915",
+    "plans/rune-ui-research-results.json": "a292f8721a6216e42860529e9421cf2e0f4ceb85963ee5e690f04e31873ad65f"
+  }
+}

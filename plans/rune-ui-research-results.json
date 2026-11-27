@@ -1,0 +1,185 @@
+{
+  "scope": "Research fixtures; not a native Jac JSX backend",
+  "vm": {
+    "name": "jackal-extra-1",
+    "os": "Linux-6.18.60-instabox-x86_64-with-glibc2.41",
+    "vcpus": 4
+  },
+  "compiler": {
+    "exit_code": 0,
+    "stdout": "neojac 0.5.3 (linux-x86_64, 4da9bcccf875)",
+    "stderr": ""
+  },
+  "rune_revision": "41cfc073ca5845f1d689a41535d796f37a8f7eba",
+  "source_mode": "Pinned upstream archive with local path overrides to the same eight patched crates",
+  "source_archive_sha256": "8ccc3b255a242cac77ef558a2a75c2fa48b5a0b2e74643554f3914d3629c9903",
+  "xkb_version": "1.7.0",
+  "xkb_source_sha256": "65782f0a10a4b455af9c6baab7040e2f537520caa2ec2092805cdfd36863b247",
+  "profile": {
+    "rune_default_features": false,
+    "rune_features": [
+      "embedded-fonts"
+    ],
+    "rune_kit_default_features": false,
+    "debug_info": false,
+    "incremental": false,
+    "cargo_jobs": 2
+  },
+  "engine_layout_input": {
+    "exit_code": 0,
+    "stdout": "Rune + rune-kit: layout and retained click handler passed",
+    "stderr": ""
+  },
+  "captured_jac_callback": {
+    "exit_code": 0,
+    "stdout": "Rune callback reached Jac: 42",
+    "stderr": ""
+  },
+  "glibc_versions": [
+    "GLIBC_2.2.5",
+    "GLIBC_2.3",
+    "GLIBC_2.3.4",
+    "GLIBC_2.7",
+    "GLIBC_2.9",
+    "GLIBC_2.12",
+    "GLIBC_2.14",
+    "GLIBC_2.15",
+    "GLIBC_2.16",
+    "GLIBC_2.17"
+  ],
+  "needed_libraries": [
+    "libm.so.6",
+    "libc.so.6",
+    "ld-linux-x86-64.so.2",
+    "libpthread.so.0",
+    "libdl.so.2"
+  ],
+  "offscreen_graphics": {
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "rune: 1 frames at 60 fps, gpu init 323.1 ms, first frame 15.98 ms, frame cpu mean 15.977 ms p50 15.977 p95 15.977 max 15.977, 36 instances\nrune: frame cpu p99 15.977 ms, over budget 0 of 0 frames after the first (16.67 ms a frame at 60 fps)\nrune: animating frames 0 (cpu p50 0.000 p95 0.000 ms), at-rest frames 0 (the window draws none; forced cpu p50 0.000 p95 0.000 ms), layout nodes 8, glyphs 28",
+    "driver": "lvp_icd.json",
+    "image_sha256": "2dc213a671abd1aa34ba2f46ee78e08a6f003054a105fe5fc0a31a8d4ca0d99a"
+  },
+  "fixture_sources": {
+    "compat.c": "dab03a95d1226883e2a2b517df99289ec438706d64ac4aae750817d49959eb19",
+    "main.jac": "edebb15917a0e8565ebfbb2a46ed835784fd16087d456489218e30b07396d2b8",
+    "build.rs": "f765086039f298f50c3ee8a5b9c55d4365c2663b239e8beb2bc0d87727268ca2",
+    "src/lib.rs": "eb24399da58358016a7c19eb23c9a6207ef911b7f4676571880a63799b4f4689",
+    "src/main.rs": "c40d791960e7638677d82e5a970a294164475f7737a5497b303cbcb1d2711f34"
+  },
+  "interop_probes": {
+    "scope": "Standalone Rust interop patterns; does not build Rune",
+    "probes": {
+      "owned_builders_and_borrowed_text": {
+        "build": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "status": "supported",
+        "run": {
+          "exit_code": 0,
+          "stdout": "1 Rune-like builder",
+          "stderr": ""
+        }
+      },
+      "impl_into_string": {
+        "check": {
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "into.jac:2:18: error[E1030]: Element has no method 'label'\n 2 | with entry { e = element().label(\"label\"); print(e.title()); }\n   |                  ^^^^^^^^^^^^^^^^^^^^^^^^\n\n1 error\n`neojac docs E1030` explains an error by its code."
+        },
+        "status": "binding_gap"
+      },
+      "retained_rust_closure": {
+        "check": {
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "retained.jac:4:9: error[E1030]: Element has no method 'keep'\n 4 |     s = element().keep(lambda -> int { return n; });\n   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n1 error\n`neojac docs E1030` explains an error by its code."
+        },
+        "status": "binding_gap"
+      },
+      "retained_callback_with_held_jac_closure": {
+        "build": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "status": "supported",
+        "run": {
+          "exit_code": 0,
+          "stdout": "42",
+          "stderr": ""
+        }
+      },
+      "public_rust_reexports": {
+        "check": {
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "reexports.jac:1:22: error[E1145]: module 'native' has no 'el'\n 1 | import from native { el }\n   |                      ^^\n\n1 error\n`neojac docs E1145` explains an error by its code."
+        },
+        "status": "binding_gap"
+      },
+      "transitive_rust_value_type": {
+        "build": {
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "error[E0433]: cannot find module or crate `dep` in this scope\n   --> cache/rust-native-2b39d69ca50d9d7d98ad12ba776f3dfe/shims-ccaf8b506b3f783326d5b58315c4b1a2/lib.rs:143:44\n    |\n143 |         let __r = (unsafe { &*(s as *const dep::Color) }).red();\n    |                                            ^^^ use of unresolved module or unlinked crate `dep`\n    |\n    = help: if you wanted to use a crate named `dep`, use `cargo add dep` to add it to your `Cargo.toml`\n\nerror[E0433]: cannot find module or crate `dep` in this scope\n   --> cache/rust-native-2b39d69ca50d9d7d98ad12ba776f3dfe/shims-ccaf8b506b3f783326d5b58315c4b1a2/lib.rs:152:20\n    |\n152 |         let __r = <dep::Color as ::core::clone::Clone>::clone(unsafe { &*(s as *const dep::Color) });\n    |                    ^^^ use of unresolved module or unlinked crate `dep`\n    |\n    = help: if you wanted to use a crate named `dep`, use `cargo add dep` to add it to your `Cargo.toml`\n\nerror[E0433]: cannot find module or crate `dep` in this scope\n   --> cache/rust-native-2b39d69ca50d9d7d98ad12ba776f3dfe/shims-ccaf8b506b3f783326d5b58315c4b1a2/lib.rs:152:87\n    |\n152 |         let __r = <dep::Color as ::core::clone::Clone>::clone(unsafe { &*(s as *const dep::Color) });\n    |                                                                                       ^^^ use of unresolved module or unlinked crate `dep`\n    |\n    = help: if you wanted to use a crate named `dep`, use `cargo add dep` to add it to your `Cargo.toml`\n\nerror[E0433]: cannot find module or crate `dep` in this scope\n   --> cache/rust-native-2b39d69ca50d9d7d98ad12ba776f3dfe/shims-ccaf8b506b3f783326d5b58315c4b1a2/lib.rs:163:20\n    |\n163 | ...   let __r = <dep::Color as ::core::clone::Clone>::clone_from(unsafe { &mut *(s as *mut dep::Color) }, unsafe { &*(a0 as *const ...\n    |                  ^^^ use of unresolved module or unlinked crate `dep`\n    |\n    = help: if you wanted to use a crate named `dep`, use `cargo add dep` to add it to your `Cargo.toml`\n\nerror[E0433]: cannot find module or crate `dep` in this scope\n   --> cache/rust-native-2b39d69ca50d9d7d98ad12ba776f3dfe/shims-ccaf8b506b3f783326d5b58315c4b1a2/lib.rs:163:94\n    |\n163 | ...:clone_from(unsafe { &mut *(s as *mut dep::Color) }, unsafe { &*(a0 as *const dep::Color) });\n    |                                          ^^^ use of unresolved module or unlinked crate `dep`\n    |\n    = help: if you wanted to use a crate named `dep`, use `cargo add dep` to add it to your `Cargo.toml`\n\nerror[E0433]: cannot find module or crate `dep` in this scope\n   --> cache/rust-native-2b39d69ca50d9d7d98ad12ba776f3dfe/shims-ccaf8b506b3f783326d5b58315c4b1a2/lib.rs:163:134\n    |\n163 | ...p::Color) }, unsafe { &*(a0 as *const dep::Color) });\n    |                                          ^^^ use of unresolved module or unlinked crate `dep`\n    |\n    = help: if you wanted to use a crate named `dep`, use `cargo add dep` to add it to your `Cargo.toml`\n\nerror[E0433]: cannot find module or crate `dep` in this scope\n   --> cache/rust-native-2b39d69ca50d9d7d98ad12ba776f3dfe/shims-ccaf8b506b3f783326d5b58315c4b1a2/lib.rs:170:59\n    |\n170 |     neojac_guard(|| drop(unsafe { Box::from_raw(s as *mut dep::Color) }))\n    |                                                           ^^^ use of unresolved module or unlinked crate `dep`\n    |\n    = help: if you wanted to use a crate named `dep`, use `cargo add dep` to add it to your `Cargo.toml`\n\nerror: aborting due to 7 previous errors\n\nFor more information about this error, try `rustc --explain E0433`.\ntransitive.jac:1:22: error[E5190]: the Rust items the program imports cannot be read or built: neojac_native\n 1 | import from native { color }\n   |                      ^^^^^\n\n1 error\n`neojac docs E5190` explains an error by its code."
+        },
+        "status": "transitive_type_shim_gap"
+      },
+      "jac_worker_during_blocking_rust_call": {
+        "build": {
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "status": "runtime_lock_gap",
+        "run": {
+          "exit_code": 0,
+          "stdout": "worker_progress_during_rust_wait 0\nworker_after_join 1",
+          "stderr": ""
+        }
+      }
+    },
+    "compiler": {
+      "exit_code": 0,
+      "stdout": "neojac 0.5.3 (linux-x86_64, 4da9bcccf875)",
+      "stderr": ""
+    }
+  },
+  "document_layout": [
+    {
+      "name": "desktop",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "briefBottom": 867.71875,
+      "initialOpen": 0,
+      "detailToggleWorks": true,
+      "expandedOverflow": false,
+      "collapsedOverflow": false
+    },
+    {
+      "name": "mobile",
+      "viewport": [
+        390,
+        844
+      ],
+      "briefBottom": 1528.71875,
+      "initialOpen": 0,
+      "detailToggleWorks": true,
+      "expandedOverflow": false,
+      "collapsedOverflow": false
+    }
+  ],
+  "limitations": [
+    "The proposed native Jac JSX backend is not implemented.",
+    "The Jac engine fixture uses a research shared library and C ABI; static Jac/Rust linking is not established by that test.",
+    "Only the recorded Linux x86_64 minimal-feature dev profile was executed.",
+    "The offscreen frame is a graphics correctness proof, not a performance benchmark.",
+    "Paired compiler/runtime changes require source outside this checkout."
+  ]
+}
