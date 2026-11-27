@@ -98,6 +98,10 @@ lock of the runtime while it runs, and gives it up:
 
 - while it waits: for a `Lock`, a `Condition`, a `Queue` or a `join`; in `time.sleep`; in a read
   or a write of a file, a pipe or a socket; in `select`; for a child process;
+- in a foreign function a [task](../language/async.md#tasks-flow-and-wait) calls: a `flow` whose
+  call is a C module's function, a crate's, or a method of a Rust value waits there without the
+  lock, and a Jac function called back meanwhile takes it for the call. A foreign function
+  called any other way is one step, with the lock kept;
 - at its loops, when another thread is waiting for its turn.
 
 In a program that uses Python, a thread that waits for its turn, or waits in any of the ways

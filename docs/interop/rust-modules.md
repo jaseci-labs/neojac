@@ -182,6 +182,11 @@ each call goes through a shim it compiles.
   through a wire from the crate, or an import where the project has no `archwire.jac`. A Jac
   file inside a crate names the crate's dependencies by their Rust paths
   (`import from adder { Bag }`), and a file outside it does not.
+- **An item the crate gives as its own** (`pub use dep::{el, Element}`) is one of its items, and
+  is the dependency's: `Element` is one class whichever crate it is imported from. A value of
+  a type one of the crate's dependencies defines (`pub fn color() -> dep::Color`) is that type's,
+  with its methods, though the program names the crate alone. Two crates of one name (two
+  versions of one package) give two types.
 - **A generic is instantiated by its arguments**: `Vec[u32].new()`, `Stack[u32]`,
   `Option[Ordering].Some(o)`. An argument is a Rust type, a number type, a tuple of numbers
   (`Vec[tuple[u64, u32]]`, which crosses as a Jac tuple), or a struct of the program whose fields
@@ -203,6 +208,15 @@ each call goes through a shim it compiles.
   Jac (`cmp`, `eq`), which Rust calls. `BinaryHeap[Job]` orders the program's `Job`s by its `cmp`.
 - **A closure** Rust calls before it returns (`then_with`, `map`) is a Jac lambda, and an exception
   it raises passes out through Rust to the Jac that called it.
+- **A closure Rust keeps** (`pub fn new(f: impl Fn(i64) -> i64 + 'static) -> Hook`, which the
+  `Hook` holds and calls whenever it is fired) is a Jac lambda too, given to a method or to a
+  function. It lives, with what it captured, until Rust drops what holds it, as a closure a Jac
+  value keeps does. An exception it raises passes out through Rust to the Jac whose call into
+  Rust was running it (`hook.fire(3)`). One that captured a borrow and is called once the
+  borrow's owner is gone raises `RustPanic`.
+- **A closure Rust may call on a thread of its own** (one bounded by `Send` or `Sync`) is not
+  given: a program's Jac runs on the threads the program starts. The method or function that
+  takes it is left out, and a call of it says so (E5138).
 - **A panic** is the Jac exception `RustPanic`, of `import from rust { RustPanic }`.
 - **A value whose drop runs code** (rustc's significant drop: a guard, a lock, a collection) is
   dropped where its `own` owner's scope ends, as Rust drops it. A local or a field with no
@@ -360,12 +374,21 @@ panic: byte index 2 is not a char boundary; it is inside 'é' (bytes 1..3) of `h
 - **A `Vec` of another crate's values lends its item by index**: `v[i]` is Rust's `&v[i]`
   (`Index::index`, its panic past the end), a borrow of `v`, which is not changed while the item
   is used (E1302). A `Vec` of numbers gives the number.
-- **A method generic over its own type parameters is named by its instance at the call**:
+- **A type parameter that is the type of an argument is taken from the argument**, of a method
+  and of a function alike: `e.label("title")` calls `pub fn label(self, s: impl Into<String>)`,
+  or `label<S: Into<String>>(self, s: S)`, with `&str`, and `e.label(owned)` with a `String`,
+  moved. The argument's Jac type says which Rust type: a `str` is `&str` and `bytes` is `&[u8]`,
+  lent for the call; `int` is `i64`, `float` is `f64`, a `bool` is `bool`, and a sized number is
+  its own type (`u8(2)` is `u8`); a value of a Rust type is that type. An argument of a type the
+  parameter's bounds do not hold for (`counter.add_any("three")` of an `N: Into<u32>`) is E1625.
+- **A type parameter no argument is the type of is named at the call**:
   `o.zip[u32](p)`, `re.find_iter[str](text)`. A type argument is a number type or `str`, which
   names Rust's `str` (`Matches[str]`). Each instance a program names is made for it, as a C++
-  member template's is.
-- **A function of another crate generic over its input is named by its instance at the call**,
-  as a generic method is: `decode_last_utf8[Slice[u8]](b)` calls `bstr`'s
+  member template's is. Called with no type named, such a method is E5138, which says that the
+  call names it.
+- **A function of another crate generic over its input is called both ways too**:
+  `loudly("quiet")` gives a `pub fn loudly(s: impl AsRef<str>)` its `&str`, and
+  `decode_last_utf8[Slice[u8]](b)` calls `bstr`'s
   `decode_last_utf8::<&[u8]>`, and `size_of[u32]()` std's `size_of::<u32>`. A function imported
   under another name is named so (`import from std.cmp { max as larger }`, `larger[u32](u32(3),
   u32(7))` is 7). The instance is asked of rustc as the module is read, and what it lends and
@@ -716,9 +739,63 @@ with entry {
 héhéhé True True
 ```
 
-An item rustc reports that Jac cannot bind is left out with its reason (E5138): a type that
-borrows and is not offered as above, a `Copy` type of another crate. Rust items that cannot be
-read or built at all are E5190.
+An item rustc reports that Jac cannot bind is left out with its reason (E5138), where it is
+imported and, for a method, where it is called: a type that borrows and is not offered as above,
+a method generic over a type no argument is of, a closure that is `Send`. An item of a kind Jac
+does not import (a constant the interface does not give, a static, a module, a macro) is E5138
+too, saying which it is, and a name the crate has no public item for is E1145. Rust items that
+cannot be read or built at all are E5190.
+
+## Tasks that wait in Rust
+
+A [task](../language/async.md#tasks-flow-and-wait) whose call is a crate's function or a method
+of a Rust value waits in Rust without the program's lock
+([How threads take turns](../library/threading.md#how-threads-take-turns)), so the program's
+other threads run meanwhile. Called any other way, Rust keeps the lock, and the call is one step
+to every other thread.
+
+<!-- example: not checked: needs a Rust crate with a function that waits and a Gate beside the program -->
+```jac
+def opener(gate: Gate) -> bool {
+    awaited = wait flow gate.awaited(u64(10000));
+    gate.open();
+    return awaited;
+}
+
+with entry {
+    naps = [flow nap(300) for k in range(4)];
+    print([wait t for t in naps]);
+    gate = Gate.new();
+    opening = flow opener(gate);
+    print(wait flow gate.pass(u64(10000)), wait opening);
+}
+```
+
+```text
+[300, 300, 300, 300]
+True True
+```
+
+The four naps take the time of one. `gate.pass` returns once another thread has called
+`gate.open`, which a thread that kept the lock while it waited would never let run.
+
+- **`flow f(a)` runs on a thread of the program's pool, and `wait flow f(a)` on the thread that
+  waits**: a loop that must stay on the thread that started the program, and still let the
+  others run, is `wait flow app.run()`.
+- **A Jac function Rust calls back while it waits** (a callback, a closure) takes the lock for the
+  call, and gives it up again as it returns.
+- **An `extern "C"` function is given only what no other thread can change meanwhile**: a number,
+  a `bool`, a `str`, `bytes`, a `ptr`, a function, a record, a local given by `&`. Anything else,
+  a `bytearray` say, is E1308.
+- **A method needs a value another thread may be given**: one that is `Send`, or `Sync` for a
+  method that takes `&self`, which rustc says of each type. A task of a method of any other value
+  is E1308, and so is one given another Rust value as an argument.
+- **A value that is `Sync` is shared while a method that takes `&self` waits in it.** Other
+  threads go on calling its `&self` methods, any number of tasks wait in it at once, and a method
+  that would change it or move it raises `RustPanic` until they are out.
+- **Any other waiting call has its value to itself.** A thread that uses the value before the
+  call returns raises `RustPanic` (`a value is used that Rust moved, or that a call that waits
+  has to itself`).
 
 ## Calling Jac and C from Rust
 
@@ -839,13 +916,20 @@ graph import {
   crate if it has nothing else to do (`waiting for the crates another build is compiling`), and
   reads it.
 - **`--release`** compiles the crate whose items the Jac binds to bitcode, which optimizes with the
-  program's Jac and C, so calls inline across the languages both ways.
+  program's Jac and C, so calls inline across the languages both ways. Of a crate whose Rust
+  items the program imports too, it is the shims that are so compiled: the crate's
+  `extern "C"` functions are called, not inlined.
 - **Each Rust module links as a unit of its own**, which shows the rest of the program only its
   interface: the names the Jac imports of it, and, for a module wired into a C module, the
   symbols that C module calls. Every other symbol of it, a `#[no_mangle]` one or one of the C its
   build scripts compile included, is private to it, so two modules may each define a symbol of
   one name. A static library a build script names from outside its build (`openssl-sys` naming
   the toolchain's OpenSSL) is linked once.
+- **A crate whose Rust items a program imports is in the program once.** The crates those items
+  are of link in one unit, with the shims, and what the program binds of such a crate's
+  `extern "C"` interface is that unit's: a static of the crate is one static, whichever way its
+  functions are called. Two modules that depend on one crate, each used through its interface
+  alone, each have their own of it.
 - **One standard library.** The crates of a program share one copy of `std`.
 - **Panics and memory.** A panic unwinds inside Rust and aborts the program at an `extern "C"`
   boundary, as Rust defines (`panic in a function that cannot unwind`). Rust allocates with the C
@@ -858,7 +942,7 @@ graph import {
 
 | Code | Cause |
 |---|---|
-| E5138 | The imported item is something the interface leaves out; the message says why |
+| E5138 | The imported item, or the method called, is something Jac is not given; the message says why |
 | E1145 | The crate has no public item of that name |
 | E5146 | Two Rust modules both give the program a symbol the program calls by name |
 | E5144 | The crates of one Rust module do not link together (two `#[global_allocator]`s, say); rustc's reason follows |
@@ -869,7 +953,8 @@ graph import {
 | E5190 | Rust items the program imports natively cannot be read or built; the message says why |
 | E2270 | A Jac file of a crate imports from a dependency that a Jac or Python module is also named |
 | E1637 | A value whose drop runs code is taken from a managed place into an `own` binding |
-| E1625 | An instance of another crate's generic function that rustc cannot make for its type arguments |
+| E1625 | An instance of a generic function or method that rustc cannot make for its type arguments, written at the call or taken from its arguments |
+| E1308 | A task of a Rust call is given a value another thread could change, or a Rust value no other thread may be given |
 
 ## Differences from Python and from the reference design
 

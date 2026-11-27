@@ -237,7 +237,7 @@ func_params ::= (("*" | "/" | param) ("," ("*" | "/" | param))* ","?)?
 
 lambda_expr ::= "lambda" ("(" func_params ")")? ("->" expression)? ("{" expression "}" | block)
 
-concurrent ::= ("flow" | "wait") walrus | walrus
+concurrent ::= ("flow" | "wait") concurrent | walrus
 
 ownership_prefix ::= ("own" | "lin" | "imm" | "&" "mut"?)?
 
