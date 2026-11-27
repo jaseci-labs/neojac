@@ -26,7 +26,20 @@ and a JS host writes it as the operation itself, `(a) + (b)`, with nothing cross
 `new C().$init(a)` of a class under a Jac root that the file names is `C(a)`, made as a
 program's call makes it; of a class an expression gives, `new (K || D)().$init(a)`, it is what
 it is, `__js_method(__js_new(K_or_D), "$init", a)`; and `new X(a)` of any other class but one
-of the file's own is `__js_new(X, a)`.
+of the file's own is `__js_new(X, a)`. JavaScript's forms are intrinsics too: `null` is
+`__js_null()`, `[a, ...xs]` is `__js_array(a, *xs)`, `{ a: x, [k]: v, ...o }` is
+`__js_object(("a", x), (k, v), *o)`, `x instanceof C` is `__js_instanceof(x, C)`, a call of a
+function value `f(a, ...xs)` is `__js_call(f, a, *xs)`, and `for (const k in o)` and
+`for (const x of xs)` are `for k in __js_for_in(o)` and `for x in __js_iter(xs)`, written as those
+loops. Nothing of `js` is named there: what it gives that is a function of its own
+(`js_as_method`, `js_unpack`, `js_promise`, ...) is the runtime's module `lib/js`'s, imported from
+it as any runtime module imports another. A function there is JavaScript's own: a parameter
+whose default is None is the bare parameter, any other default is JavaScript's and applies as
+JavaScript applies it, where the argument is undefined, which is None; `*rest` is `...rest`; the
+arguments are not counted or bound by name; a function value is the function itself, and a
+lambda an arrow function. A handler binds what was thrown as it was thrown: `except
+BaseException as e` is `catch (e)`, `e` of type `any`, and a handler of another class tests it
+with `instanceof` and throws it on.
 
 | JavaScript and TypeScript | Jac |
 |---|---|
