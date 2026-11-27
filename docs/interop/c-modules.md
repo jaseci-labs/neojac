@@ -356,6 +356,10 @@ A source Clang takes for C++ by its name (`.cc`, `.cpp`, `.cxx`, ...) compiles a
 [`neojac c++`](c-and-cpp.md) compiles it, with libc++ and the module's `cxxflags` besides its
 `cflags`. A header ending in `.h` that is C++ (a header-only library) is read as C++ when the
 module's table says `language = "c++"`; a module with no sources may list its `headers` alone.
+A C++ library built already is such a module that lists its `headers` and the `archives` it
+links (LLVM's): Jac uses it as it uses a header-only library, a member its headers define
+(inline, or a template's) called through the module's shim and one defined out of line at its
+symbol in the archives.
 
 C++ static objects are constructed before the program's code runs. Every program and shared
 library links the toolchain's C++ runtime (libc++, libc++abi, and libunwind except on macOS)
@@ -404,7 +408,9 @@ twice }` binds `twice_i32` and `twice_f64`, which the Jac code calls.
 A header library's function is the module's wherever in its directory it is defined: node-addon-api's
 `napi.h` declares functions that `napi-inl.h`, a header only `napi.h` includes, defines. A wire
 names it from the header the module lists (`headers = ["napi.h"]`), and so does a use of it from
-another C++ file of the project.
+another C++ file of the project. Of a library that lists several headers (LLVM's, which a file
+reaches through as many as it includes), a wire names a class or a function from the header
+that declares it: `toolchain.llvm.include.llvm.IR.Module ++> app.units { Module }`.
 
 ### Member function templates
 

@@ -18,6 +18,9 @@ printed from the table the translation itself reads (`neojac port --mapping c++`
 | `class C { int n; public: C(int n) : n(n) { } int get() { return n; } };` | `struct C { has n: i32 = 0; static def make(n: i32) -> C { made: C = C(); made.n = n; return made; } def get -> i32 { return self.n; } }`: a C++ object is a value, as a Jac struct is, and a struct is made from its fields |
 | `int C::get() { return n; }`, defined outside its class | `def get -> i32;` in the struct, and `impl C.get -> i32 { return self.n; }` |
 | `Bin::Bin(int n) : room(n) { }`, a constructor defined outside its class | `static def make(n: i32) -> Bin;` in the struct and `impl Bin.make(n: i32) -> Bin { ... }`; of a class written as an `obj`, `def init(n: i32);` and `impl Bin.init(n: i32) { ... }` |
+| `Money operator+(Money o) const`, `bool operator==(Money o) const`, `int operator[](int i) const`, `int operator()(int k) const`, `explicit operator bool() const`, of a class of the file; `a + b`, `-a`, `a == b`, `b < a`, `c[0]`, `a(3)`, `if (a)` | `def __add__(o: Money) -> Money`, `def __eq__(o: Money) -> bool`, `def __getitem__(i: i32) -> i32`, `def __call__(k: i32) -> i32`, `def __bool__ -> bool`; `a + b`, `-a`, `a == b`, `b < a`, `c[0]`, `a(3)`, `if bool(a)`: a member operator is the Jac operator method of its meaning (`+ - * / %`, `== != < <= > >=`, `& \| ^ << >>`, unary `- + ~`, `[]`, `()`, `bool`). One whose result is a reference a caller may write through, one the class overloads, and `->`, unary `*` and `&`, `=`, `++`, `--`, `!`, `+=` and the other compound assignments, a conversion to what is no `bool` and `new` are refused |
+| `if (Item *it = find(k)) { ... }`, `if (int n = count(); n > 2) { ... }`, `switch (int s = next(); s) { ... }`, `while (int v = next()) { ... }` | `do { it: Item \| None = find(k); if it is not None { ... } }`, `do { n: i32 = count(); if n > 2 { ... } }`, `do { s: i32 = next(); switch s { ... } }`: what the statement declares, in a block of its own around it that ends where the statement ends, as C++ ends its scope; a `while`'s, in the loop's block, made again on each pass, `while True { v: i32 = next(); if not v != 0 { break; } ... }` |
+| `static const int steps[] = {1, 2, 3}; for (int s : steps) { ... }`, a range `for` over an array | `for was_1 = 0 while was_1 < 3 with was_1 += 1 { s: i32 = steps[was_1]; ... }`: an index over the array, each pass's variable its item, as C++ steps a pointer from the first item to past the last; a variable that is a reference through which the body may write the item is refused |
 | `namespace geo { int sides(); }`, a namespace with no name, `using namespace geo;` | `def sides -> i32`: a namespace's declarations are the module's own names, as Clang resolved each use; `using` writes nothing, and two declarations of one name in different namespaces are refused |
 | `struct Totals { struct Line { int count; }; };`, a nested class | `struct Line { ... }` before `struct Totals { ... }`: a record of the module by its own name |
 | `friend class Statement;` | Nothing: a Jac module's classes reach each other's members |
@@ -38,6 +41,7 @@ printed from the table the translation itself reads (`neojac port --mapping c++`
 | `a == b`, `v[i]`, `s += t` on a class a library gives | `a.op_eq(b)`, `v.op_index(i)`, `s.op_iadd(t)`: the member its interface binds for the operator, `op_` and the operator's name, a conversion `op_to_` and its type |
 | `NULL` where C++ takes it as the integer it is (an argument of `...`) | `0`, of the type C++ gives it; where it becomes a pointer, `None` or the null address as C's `NULL` is |
 | `reinterpret_cast<File *>(f)`, `reinterpret_cast<uintptr_t>(p)` | `ptr[File](f)`, `u64.wrap(int(p))`: C's cast of a pointer to another pointer or to an integer, and back; one of a reference or of a pointer to an object of a class with virtual functions is refused |
+| `const_cast<int *>(p)`, `const_cast<Item &>(it)` | `p`, `it`: the same place at the type without `const`, which Jac's types do not carry |
 | `total({1, 2, 3})`, `DefineClass(env, "Tally", {PrototypeMethod<Tally, &Tally::Add>("add")})`: a list in braces C++ makes an `std::initializer_list` of | `total([i32(1), i32(2), i32(3)])`: a Jac list of the items, which a library's interface takes where C++ takes an initializer list |
 | `auto next = [&rd]() { return rd() << 1; };`, `next()` | `next: Callable[[], u32] = lambda -> u32 { return rd() << 1; };`, `next()`: a Jac closure, which shares the variables it names, as a capture by reference does; a capture by copy of a variable that may change, one that makes a variable, and a lambda with `auto` parameters are refused |
 | `std::call_once(flag, []() { opened++; });` in `open_once()` | `def open_once_call_once { opened += 1; }`, `std_call_once(flag, open_once_call_once)`: a lambda with nothing captured, given to a library's function template that deduces its type argument from it, is a def of the file, named by the function it is in and the template (`_2`, `_3` for a second and a third), given by its name; one that captures is refused |
@@ -66,9 +70,14 @@ takes it as a callback (`Ops(version=1, twice=C.Twice)`).
 
 ## Library classes
 
-A class of a header-only C++ library the project holds as a C module (node-addon-api's
-`Napi::Object`) is used as it is: port imports it from the header's module by the name its
-interface gives it (`import from "node_modules/node-addon-api/napi" { Object }`). A class of
+A class of a C++ library the project holds as a C module of headers (node-addon-api's
+`Napi::Object`), and of archives to link where it has them (LLVM's `llvm::Module`), is used
+as it is: port imports it from the header's module by the name its interface gives it
+(`import from "node_modules/node-addon-api/napi" { Object }`). Of a library that lists one
+header, every name of its directory is that header's; of one that lists several, each name is
+its own header's (`toolchain.llvm.include.llvm.IR.Module ++> app.units { Module }`). A
+member the library defines in its headers (inline, or a template's) is called through the
+interface's shim, and one it defines out of line at its symbol in its archives. A class of
 the C++ standard library is libcxx's, by its template form: `std::vector<int>` is
 `std_vector[i32]`, `std::lock_guard<std::mutex>` is `std_lock_guard[std_mutex]`, `std::string`
 is `std_string`. A local or field of one whose destructor runs code is bound `own`, so it is
@@ -197,11 +206,13 @@ or a default among its parameters or whose body applies an operator to a value o
 parameter, a header library's function template whose instance the call names by what is
 no class or number type, a
 standard library class the library keeps to itself (`std::__wrap_iter`) named but through a
-local a call gives it to, operators
-and conversions of the file's own classes, a non-member operator, `std::move` but as a
+local a call gives it to, operators of the file's own classes but those the table maps,
+a non-member operator, `std::move` but as a
 library class's `T&&` argument, the destructor of a class
 port does not write as an `obj`, references but a library class's as a parameter, an `obj`'s
-and a struct's place, lambdas, a range `for` over an array, exceptions, a placement `new` (into storage the
+and a struct's place, lambdas, a range `for` over an array whose variable is a reference to
+its item, a conversion to a virtual base or to a base at another address than a library
+object's own, exceptions, a placement `new` (into storage the
 program gives) and an explicit destructor call (no Jac form keeps an object in raw memory), `new[]` and
 `delete[]` of anything but numbers and pointers, a static data member another file defines, a member
 of a library class its interface does not bind (a member template's instance whose arguments
