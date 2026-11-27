@@ -705,18 +705,64 @@ compiles, and nothing is registered as the module starts.
 | Argument | Meaning |
 |---|---|
 | `method` | `HTTPMethod.GET` or `HTTPMethod.POST`. A request with another method is 404. |
-| `path` | Absolute: one that does not start with `/` does not compile |
+| `path` | Absolute: one that does not start with `/` does not compile. A segment written `{name}` takes that segment of a request's path, which is the parameter `name`'s value: `/orders/{id}` answers `/orders/42` |
 | `envelope` | `True`: the reply is the JSON envelope. `False`: the body is the function's result, which must be a `str` or a `Markup`. Left out, `False` for a function declared to return `Markup` and `True` for any other |
 | `produces` | The `Content-Type` of an unenveloped body. Left out, `text/html; charset=utf-8` for a function declared to return `Markup` and `text/plain` for any other |
 | `headers` | Headers an unenveloped body is sent with, a dict written at the decorator: what a page says of where it may be shown and what it may load (`Content-Security-Policy`, `X-Frame-Options`, `Cache-Control`). A refusal and a failure are the JSON envelope, sent with none of them |
 
-The function takes no parameters. Its access tag guards the route as it guards its endpoint:
-`:pub` for anyone, `:prot` for a signed-in caller (401 otherwise), untagged for requests with
-the deployment's key (403 otherwise).
+Its access tag guards the route as it guards its endpoint: `:pub` for anyone, `:prot` for a
+signed-in caller (401 otherwise), untagged for requests with the deployment's key (403 otherwise).
+
+A function with parameters is given them by the request: by name, from the query string, then
+from the fields of a JSON object sent as the body, which give a name the query gives too. A name
+the query gives twice takes its last value. A function of no parameters reads neither: its query
+and its body are not looked at.
+
+```jac
+@restspec(method=HTTPMethod.GET, path="/add")
+def:pub add(a: int, b: int = 10) -> int {
+    return a + b;
+}
+
+@restspec(method=HTTPMethod.POST, path="/repeat")
+def:pub repeat(text: str, times: int = 1) -> str {
+    return text * times;
+}
+```
+
+```sh
+curl 'http://127.0.0.1:8000/add?a=2&b=3'                    # {"ok": true, "data": 5}
+curl 'http://127.0.0.1:8000/add?a=2'                        # {"ok": true, "data": 12}
+curl -X POST -d '{"text": "ab", "times": 3}' http://127.0.0.1:8000/repeat
+                                                            # {"ok": true, "data": "ababab"}
+curl 'http://127.0.0.1:8000/add?b=3'                        # 400: add: missing field 'a'
+```
+
+- **A query's value is a parameter's as it is written** where the parameter is a `str`, and the
+  JSON it reads as otherwise (`?a=2` is the int 2, `?tags=["x"]` a list); a value that reads as no
+  JSON is given as written, for its parameter's type to refuse.
+- **A name in the query that is no parameter's is not read,** so a link's own (`?ref=`,
+  `?utm_source=`) reaches a route as it reaches a page. A body's field that is no parameter's, a
+  parameter with no default that is given no value, and a value of the wrong type are each 400,
+  with the JSON envelope, as an endpoint's are.
+- **A segment of the path written `{name}`** gives the parameter `name` that segment of the
+  request's path, decoded (`%20` is a space), by the rule a query's value is given by; it is the
+  value whatever the query or the body says of the name. Each `{name}` is a parameter of the
+  function, or the program does not compile (E0109). A segment matches one that is not empty, so
+  `/orders/{id}` answers neither `/orders/` nor `/orders/4/2`, and a path written without one is
+  matched first: `/items/special` beside `/items/{n}` answers `/items/special` itself. Of two
+  paths with segments that both match, the one declared first answers. A `{` or `}` that is not a
+  whole segment `{name}`, or a name given twice, does not compile (E0109).
+- **What a segment gives is the caller's:** `%2F` decodes to a `/` inside the value and `..` is a
+  value like any, so a value used as a file's name is checked first. A parameter that is not a
+  `str`, `str | None` among them, is given the JSON the segment reads as (`null` is `None`). A
+  route's path is matched before a page's files, so `GET /{slug}` answers `/robots.txt` too.
+- **A body that is not a JSON object** is 400, `the request is not JSON` or `the request is not a
+  JSON object`, after the access tag is checked.
 
 Its arguments are checked as the program compiles: a missing `method` is E1050, an `envelope`
-that is not a `bool` is E1053, an unknown keyword is E1052, and a function with parameters or a
-path that does not start with `/` is E0109.
+that is not a `bool` is E1053, an unknown keyword is E1052, and a path that does not start with
+`/` is E0109.
 
 A path is served by a transport that serves paths, as the standard one, `http`, does. Under one
 that carries calls between apps and nothing else, a program with a `@restspec` function (or a

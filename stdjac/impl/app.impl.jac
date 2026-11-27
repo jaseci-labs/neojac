@@ -278,7 +278,9 @@ impl dispatch(r: Request, caller: str, trusted: bool) -> Response {
                 return often;
             }
         }
-        (status, ctype, body, sent_with) = route_answer(route, caller, trusted);
+        (status, ctype, body, sent_with) = route_answer(
+            route, r.path, r.query, r.body, caller, trusted
+        );
         return Response(status=status, ctype=ctype, body=body, headers=sent_with);
     }
     pages = sorted(p.pages, key=lambda (g: Page) -> int { return -len(g.base); });
