@@ -7,8 +7,9 @@ grammar: dyn_type
 
 An interface says what a type must provide: methods with no body and
 compile-time members with no value. A class conforms to an interface by
-listing it among its bases and giving everything it requires, and the
-compiler checks that it does. An interface is used in two ways: as the
+listing it among its bases and giving everything it requires, or a type
+conforms by an `impl` written apart from it, and the compiler checks that it
+does. An interface is used in two ways: as the
 bound of a type parameter (`[T: Shape]`), where each call is compiled for
 the class it is given, and as `dyn Shape`, a reference to a value of any
 conforming class, dispatched as the program runs.
@@ -125,6 +126,117 @@ with entry {
 5.0 1.5
 Tri(b=2.0, h=2.0) rect 2.0x0.25: 0.5
 ```
+
+## Conforming apart from the type
+
+`impl Type(Interface) { ... }` says that `Type` conforms to `Interface`, and
+gives in its body the methods and compile-time members the interface requires
+and the type does not have already. `Type` is a class, a struct, an enum or a
+sum of the program; the impl names one interface, and several interfaces are
+several impls. It conforms the type exactly as listing the interface among its
+bases would, and its conformance is checked the same way, the errors reported
+at the impl (E1281, E1282).
+
+```jac
+obj Shown {
+    def show -> str abst;
+}
+
+struct Meters {
+    has v: float = 0.0;
+}
+
+impl Meters(Shown) {
+    def show -> str {
+        return f"{self.v} m";
+    }
+}
+
+enum Coin {
+    Heads,
+    Tails(n: int),
+}
+
+impl Coin(Shown) {
+    def show -> str {
+        match self {
+            case Coin.Heads:
+                return "heads";
+            case Coin.Tails(n):
+                return f"tails {n}";
+        }
+    }
+}
+
+obj Source {
+    comptime Item: type;
+    def next -> Self.Item | None abst;
+}
+
+obj Countdown {
+    has n: int = 3;
+}
+
+impl Countdown(Source) {
+    comptime Item: type = int;
+
+    def next -> int | None {
+        self.n -= 1;
+        return self.n if self.n >= 0 else None;
+    }
+}
+
+def line[T: Shown](x: T) -> str {
+    return x.show();
+}
+
+def drain[S: Source](s: S) -> list[S.Item] {
+    out: list[S.Item] = [];
+    got = s.next();
+    while got is not None {
+        out.append(got);
+        got = s.next();
+    }
+    return out;
+}
+
+with entry {
+    m = Meters(v=2.5);
+    seen: list[dyn Shown] = [m, Coin.Tails(3)];
+    print(line(m), line(Coin.Heads), m.show(), Shown.show(Coin.Tails(1)));
+    print([x.show() for x in seen], drain(Countdown()));
+}
+```
+
+```output
+2.5 m heads 2.5 m tails 1
+['2.5 m', 'tails 3'] [2, 1, 0]
+```
+
+- **Where it stands.** An impl that conforms a type stands in the module that
+  declares the type or in the one that declares the interface, an annex of
+  either included (see [Impl blocks](impl.md)), and nowhere else (E2108). A
+  type conforms to an interface once, by its bases or by one impl (E2109).
+- **Its methods belong to the conformance.** Through a bound (`[T: Shown]`)
+  and through `dyn Shown` the conformance's methods run, and so they do when
+  called by the interface's name, `Shown.show(x)`, which is never ambiguous.
+  A method the impl does not give is the type's own, which must then have the
+  interface's signature.
+- **Called on a value, `x.show()`,** a method the type itself declares runs.
+  Where the type has none, the method of the one conformance that gives it
+  runs, among those the calling module sees: one standing in the type's
+  module, or one standing in the interface's module where the calling module
+  imports that one. Where several do, the call names the interface (E1186).
+- **What it may hold.** Its body holds methods and compile-time members
+  (E2112), each of them one the interface requires (E1187).
+- A subclass of a class that conforms conforms too, as it would through a
+  base.
+
+A struct or a sum that conforms becomes a `dyn` as a copy in a box, as a
+struct that lists the interface does. A plain enum's conformance gives a
+bound, `x.show()` and `Shown.show(x)`; a `dyn` of one is not built yet
+(E5090). Conformance of a generic type, and of every type that meets a bound,
+are not built yet either (E5090).
 
 ## Interfaces as bounds
 
@@ -385,7 +497,9 @@ of several interfaces (`dyn Shape & Named`) is not built yet (E5090).
 
 ## On other hosts
 
-An interface is a class and conformance is inheritance on every host. In a
+An interface is a class and conformance is inheritance on every host. A
+conformance written apart from its type, an `impl`, is built for native code
+and WebAssembly, and refused in a `cpython` or `node` space (E5090). In a
 `cpython` or `node` [space](../apps/archwire.md), an interface is emitted as an
 ordinary class with its abstract methods, a conforming class as its
 subclass, and the checks are the compiler's: nothing of them runs in the
@@ -403,7 +517,14 @@ program.
 | E1482 | An interface used as a type of its own |
 | E1483 | `dyn` of a class that is not an interface |
 | E1484 | `dyn` of an interface builtin values conform to |
-| E5090 | `dyn` of several interfaces, or of one with a compile-time member of type `type` |
+| E1185 | An impl names a class that is not an interface |
+| E1186 | `x.m()` that several conformances of `x`'s type give, and the type does not |
+| E1187 | An impl gives a method or compile-time member its interface does not require |
+| E2108 | An impl conforming a type stands in neither the type's module nor the interface's |
+| E2109 | A second conformance of a type to an interface |
+| E2110 | An impl that names several interfaces |
+| E2112 | An impl conforming a type holds what is neither a method nor a compile-time member |
+| E5090 | `dyn` of several interfaces, or of one with a compile-time member of type `type`; `dyn` of a plain enum; a conformance of a generic type, or of every type that meets a bound, or in a `cpython` or `node` space |
 
 ```jac
 # expect: E1281, E1282, E1280, E1283
@@ -494,8 +615,9 @@ def d(s: dyn Shape & Named) -> float {
   a `Protocol` by a separate type checker; here conformance is checked by
   the compiler, at the class**, and a missing method is an error before the
   program runs.
-- **In Python a class need not list a `Protocol` it satisfies; here a class
-  conforms only by listing the interface** among its bases.
+- **In Python a class need not list a `Protocol` it satisfies; here a type
+  conforms only by listing the interface** among its bases, or by an `impl`
+  that says so.
 - **Python has no `dyn`; a variable of any class type may hold any
   subclass.** Here an interface is not a type, and a reference to any
   conforming class is written `dyn Shape`.

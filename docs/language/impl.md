@@ -43,11 +43,18 @@ The forms neojac compiles:
 | `can tally with Room entry;` in walker `Count` | `impl Count.tally with Room entry { ... }` |
 | `getter;` or `setter(v: float);` in property `diameter` of `Circle` | `impl Circle.diameter.getter { ... }`, `impl Circle.diameter.setter(v: float) { ... }` |
 
+An impl with a base list, `impl Meters(Shown) { ... }`, conforms a type to an
+interface: see [Interfaces](interfaces.md#conforming-apart-from-the-type). Its
+body holds the methods and compile-time members the interface requires. An
+impl whose parentheses hold bare names reads as one of a function where its
+target is a function whose parameters have no types, as a `cpython` space
+allows (`def twice(n);` and `impl twice(n) { ... }`), and as a conformance
+where its target is a type.
+
 The other forms the grammar has are refused for now with E5090: an impl of
-an enum's members (`impl Color { RED = 1, }`), an impl with a base list
-(`impl A(B) { ... }`), a target of more than three names, and an impl with
-a `by` body. An archetype cannot be declared without a body (`obj A;` is
-E5090), so there is no impl of a whole archetype.
+an enum's members (`impl Color { RED = 1, }`), a target of more than three
+names, and an impl with a `by` body. An archetype cannot be declared without
+a body (`obj A;` is E5090), so there is no impl of a whole archetype.
 
 ## Declaring and implementing
 
@@ -262,7 +269,7 @@ See `neojac docs separate-impls`.
 | E2087 | A declaration with no body and no impl |
 | E0047 | An impl with neither a `{ ... }` body nor `by` |
 | E1496 | A decorator before an impl; write it before the declaration |
-| E5090 | An impl of an enum, an impl with bases, a `by` body, a target of more than three names |
+| E5090 | An impl of an enum, a `by` body, a target of more than three names |
 
 ```jac
 # expect: E2009, E2016, E2017
@@ -311,7 +318,8 @@ with entry {
   disagree with the declaration's is accepted; here it must match exactly**
   (W3010).
 - **In the reference design `impl` also fills in archetypes and enums declared without a
-  body; neojac refuses those forms for now** (E5090).
+  body; neojac refuses those forms for now** (E5090). **An impl with a base list conforms a
+  type to an interface in neojac**, which the reference design has no form for.
 
 ## See also
 
