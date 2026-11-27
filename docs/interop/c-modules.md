@@ -150,6 +150,7 @@ headers (`<stdio.h>`, `<stdint.h>`) are not part of the module.
 | A record whose tag is also a function's name (`struct extent` beside `int64_t extent(struct extent *e)`) | A record named `struct_` and its tag, `obj extent as struct_extent` in the interface: `struct_extent(w=i32(6), h=i32(7))`. It is the one type `struct extent` is across the program, and a wire names it `struct_extent` (see [A record named in Jac other than by its tag](c-libraries.md#a-record-named-in-jac-other-than-by-its-tag)) |
 | An `extern` variable | A global the program reads and assigns in place; one of an opaque type is used through `addressof()` |
 | An enum constant, an integer `#define` | An `int` constant; a sign and a suffix (`(-17)`, `0xff00u`) are kept |
+| A header's `static const` variable of an integer type, or of a record or a union whose value is integers and floats (`static const int SHAPES_STEP = 4;`, `static const union number SHAPES_ONE = { 1 };`) | A global of its value, which has no symbol in C either, each file that includes the header holding its own: `SHAPES_STEP`, of its type, and `SHAPES_ONE`, `number(i=1)` |
 | A `static inline` function of a header | A function of its C name, called through a C shim the module compiles |
 
 **A header's `static inline` function** defines no symbol, so neojac writes a shim for it: a C

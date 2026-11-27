@@ -32,6 +32,13 @@ arithmetic never overflows, and `int()` of a float is exact too. An int of
 more than 65536 bits is refused (E0108). `i8.MAX`, `u128.MAX` and the other
 sized types' `MIN` and `MAX` are compile-time ints.
 
+A sized conversion's value (`u64(8)`, `i8(-100)`) carries its type's width
+into a wrapping or a saturating operation, which is of that width as where
+code runs: `u64(8) *% 8` is 64, `u8(250) +% 10` is 4, `i8(100) +| 100` is
+127. The other operand is a plain int or of the same sized type; such an
+operation with no sized operand has no width to take (E0108). Every other
+operation of a sized value is exact, as an int's is.
+
 ## Floats
 
 Compile-time float arithmetic is Python's, computed in 64-bit floats exactly

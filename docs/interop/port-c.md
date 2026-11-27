@@ -32,6 +32,7 @@ the module `geom`.
 | `int main(void) { }` | `def main -> i32 { }` and `with entry { sys.exit(int(main())); }` |
 | `int total = 0;` at file scope, `int x = 1;` in a function, `int x;`, a local of a name another variable of the function or of the file has | `glob total: i32 = 0;`, `x: i32 = 1;`, `x: i32 = 0;`, the name with `_2` (`_3`, ...): a Jac function has one variable of a name, of one type |
 | `int x; f(&x);`, `g(&total);`, `h(&n);` of a parameter `n`, `&p.y`, `&xs[2]`, `int xs[3] = {1, 2};`, `char name[] = "ab";`, `f(xs)`: a local, a global or a parameter whose address is taken, a field or an item of one, a local array | `x: i32 = 0; f(addressof(x));`, `g(addressof(total));`, `h(addressof(n));`, `addressof(p.y)`, `addressof(xs) + 2`, `xs: array[i32, 3] = array[i32, 3](1, 2, 0);`, `name: array[i8, 3] = array[i8, 3](97, 98, 0);`, `f(addressof(xs))`: an ordinary variable, the place C's `&` names; an array's address is its first item's |
+| `int (*pipes)[2]`, `pipes[fd][1]`, `(*cpus)[k] = t`, `int grid[4][2]; pipes = grid;`, `pipes + 1` | `pipes: ptr[array[i32, 2]]`, `pipes[fd][1]`, `cpus[0][k] = t;`, `pipes = addressof(grid);`, `pipes + 1`: a pointer to an array, whose items are the arrays, stepped by an array's size; `*p` is its first, where it is |
 | `static int n = 0;` in a function `next`, `&n` | `glob next_n: i32 = 0;`, beside the function, `addressof(next_n)` |
 | `extern int counted;` at file scope or in a function, of a global another file of the module defines, and `counted` where it is used | Nothing where it is declared, and `counted`, which the wire from the file that defines it gives, `native.unity ++> native.count { counted }` |
 | `struct point { double x; int n; };`, `struct point p = {1.5, 2};`, `p.x` | `struct point { has x: float = 0.0, n: i32 = 0; }`, `p: point = point(x=1.5, n=2);`, `p.x` |
@@ -42,6 +43,7 @@ the module `geom`.
 | `struct dispatch { int kind; union { int tag; unsigned flags; }; };`, `d.tag = 2;`: an anonymous member | `struct dispatch_anon0 { ... }` and the field `anon0: dispatch_anon0 = dispatch_anon0()`, `d.anon0.tag = 2;`: a record of no name, named for its record and the member, as a C module's interface names one |
 | `m->items[i]` of `int items[1];`, C's struct hack, and any index of an array that is not a constant its length keeps in range | `addressof(m[0].items[0])[i]`: the item at the address C reads, unchecked as C's index is; a constant index in range is the array's own, `m[0].items[0]` |
 | `#include "Python.h"` then `#include "pycore_long.h"`, and `#define NEEDS_ONE 1` above them, in a source of a C module of the project | The Jac module's table in jac.toml, `[c.cpython.files."Objects/boolobject.jac"] headers = ["<Python.h>", "<pycore_long.h>"]` and `defines = ["NEEDS_ONE=1"]`, beside the flags the table gave the source: the Jac module binds what its source's translation unit declared, its headers read in that order under those flags. A header beside the source is named by its path from the module, `Objects/clinic.h`; a macro set between two of them stays where it stood, `headers = ["<Python.h>", { define = "OFF(x)=offsetof(PyFunctionObject, x)" }, "<structmember.h>"]` |
+| `#include "generated_cases.c.h"` inside a function's body (CPython's `_PyEval_EvalFrameDefault`), of a file no other source includes | The included text where it stands, as the function's own: the file is a part of the source, read as the source is and moved aside with it, and it has no module of its own |
 | `_Static_assert(sizeof(int) == 4, "four bytes");` at file scope or in a function | `comptime assert i32(u64(4) == 4) != 0, "four bytes";`, its condition as each target's reading has it |
 | `lldiv_t q = lldiv(47, 5);`, `union sigval v; v.sival_int = 9;`: a record or a union a system header declares, held by value, or a record of no name a named one's field has (`extern_proc`'s `p_un`); a record of a header of the project's C module | `obj lldiv_t { has quot: int, rem: int; }` and `union sigval { has sival_int: i32, sival_ptr: ptr; }` in `import from c`, the fields from Clang's layout, a record of no name by the two names (`extern_proc_p_un`); the module's record by the wire from its header |
 | `enum { RED, GREEN = 5 };` | `comptime RED: i32 = 0;`, `comptime GREEN: i32 = 5;` |
@@ -96,9 +98,7 @@ the module `geom`.
 
 Anything not in the table is refused with E4001, and nothing is written for the file: a record
 with no name that no field names, a copy of a union a system header
-declares, a `va_list` that is read from a record or a global or copied into what a pointer points at, a pointer
-to an array (the address of an array given where C takes
-another pointer is the address of its first item), a record
+declares, a `va_list` that is read from a record or a global or copied into what a pointer points at, a record
 or a field with an attribute other than packed or aligned, a thread-local variable. So is a
 construct in the table whose Jac would mean something else (E4005):
 
