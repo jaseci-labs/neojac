@@ -429,12 +429,14 @@ several, joined with `&`.
 
 ### Compile-time members
 
-A compile-time member is an `int`, `bool`, `str` or `type` that the interface
-names and each conforming class gives a value (`comptime BYTES: int = 4;`). It is
-read as `Word.BYTES` from the class, or as `T.BYTES` from a type parameter
-bounded by the interface, and it is a compile-time value: it may decide a
-`comptime if`, be a type's argument, or be used where code runs as its
-literal.
+A compile-time member is an integer (an `int`, or a sized integer type such as
+`i32` or `u8`), a `bool`, a `str` or a `type` that the interface names and each
+conforming class gives a value (`comptime BYTES: int = 4;`). It is read as
+`Word.BYTES` from the class, or as `T.BYTES` from a type parameter bounded by
+the interface, and it is a compile-time value: it may decide a `comptime if`,
+be a type's argument, or be used where code runs as its literal. A member of a
+sized integer type is read as a value of that type, and the value a class
+gives it must fit the type (E1126): `comptime TOP: u8 = 300;` is refused.
 
 ```jac
 obj Sized {
@@ -494,7 +496,33 @@ w: wide b: narrow 5
 4 2
 ```
 
-A class that leaves a compile-time member out is E1281. In a body that
+```jac
+obj Scaled {
+    comptime SCALE: i32;
+    comptime TOP: u8;
+}
+
+obj Hecto(Scaled) {
+    comptime SCALE: i32 = 100;
+    comptime TOP: u8 = 255;
+}
+
+def scaled[T: Scaled](x: i32) -> i32 {
+    return x * T.SCALE;
+}
+
+with entry {
+    print(scaled[Hecto](i32(7)), Hecto.TOP +% u8(1));
+}
+```
+
+```output
+700 0
+```
+
+A class that leaves a compile-time member out is E1281, and one that gives it
+another type than the interface's, `comptime SCALE: i64 = 100;` for an
+`i32`, E1282. In a body that
 branches on a member with `comptime if`, each branch is checked where the
 function is declared, and the branch a copy picks is checked again in that
 copy, where the member's value is known. A type whose argument is a member
@@ -686,7 +714,8 @@ program.
 |---|---|
 | E1280 | An interface is constructed, or a type parameter standing for one is |
 | E1281 | A conforming class leaves out a method or compile-time member |
-| E1282 | A conforming class gives a method with other parameters or another return type |
+| E1282 | A conforming class gives a method with other parameters or another return type, or a compile-time member of another type |
+| E1126 | A compile-time member's value does not fit its sized integer type |
 | E1283 | A call or a construction gives a type parameter a type that does not conform to its bound |
 | E1284 | A body uses what its bounds do not provide (with the error naming the use) |
 | E1482 | An interface used as a type of its own |
