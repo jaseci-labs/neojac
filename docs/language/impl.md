@@ -1,7 +1,7 @@
 ---
 description: Declaring a function, method, ability or accessor without a body and giving the body in an impl block, in the same module or in an impl annex file.
 keywords: impl, impl block, .impl.jac, declaration, forward declaration
-grammar: impl_def, impl_target_name
+grammar: impl_def, conformed_builtin, impl_target_name
 ---
 # Impl blocks
 
@@ -13,7 +13,24 @@ declarations and their docstrings in one file, the code in another.
 ## Syntax
 
 ```ebnf
-impl_def ::= decorators "impl" impl_target_name ("." impl_target_name)* ("[" type_params "]")? (func_signature | "(" (atomic_chain ("," atomic_chain)*)? ")" | event_sig)? ("{" ((NAME (":" pipe)? ("=" expression)? ",")* "}" | block_rest) | "by" expression ";")
+impl_def ::= decorators "impl" (conformed_builtin | impl_target_name ("." impl_target_name)*) ("[" type_params "]")? (func_signature | "(" (atomic_chain ("," atomic_chain)*)? ")" | event_sig)? ("{" ((NAME (":" pipe)? ("=" expression)? ",")* "}" | block_rest) | "by" expression ";")
+
+conformed_builtin ::=
+    "f64"
+    | "f32"
+    | "u64"
+    | "i64"
+    | "u32"
+    | "i32"
+    | "u16"
+    | "i16"
+    | "u8"
+    | "i8"
+    | "bytes"
+    | "bool"
+    | "str"
+    | "int"
+    | "float"
 
 impl_target_name ::=
     NAME
@@ -30,7 +47,8 @@ impl_target_name ::=
 
 `impl_target_name` is a name, or one of the listed keywords where it names
 part of a declaration (`init`, `getter`). The same names are the path of a
-[`sem`](by-and-sem.md) declaration.
+[`sem`](by-and-sem.md) declaration. `conformed_builtin` is a builtin value
+type an impl conforms to an interface, `impl int(Shown) { ... }`.
 
 The forms neojac compiles:
 

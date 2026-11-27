@@ -74,7 +74,7 @@ comptime_element ::=
     | assert_stmt
     | comptime_global
 
-impl_def ::= decorators "impl" impl_target_name ("." impl_target_name)* ("[" type_params "]")? (func_signature | "(" (atomic_chain ("," atomic_chain)*)? ")" | event_sig)? ("{" ((NAME (":" pipe)? ("=" expression)? ",")* "}" | block_rest) | "by" expression ";")
+impl_def ::= decorators "impl" (conformed_builtin | impl_target_name ("." impl_target_name)*) ("[" type_params "]")? (func_signature | "(" (atomic_chain ("," atomic_chain)*)? ")" | event_sig)? ("{" ((NAME (":" pipe)? ("=" expression)? ",")* "}" | block_rest) | "by" expression ";")
 
 sem_def ::= "sem" impl_target_name ("." impl_target_name)* "=" STRING+ ";"
 
@@ -135,6 +135,23 @@ comptime_decls ::= "comptime" "if" expression decls_block ("elif" expression dec
 assert_stmt ::= "comptime"? "assert" expression ("," expression)? ";"
 
 comptime_global ::= "comptime" access_tag global_var ("," global_var)* ";"
+
+conformed_builtin ::=
+    "f64"
+    | "f32"
+    | "u64"
+    | "i64"
+    | "u32"
+    | "i32"
+    | "u16"
+    | "i16"
+    | "u8"
+    | "i8"
+    | "bytes"
+    | "bool"
+    | "str"
+    | "int"
+    | "float"
 
 impl_target_name ::=
     NAME

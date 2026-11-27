@@ -132,8 +132,9 @@ Tri(b=2.0, h=2.0) rect 2.0x0.25: 0.5
 `impl Type(Interface) { ... }` says that `Type` conforms to `Interface`, and
 gives in its body the methods and compile-time members the interface requires
 and the type does not have already. `Type` is a class, a struct, an enum or a
-sum of the program, a generic one too (see [Generic types](#generic-types));
-the impl names one interface, and several interfaces are several impls. It conforms the type exactly as listing the interface among its
+sum of the program, a generic one too (see [Generic types](#generic-types)), or
+a builtin value type (see [Builtin types](#builtin-types)); the impl names one
+interface, and several interfaces are several impls. It conforms the type exactly as listing the interface among its
 bases would, and its conformance is checked the same way, the errors reported
 at the impl (E1281, E1282).
 
@@ -364,6 +365,51 @@ with entry {
     print(n.show(), line(n));
 }
 ```
+
+### Builtin types
+
+`int`, `float`, `str`, `bool`, `bytes` and the sized numbers (`i32`, `u8`,
+`f32`, ...) conform by an impl that stands in the interface's module, the
+value the methods' `self` and `Self` the type.
+
+```jac
+obj Shown {
+    def show -> str abst;
+}
+
+impl int(Shown) {
+    def show -> str {
+        return f"#{self}";
+    }
+}
+
+impl str(Shown) {
+    def show -> str {
+        return self.upper();
+    }
+}
+
+def line[T: Shown](x: T) -> str {
+    return x.show();
+}
+
+with entry {
+    n = 7;
+    print(line(n), line("ab"), n.show(), Shown.show(5), [line(k) for k in [1, 2]]);
+}
+```
+
+```output
+#7 AB #7 #5 ['#1', '#2']
+```
+
+A builtin value conforms as a bound, as `x.show()` (where the type has no
+method of that name and the calling module sees the conformance) and as
+`Shown.show(x)`. A method the type has of its own, `str`'s `upper` for an
+interface that requires `def upper -> str`, is the conformance's where the impl
+gives none. Not built yet (E5090): a builtin value as a `dyn`, which holds an
+object whose class it dispatches on where a builtin value is boxed as an `any`,
+and a conformance of a builtin type to an interface with compile-time members.
 
 ## Interfaces as bounds
 
@@ -655,7 +701,7 @@ program.
 | E2112 | An impl conforming a type holds what is neither a method nor a compile-time member |
 | W3010 | An impl conforming a generic type restates its type parameters other than in order by their own names, or with more than a bound |
 | W3057 | An impl conforming a generic type restates its type parameters and bounds none of them |
-| E5090 | `dyn` of several interfaces, or of one with a compile-time member of type `type`; `dyn` of a plain enum; a conformance of every type that meets a bound, or of a type with compile-time value parameters, or in a `cpython` or `node` space |
+| E5090 | `dyn` of several interfaces, or of one with a compile-time member of type `type`; `dyn` of a plain enum or of a builtin value; a conformance of every type that meets a bound, of a type with compile-time value parameters, of a builtin type to an interface with compile-time members, or in a `cpython` or `node` space |
 
 ```jac
 # expect: E1281, E1282, E1280, E1283
