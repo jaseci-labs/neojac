@@ -121,7 +121,10 @@ construct in the table whose Jac would mean something else (E4005):
 - **In a file of the JavaScript host's runtime, a class with both a `constructor` and an
   `__init__`, an `__init__` in a class that derives no `Obj`, and a `constructor` in one that
   does.** A Jac object is made blank by JavaScript's `new`, and `Obj`'s `$init` calls its one
-  constructor, `__init__`.
+  constructor, `__init__`. Two are not refused: one that only calls `super()` and gives fields
+  their defaults, which are the fields' defaults; and the graph runtime's `Node` and `Edge`'s
+  `constructor() { super(); jid_give(this); }`, for which port writes nothing, since a node's
+  and an edge's id is given where one is made by what the root of its kind has.
 - **A step after `?.` in one chain, and `?.()` of a function that is more than a name.**
 - **`delete` in a script that is not strict.** It gives false there where a module throws.
 - **`arguments` in a class method whose JavaScript `length` counts a parameter** (one before
