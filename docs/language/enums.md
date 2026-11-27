@@ -236,7 +236,8 @@ refused (E5090), so there are no flag enums.
 
 A function for an enum's members is written inside the enum, in a `with
 entry` block after the members. It takes the member as an explicit first
-parameter, `self`, typed as the enum, and is called on a member.
+parameter, `self`, typed as the enum, and is called on a member. In its body
+`Self` is the enum.
 
 ```jac
 enum Level {

@@ -75,6 +75,12 @@ Counter(n=6) Counter(n=12)
   `self`, or an object of the class they are called through (below).
   `Self | None` is `Self` or `None`, and counts as `Self` where a subclass
   inherits the method.
+- **In a method's body, `Self` is the type of its `self`**: the class, in a
+  static method too; a generic class's instance (`Box[T]` in `Box`'s
+  methods); an enum in a method its body declares; the type an
+  [`impl` conforms](interfaces.md#conforming-apart-from-the-type), a builtin
+  type among them. `Self.Item` there is the type member the class gives.
+  Outside a method `Self` names nothing (E2018).
 - **A static method's `Self` is the class it is called through**:
   `Square.latest()` of a `static def latest -> Self | None` that `Shape`
   declares is a `Square | None`. Such a method returns an instance of the
@@ -92,7 +98,8 @@ obj Shape {
     has sides: int = 0;
 
     def copy -> Self {
-        return Shape(sides=self.sides);
+        made: Self = Shape(sides=self.sides);
+        return made;
     }
 
     static def first(sides: int) -> Self | None {

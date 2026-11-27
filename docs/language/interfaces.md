@@ -537,7 +537,8 @@ gives: `comptime Item: type;` in the interface, `comptime Item: type = int;`
 in the class. It is read as a type wherever one is written: as `Counter.Item`
 from the class, as `S.Item` from a type parameter bounded by the interface,
 and as `Self.Item` in the interface's own signatures, which a conforming
-class's methods match with the member read as the class's type.
+class's methods match with the member read as the class's type. In a
+conforming class's method body, `Self.Item` is the type the class gives.
 
 ```jac
 obj Source {
@@ -560,7 +561,8 @@ obj Words(Source) {
     has words: list[str] = [];
 
     def next -> str | None {
-        return self.words.pop(0) if len(self.words) > 0 else None;
+        word: Self.Item | None = self.words.pop(0) if len(self.words) > 0 else None;
+        return word;
     }
 }
 
