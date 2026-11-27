@@ -43,8 +43,10 @@ False True True
 `T`, the item, is C plain data: a number of any sized type, a `bool`, another pointer, a C
 record, a plain [struct](../language/structs.md) (one holding no reference), or a C function
 pointer, `Callable[[P], R] | None` of a signature C has
-([A pointer to a function pointer](c-libraries.md#a-pointer-to-a-function-pointer)). A pointer to
-anything else is refused where it is indexed (E1152).
+([A pointer to a function pointer](c-libraries.md#a-pointer-to-a-function-pointer)), or a list of
+C's variadic arguments, `ptr[VaList]`, C's `va_list *`
+([Functions of C's variadic arguments](c-libraries.md#functions-of-cs-variadic-arguments)). A
+pointer to anything else is refused where it is indexed (E1152).
 
 | Expression | Meaning |
 |---|---|

@@ -1551,7 +1551,7 @@ def:pub jhelp_calls -> int {
 
 neojac writes the header `jac/jhelp.h`, which declares exactly the functions the wires give that
 C module, before Clang reads any of its files (for a Jac module a C module's table lists, those
-no header of its source's translation unit declares, below):
+no header of its C module declares, below):
 
 ```c
 int64_t jhelp_calls(void);
@@ -1584,9 +1584,9 @@ double shapes_jac_scaled(double x, int32_t *calls) {
   as C's function, `f(f(x))`. `ptr(f)` is the address C passed (see
   [Callbacks](c-libraries.md#callbacks)).
 - **The header of a Jac module that replaces a C source** (one a C module's table lists under
-  `jac`) declares only what no header of the source's translation unit declares: those headers
-  are what the module's C goes on including, and they already declare what the source defined,
-  which the header repeating could only disagree with. A record what is left takes or gives is
+  `jac`) declares only what no header of its C module declares, whether or not the source
+  included that header: those headers are what the module's C goes on including, and they
+  already declare what the source defined, which the header repeating could only disagree with. A record what is left takes or gives is
   spelled as its header spells it, `struct <tag>`, or the typedef that alone names a record with
   no tag (`PyStatus`, `span`), and that header is included: `int32_t span_width(span);` after
   `#include "scale.h"`. A record no name of C spells is E1237 or E1249.

@@ -240,7 +240,14 @@ imported variadic function, with the same promotions (E1157). In its body `args`
   `double`) or a `ptr`; another type is refused (E1644).
 - `args.copy()` is a list at the same place, which reads on apart from `args` (C's `va_copy`).
 - `args` given to a parameter typed `VaList`, of a C function or of a Jac one, is C's `va_list`
-  passed on.
+  passed on, as C's ABI passes it: the giver's own list on x86-64's System V (Linux, macOS), where
+  a `va_list` is an array given as its address, so that a reader there advances it; and a copy on
+  AArch64's AAPCS (Linux), Apple's arm64, Windows and wasm32, where the giver's list stays where
+  it was. As in C, a list given on is ended without being read again.
+- `addressof(args)` is the list's address, a `ptr[VaList]`, C's `va_list *`: `p[0]` is the list it
+  points at, where it is, so `p[0].next[T]()` and `p[0].copy()` read the giver's own list on every
+  target, and a function that reads through the pointer advances it for its giver. `ptr[VaList]()`
+  is the null one. A list is never written through the pointer (E1169): `copy()` copies one.
 - The list ends where its scope does, as C's `va_end` ends it.
 
 ```jac
@@ -274,7 +281,7 @@ with entry {
 Such a function is C's: what it raises reaches no Jac caller, and is reported where it returns
 to its caller, as an exception of any Jac function C calls is. A `VaList` is a parameter or a
 local of the function that holds it, never a field, a global, a result or an item of a
-collection (E1169). Native and wasm; refused on any other host (E5090). This is how `neojac
+collection (E1169); a `ptr[VaList]` is plain data, which any of them may hold. Native and wasm; refused on any other host (E5090). This is how `neojac
 port` writes a C function defined with `...` ([Porting C](port-c.md)).
 
 C's `printf` writes through the C library's own buffer, which Jac's `print` does not share:
