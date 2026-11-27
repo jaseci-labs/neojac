@@ -223,7 +223,8 @@ raises `StopAsyncIteration()`. Each step awaits `__anext__`. It takes an `else` 
 
 An **async generator** is an `async def` declared to return `AsyncIterator[T]` that contains
 `yield`. It may both `await` and `yield`. `return;` ends it; `return value;` is an error (E2193),
-and `yield` in an `async def` declared otherwise is too (E2194).
+and `yield` in an `async def` declared otherwise is too (E2194). It has no `yield from` (E2337): it
+yields each item of another in an `async for`.
 
 An **async comprehension** has an `async for` clause: `[s async for s in ticker(3)]`, and the same
 in dict and set comprehensions. It too belongs inside an `async def`.
@@ -495,6 +496,7 @@ Task True False
 | E1278 | A call of an `async def` whose coroutine is dropped |
 | E2193 | `return value;` in an async generator |
 | E2194 | `yield` in an `async def` not declared to return `AsyncIterator[T]` |
+| E2337 | `yield from` in an `async def` |
 | E1208 | `wait` of something that is not a task |
 | E5090 | An `async def` nested inside a function |
 

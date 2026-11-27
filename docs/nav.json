@@ -988,7 +988,7 @@
               "page": "reference/diagnostics/e22-3.md"
             },
             {
-              "title": "E2240 to E2336: imports in code, a place's plugins, defaults, JavaScript classes, unions, bit-fields, crates, comptime if, Python names, quoted paths, JavaScript's faces, classes over values, TypeScript faces, C tags and C++ bases",
+              "title": "E2240 to E2337: imports in code, a place's plugins, defaults, JavaScript classes, unions, bit-fields, crates, comptime if, Python names, quoted paths, JavaScript's faces, classes over values, TypeScript faces, C tags, C++ bases and async generators",
               "page": "reference/diagnostics/e22-4.md"
             },
             {
