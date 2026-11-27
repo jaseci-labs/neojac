@@ -43,7 +43,8 @@ obj LLM(By, ByStreams, ByChooser) {
         system_prompt: str = "",
         conversation: list[Message] | None = None,
         select: any = 1,
-        intent: str = "";
+        intent: str = "",
+        media: any = None;
 
     def invoke(call: ByCall) -> any;
     def stream(call: ByCall) -> Iterator[ByEvent];
@@ -64,7 +65,17 @@ def llm(
     conversation: list[Message] | None = None,
     select: any = 1,
     intent: str = "",
+    media: any = None,
 ) -> LLM;
+glob MEDIA_BEGINS: dict[str, bytes] = {
+    "image/png": b"\x89PNG\r\n\x1a\n",
+    "image/jpeg": b"\xff\xd8\xff",
+    "image/gif": b"GIF8",
+    "image/webp": b"RIFF",
+    "application/pdf": b"%PDF-",
+};
+
+def media_parts(given: any) -> list[Part];
 def kept_message(m: Message) -> Message;
 def opens_turn(m: Message) -> bool;
 def latest_turns(history: list[Message], most: int) -> list[Message];

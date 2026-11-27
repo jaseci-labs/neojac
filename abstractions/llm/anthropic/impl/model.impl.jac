@@ -12,6 +12,15 @@ impl api_message(m: Message) -> dict[str, any] {
             });
         } elif p.kind == PartKind.KEPT {
             content.append(json.loads(p.text));
+        } elif p.kind == PartKind.MEDIA {
+            content.append({
+                "type": "document" if p.ctype == "application/pdf" else "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": p.ctype,
+                    "data": base64.b64encode(p.data).decode("ascii"),
+                },
+            });
         } else {
             result: dict[str, any] = {
                 "type": "tool_result",
