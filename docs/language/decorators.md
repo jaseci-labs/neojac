@@ -276,6 +276,12 @@ Each fact is recorded on the declaration the decorator was given, and only
 there: `hot` may call `inline(f)` on its `f`, not on another function
 (E1491).
 
+What goes wrong as a decorator runs, a `comptime assert` that fails or a
+helper given the wrong kind of declaration, is reported at the decorator
+where the program applies it, with the lines of the `comptime def` it ran as
+the report's frames ([comptime def](compile-time.md#comptime-def)): with a
+decorator a library gives, the line to change is the program's own.
+
 A decorator of an archetype or of an enum is given the type. It can check
 the declaration's shape as the program compiles, with a `comptime assert`
 and the [reflection](reflection.md) helpers:

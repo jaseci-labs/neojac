@@ -33,7 +33,7 @@ c3.jac:6:9: error[E1030]: Cart has no field 'totl'
 `neojac docs E1030` explains an error by its code.
 ```
 
-`file:line:column` (from 1), the code, the message, the source line marked with `^` from where the mistake's place starts to where it ends. A `warning[CODE]` is shown the same way and fails nothing. A lint finding ends with the rule's name in brackets, `[combine-has]`. An error inside a generic function's copy carries a line `in positive[-1], asked for at main.jac:7:11` naming the call that made the copy.
+`file:line:column` (from 1), the code, the message, the source line marked with `^` from where the mistake's place starts to where it ends. A `warning[CODE]` is shown the same way and fails nothing. A lint finding ends with the rule's name in brackets, `[combine-has]`. An error inside a generic function's copy carries a line `in positive[-1], asked for at main.jac:7:11` naming the call that made the copy, one such line for each copy back to your code. An error raised while a `comptime def` runs (a decorator's, `@restspec`'s) is shown at your call or decorator, with a `Traceback` of the lines of the comptime functions it ran.
 
 ### 2. Look the code up
 
@@ -103,7 +103,7 @@ A comment or a docstring (W3050, W3051) is deleted by the fix. Say what it said 
 ### 7. An error whose location is not your code
 
 Read the whole report first:
-- A location inside a generic's body with an `asked for at` line is your call's fault: fix the call.
+- A location inside a generic's body with an `asked for at` line is your call's fault: fix the call. The last such line is in your code; a `where 'f' is ...` line says which field, member or item of a `comptime for` the copy was made for.
 - A location inside neojac's runtime or a library module, with an error of yours in the same report: fix yours, and the other usually goes.
 - Only errors in neojac's own files, for code that follows the documentation: treat it as a defect (step 9).
 
