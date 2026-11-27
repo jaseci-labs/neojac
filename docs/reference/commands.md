@@ -327,6 +327,7 @@ neojac port --mapping <language>
 | `--json` | With --check, print what would port and the plan as data |
 | `-o <out>` | Where to write, for sources outside a project: a .jac file for one source, else a directory (default: beside each source) |
 | `--mapping <language>` | Print what port makes of each construct of a language: c, c++, rust, python or javascript |
+| `--rt <dir>` | The runtime to build against (default: the rt/ beside neojac) |
 | `--diagnostics <form>` | How diagnostics are written on stderr: human (the default), or json, one record a line |
 
 Translates each source file into a Jac module that behaves as the file does, or refuses it and says why. A file is known by its extension, and a directory means every source under it that port translates. Each language is read by its own compiler, and the Jac is written in neojac's one layout, with the source's comments outside a project; in a project its rules hold, and the comments go as `neojac fmt --fix` has them go.
