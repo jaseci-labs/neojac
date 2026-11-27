@@ -88,7 +88,7 @@ one side:
 |---|---|
 | A `def` | A crossing: a call of it is a request. One that gives an iterator is a [stream](#calling-a-stream) |
 | A `walker` | A crossing: `root spawn W(...)` is a request |
-| A class, an enum | The type itself: the module it is wired to has it, and what a crossing sends or gives back is made of it on each side |
+| A class, an enum | The type itself: the module it is wired to has it, and what a crossing sends or gives back is made of it on each side. The module makes an object of the class itself (`Task(title="t")`) when that is its fields alone, each with no default or a constant one; one made by an `init`, a `postinit` or any other default is made by the space that declares it (E2345) |
 | A `glob` | Refused (E5090): a value crosses only as a call's argument or result; put it in a module no space holds, which each side compiles in |
 | A function taken as a value (`f = greet;`) | Refused (E1264): another space's function is called, never held |
 
@@ -462,5 +462,6 @@ no URL for space 'api'
 | E1276 | A space in an app calls a space that is in no app |
 | E1278 | A crossing's coroutine made and dropped on a JavaScript host |
 | E1308 | An argument, a result, a stream's item or a walker's field that is not sendable |
+| E2345 | An object of another space's class made where making it needs that space's code: an `init`, a `postinit`, or a default that is not a constant |
 | E1021, E1041 | On a JavaScript host: a stream read with a plain `for`, or awaited |
 | E5090 | A `glob` wired across spaces; a spawn of another space's walker on anything but `root` in a JavaScript space |

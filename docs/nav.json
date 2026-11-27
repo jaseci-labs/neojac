@@ -836,6 +836,10 @@
           "page": "toolchain/arch.md"
         },
         {
+          "title": "turns",
+          "page": "toolchain/turns.md"
+        },
+        {
           "title": "launch",
           "page": "toolchain/launch.md"
         },
@@ -992,7 +996,7 @@
               "page": "reference/diagnostics/e22-3.md"
             },
             {
-              "title": "E2240 to E2344: imports in code, a place's plugins, defaults, JavaScript classes, unions, bit-fields, crates, comptime if, Python names, quoted paths, JavaScript's faces, classes over values, TypeScript faces, C tags, C++ bases and a package's browser spaces",
+              "title": "E2240 to E2345: imports in code, a place's plugins, defaults, JavaScript classes, unions, bit-fields, crates, comptime if, Python names, quoted paths, JavaScript's faces, classes over values, TypeScript faces, C tags, C++ bases and a package's browser spaces",
               "page": "reference/diagnostics/e22-4.md"
             },
             {
