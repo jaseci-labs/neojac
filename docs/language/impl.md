@@ -45,7 +45,10 @@ The forms neojac compiles:
 
 An impl with a base list, `impl Meters(Shown) { ... }`, conforms a type to an
 interface: see [Interfaces](interfaces.md#conforming-apart-from-the-type). Its
-body holds the methods and compile-time members the interface requires. An
+body holds the methods and compile-time members the interface requires. Of a
+generic type, the brackets restate its type parameters only to bound them,
+`impl Duo[T: Shown](Shown) { ... }` (see
+[Generic types](interfaces.md#generic-types)). An
 impl whose parentheses hold bare names reads as one of a function where its
 target is a function whose parameters have no types, as a `cpython` space
 allows (`def twice(n);` and `impl twice(n) { ... }`), and as a conformance

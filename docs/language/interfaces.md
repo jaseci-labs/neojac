@@ -132,8 +132,8 @@ Tri(b=2.0, h=2.0) rect 2.0x0.25: 0.5
 `impl Type(Interface) { ... }` says that `Type` conforms to `Interface`, and
 gives in its body the methods and compile-time members the interface requires
 and the type does not have already. `Type` is a class, a struct, an enum or a
-sum of the program; the impl names one interface, and several interfaces are
-several impls. It conforms the type exactly as listing the interface among its
+sum of the program, a generic one too (see [Generic types](#generic-types));
+the impl names one interface, and several interfaces are several impls. It conforms the type exactly as listing the interface among its
 bases would, and its conformance is checked the same way, the errors reported
 at the impl (E1281, E1282).
 
@@ -241,8 +241,129 @@ with entry {
 A struct or a sum that conforms becomes a `dyn` as a copy in a box, as a
 struct that lists the interface does. A plain enum's conformance gives a
 bound, `x.show()` and `Shown.show(x)`; a `dyn` of one is not built yet
-(E5090). Conformance of a generic type, and of every type that meets a bound,
-are not built yet either (E5090).
+(E5090). A conformance of every type that meets a bound is not built either
+(E5090).
+
+### Generic types
+
+A conformance of a generic type restates the type's parameters only to bound
+them. `impl Pair(Shown) { ... }` conforms every instance of `Pair`, with the
+type's parameters in scope in its body by their names, as they are in a
+method's impl. `impl Duo[T: Shown](Shown) { ... }` conforms the instances whose
+arguments meet the bounds, and its body may use what they provide.
+
+```jac
+obj Shown {
+    def show -> str abst;
+}
+
+struct Meters {
+    has v: float = 0.0;
+}
+
+impl Meters(Shown) {
+    def show -> str {
+        return f"{self.v} m";
+    }
+}
+
+struct Pair[T] {
+    has a: T,
+        b: T;
+}
+
+impl Pair(Shown) {
+    def show -> str {
+        return f"({self.a}, {self.b})";
+    }
+}
+
+struct Duo[T] {
+    has a: T,
+        b: T;
+}
+
+impl Duo[T: Shown](Shown) {
+    def show -> str {
+        return f"{self.a.show()} and {self.b.show()}";
+    }
+}
+
+enum Maybe[T] {
+    Some(v: T),
+    Nothing,
+}
+
+impl Maybe(Shown) {
+    def show -> str {
+        match self {
+            case Maybe.Some(v):
+                return f"some {v}";
+            case Maybe.Nothing:
+                return "nothing";
+        }
+    }
+}
+
+def line[T: Shown](x: T) -> str {
+    return x.show();
+}
+
+with entry {
+    d = Duo(a=Meters(v=1.0), b=Meters(v=2.5));
+    seen: list[dyn Shown] = [Pair(a=1, b=2), d, Maybe[str].Nothing];
+    print(Pair(a="x", b="y").show(), line(d), Shown.show(Maybe.Some(3)));
+    print([x.show() for x in seen]);
+}
+```
+
+```output
+(x, y) 1.0 m and 2.5 m some 3
+['(1, 2)', '1.0 m and 2.5 m', 'nothing']
+```
+
+- **Every instance conforms by a copy of the conformance's methods for its
+  arguments**, as it has a copy of its type's own methods, and is a `dyn` of
+  the interface, a value of a bound, and called by the interface's name as any
+  conforming type is. A generic class that one compiled class serves (see
+  [Generic classes](generics-classes.md)) conforms as that class.
+- **A bounded conformance is checked where it is declared**, against its
+  bounds and those of the type's own parameters, as a bounded generic class is
+  (E1284 at the impl); an instance whose arguments do not meet them does not
+  conform, so `Duo(a=1, b=2)` has no `show` (E1030) and is no value of a bound
+  `T: Shown` (E1283). A type that has a bounded conformance is copied for every
+  argument it is given.
+- **The impl restates every parameter, in order, by its own name**, and with
+  nothing but a bound: `impl Duo[U: Shown](Shown)` is W3010. A list that bounds
+  none (`impl Pair[T](Shown)`) says what `impl Pair(Shown)` says, W3057, and
+  `neojac fmt --fix` leaves it out.
+
+```jac
+# expect: E1030, E1283
+obj Shown {
+    def show -> str abst;
+}
+
+struct Duo[T] {
+    has a: T,
+        b: T;
+}
+
+impl Duo[T: Shown](Shown) {
+    def show -> str {
+        return f"{self.a.show()} and {self.b.show()}";
+    }
+}
+
+def line[T: Shown](x: T) -> str {
+    return x.show();
+}
+
+with entry {
+    n = Duo(a=1, b=2);
+    print(n.show(), line(n));
+}
+```
 
 ## Interfaces as bounds
 
@@ -397,7 +518,9 @@ with entry {
 
 A class that leaves the member out is E1281, one that gives it what is no type
 E1053, and a method whose signature differs once the member is the class's
-type E1282. A `dyn` of an interface with a type member is not built yet
+type E1282. Where a declaration is checked, each type parameter's member is a
+type of its own: in `def f[A: Source, B: Source](a: A, b: B)`, an `A.Item` is
+no `B.Item`. A `dyn` of an interface with a type member is not built yet
 (E5090).
 
 ## `dyn` references
@@ -530,7 +653,9 @@ program.
 | E2109 | A second conformance of a type to an interface |
 | E2110 | An impl that names several interfaces |
 | E2112 | An impl conforming a type holds what is neither a method nor a compile-time member |
-| E5090 | `dyn` of several interfaces, or of one with a compile-time member of type `type`; `dyn` of a plain enum; a conformance of a generic type, or of every type that meets a bound, or in a `cpython` or `node` space |
+| W3010 | An impl conforming a generic type restates its type parameters other than in order by their own names, or with more than a bound |
+| W3057 | An impl conforming a generic type restates its type parameters and bounds none of them |
+| E5090 | `dyn` of several interfaces, or of one with a compile-time member of type `type`; `dyn` of a plain enum; a conformance of every type that meets a bound, or of a type with compile-time value parameters, or in a `cpython` or `node` space |
 
 ```jac
 # expect: E1281, E1282, E1280, E1283

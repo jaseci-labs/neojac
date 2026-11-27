@@ -392,9 +392,14 @@ Maybe.Some(value=3) True True
 Maybe.Some(value='hi') Maybe.Nothing
 ```
 
+A sum's type parameter takes a bound as a generic class's does: by a class,
+the type given derives from it (E1053 otherwise), and by an interface, the sum
+is checked where it is declared against its bounds and copied for each type it
+is given, which must conform (E1283).
+
 A sum is built natively: in a `cpython` or JavaScript space it is refused
-(E5090), as are a bound or a compile-time value parameter on a sum's type
-parameter, a `Callable` or borrowed field of a member, and a sum in a
+(E5090), as are a compile-time value parameter on a sum's type parameter, a
+`Callable` or borrowed field of a member, and a sum in a
 [kernel](../accel/kernels.md).
 
 ## What is rejected
