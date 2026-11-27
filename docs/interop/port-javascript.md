@@ -22,7 +22,11 @@ In a file of the JavaScript host's runtime, whose values are JavaScript's own, e
 of `js` that is one of JavaScript's (`js_add`, `js_item`, `js_method`, `js_truthy`, ...) is
 the compiler's intrinsic of its name behind `__`, taken from `neojac` as the native runtime
 takes its own (`import from neojac { def __js_add(a: any, b: any) -> any; }`, `__js_add(a, b)`),
-and a JS host writes it as the operation itself, `(a) + (b)`, with nothing crossing.
+and a JS host writes it as the operation itself, `(a) + (b)`, with nothing crossing. There
+`new C().$init(a)` of a class under a Jac root that the file names is `C(a)`, made as a
+program's call makes it; of a class an expression gives, `new (K || D)().$init(a)`, it is what
+it is, `__js_method(__js_new(K_or_D), "$init", a)`; and `new X(a)` of any other class but one
+of the file's own is `__js_new(X, a)`.
 
 | JavaScript and TypeScript | Jac |
 |---|---|
