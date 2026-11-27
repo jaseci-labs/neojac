@@ -183,7 +183,7 @@ name: str, verified: bool | True False ''
 
 | Function | Gives |
 |---|---|
-| `fields(T)` | A class's or struct's fields in declaration order, a base's first: records with `name`, `type`, `has_default`, `doc` and `postinit` (whether the class sets the field in `postinit`, so that no constructor takes it) |
+| `fields(T)` | A class's or struct's fields in declaration order, a base's first: records with `name`, `type`, `has_default`, `doc` and `` `postinit `` (whether the class sets the field in `postinit`, so that no constructor takes it), read behind its backtick, `` f.`postinit ``, since after a dot the word names the post-initializer |
 | `params(f)` | A function's parameters: records with `name`, `type`, `has_default` and `doc`. `f` is a function, or a method named by its class (`params(Greeter.greet)`), whose `self` is not among them |
 | `kind(T)` | What a type is: a member of the enum `Kind` |
 | `type_args(T)` | The types a type is made of: a list's, set's or array's item type, a dict's key and value types, a tuple's item types, a union's members |
