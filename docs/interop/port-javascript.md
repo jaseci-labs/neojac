@@ -18,6 +18,12 @@ does what JavaScript's does: `+` of two numbers is an addition and of two string
 concatenation. Of anything else it is JavaScript's own operator, a function of `js` (`js_add`),
 which converts an operand as JavaScript does.
 
+In a file of the JavaScript host's runtime, whose values are JavaScript's own, each operation
+of `js` that is one of JavaScript's (`js_add`, `js_item`, `js_method`, `js_truthy`, ...) is
+the compiler's intrinsic of its name behind `__`, taken from `neojac` as the native runtime
+takes its own (`import from neojac { def __js_add(a: any, b: any) -> any; }`, `__js_add(a, b)`),
+and a JS host writes it as the operation itself, `(a) + (b)`, with nothing crossing.
+
 | JavaScript and TypeScript | Jac |
 |---|---|
 | `const x = 1;` at the top, of a literal, before any other code | `glob x: float = 1.0;` |
