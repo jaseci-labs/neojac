@@ -41,6 +41,17 @@ lambda an arrow function. A handler binds what was thrown as it was thrown: `exc
 BaseException as e` is `catch (e)`, `e` of type `any`, and a handler of another class tests it
 with `instanceof` and throws it on.
 
+A value there is JavaScript's whatever TypeScript says of it: a property read is
+`__js_item(o, "p")` but of `self` and of `globalThis`, a call of a method `__js_method(o, "m", a)`
+but of `self`, `super` and a module, a call of a value that is no function or class of the file
+`__js_call(f, a)`, `typeof x === "string"` is `__js_typeof(x) == "string"`, `x.length`
+`__js_item(x, "length")`, an element `__js_item(xs, i)`, a part of a template
+`__js_call(globalThis.String, v)`, each operator its intrinsic, a `switch` a chain of
+`__js_same` tests, and an array pattern JavaScript's iteration (`js_unpack`). A coroutine there
+is JavaScript's async function, `await x` JavaScript's `await`, and a generator JavaScript's own,
+`yield from` its `yield*`; a call of a function of the runtime gives a `*` of its arguments
+to its `*rest` as JavaScript's spread.
+
 | JavaScript and TypeScript | Jac |
 |---|---|
 | `const x = 1;` at the top, of a literal, before any other code | `glob x: float = 1.0;` |
