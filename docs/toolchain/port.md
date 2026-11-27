@@ -191,8 +191,9 @@ port: 6 sources would port
 ```
 
 **A run follows the plan.** Each step of it is one change, made in the plan's order: a module
-that imports one the run refuses, or does not port, is held back with it (E4012), and every other
-step that checks is written. Where a module of a group is refused for its own code, each other
+that imports one the run refuses, or does not port, is held back with it (E4012), unless its Jac
+can import the one left behind as it stands (a JavaScript file, which a Jac module of a JavaScript
+space imports by its path), and every other step that checks is written. Where a module of a group is refused for its own code, each other
 module of the group is E4012 too, naming that one: modules that import each other port
 together.
 
