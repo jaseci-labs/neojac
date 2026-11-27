@@ -24,7 +24,7 @@ obj Codec {
 
     def edge_type(e: any) -> str abst;
     def edge_data(e: any) -> dict[str, any] abst;
-    def connect(type_name: str, a: Node, b: Node, data: dict[str, any]) abst;
+    def connect(type_name: str, a: Node, b: Node, data: dict[str, any]) -> any abst;
     def fill_edge(e: any, data: dict[str, any]) abst;
     def fits(type_name: str, data: dict[str, any]) abst;
     def shape(type_name: str) -> str abst;
@@ -46,7 +46,7 @@ obj EdgeType {
         shape: str,
         holds: Callable[[any], bool],
         data: Callable[[any], dict[str, any]],
-        connect: Callable[[Node, Node, dict[str, any]], None],
+        connect: Callable[[Node, Node, dict[str, any]], any],
         fill: Callable[[any, dict[str, any]], None],
         fits: Callable[[dict[str, any]], None],
         files: Callable[[dict[str, any]], list[str]] | None = None;
@@ -78,7 +78,7 @@ obj StoreCodec(Codec) {
 
     def edge_data(e: any) -> dict[str, any];
 
-    def connect(type_name: str, a: Node, b: Node, data: dict[str, any]);
+    def connect(type_name: str, a: Node, b: Node, data: dict[str, any]) -> any;
 }
 
 glob _store: dyn Store | None = None,
@@ -93,7 +93,7 @@ glob _store: dyn Store | None = None,
      _kept: dict[str, str] = {},
      _versions: dict[str, int] = {},
      _ends: dict[str, tuple[str, str]] = {},
-     _edges_at: dict[str, list[str]] = {},
+     _edges_at: dict[str, dict[str, bool]] = {},
      _bringing: dict[str, bool] = {},
      _removed: dict[str, bool] = {},
      _mark: list[int] = [0],
@@ -109,7 +109,7 @@ def take_node(r: Row) -> Node;
 def bring_nodes(ids: list[str]);
 def take_edge(r: Row) -> any;
 def forget(id: str);
-def edges_here(n: Node) -> list[str];
+def edges_here(n: Node) -> dict[str, bool];
 def bring_edges(n: Node);
 def reach(n: Node);
 def node_kept(id: str) -> Node | None;
@@ -181,7 +181,8 @@ def root_ids -> dict[str, bool];
 def write_changes;
 def note_shape(w: Writing, kind: str);
 def fields_changed(nid: str) -> bool;
-def edge_changed(eid: str) -> bool;
+def edge_changed(eid: str, seen_at: dict[str, dict[str, bool]]) -> bool;
+def held_here(nid: str, seen_at: dict[str, dict[str, bool]]) -> dict[str, bool];
 def edges_changed(nid: str) -> bool;
 def node_changed(nid: str) -> bool;
 def take_in;
