@@ -222,6 +222,12 @@ with entry {
   called by the interface's name, `Shown.show(x)`, which is never ambiguous.
   A method the impl does not give is the type's own, which must then have the
   interface's signature.
+- **Through a bound means through a value whose declared type is the
+  parameter.** In `def line[T: Shown](x: T)`, `x.show()` and `xs[0].show()` of
+  an `xs: list[T]` go through the bound in every copy, and a value of the same
+  type the body makes for itself (`g = Meters(); g.show()`) calls what
+  `x.show()` of that type calls anywhere else. Which calls go through the
+  bound is decided where the declaration is checked.
 - **Called on a value, `x.show()`,** a method the type itself declares runs.
   Where the type has none, the method of the one conformance that gives it
   runs, among those the calling module sees: one standing in the type's

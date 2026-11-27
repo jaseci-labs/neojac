@@ -298,12 +298,12 @@ def area(s: Shape) -> float {
 
 with entry {
     shapes = [Shape.Circle(r=1.0), Shape.Rect(2.0, 3.0), Shape.Empty];
-    print([area(s) for s in shapes], shapes[0], shapes[0] == Shape.Circle(1.0), shapes[2].name);
+    print([area(s) for s in shapes], shapes[0], shapes[0] == Shape.Circle(1.0), shapes[2] == Shape.Empty);
 }
 ```
 
 ```output
-[3.0, 6.0, 0.0] Shape.Circle(r=1.0) True Empty
+[3.0, 6.0, 0.0] Shape.Circle(r=1.0) True True
 ```
 
 - **A sum is a value, held in place and copied where it goes, exactly as a
@@ -331,7 +331,11 @@ with entry {
 - `==` and `!=` compare the member and then its fields, as a struct's equality
   compares its fields, and a sum is hashed likewise, so it is a dict's key or a
   set's member where its fields hash. `str` and `repr` give `Shape.Circle(r=1.0)`
-  and `Shape.Empty`, and `.name` is the member's name.
+  and `Shape.Empty`.
+- **A sum's attributes are its methods and, where a case narrows it, its
+  member's fields.** It has no `.name` of its own, so a member may hold a field
+  named `name` (`Tag(name: str)`), and a program that wants the member's name
+  matches. `s.name` outside such a case is E1030, as any field is.
 - A sum has no `.value`, and is not iterated, measured with `len`, called or
   looked up by name (`Shape(1)`, `Shape["Empty"]`, E1184). `members(Shape)` of
   `jaclang.comptime` gives its members at compile time, as any enum's, each
@@ -342,8 +346,7 @@ with entry {
   it**, `case Shape.Circle(): s.r = 2.0;`, exactly where it may be read, as a
   struct's field is written: what the field held is let go of, and the value
   `s` names holds the new one (an assignment of `s` whole ends the narrowing,
-  for writing as for reading). Elsewhere it is E1030, and `.name`, the
-  member's name, is not written (E1191).
+  for writing as for reading). Elsewhere it is E1030.
 
 ### Generic sums
 
@@ -410,7 +413,7 @@ parameter, a `Callable` or borrowed field of a member, and a sum in a
 | E1501 | A member's field holds the sum itself in place, directly or through a struct |
 | E1172 | A `match` over a sum leaves members out, with no case that takes what is left |
 | E1183 | A member that holds fields named without its parentheses: `Shape.Circle` as a value, `case Shape.Circle:` |
-| E1030 | A member's field read outside a case that matches it; `.value` of a sum |
+| E1030 | A member's field read or written outside a case that matches it; `.value` or `.name` of a sum |
 | E1184 | A sum called (`Shape(1)`) or looked up by a member's name (`Shape["Empty"]`) |
 
 ```jac
