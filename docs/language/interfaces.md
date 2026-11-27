@@ -677,6 +677,65 @@ type of its own: in `def f[A: Source, B: Source](a: A, b: B)`, an `A.Item` is
 no `B.Item`. A `dyn` of an interface with a type member is not built yet
 (E5090).
 
+A type member may be bounded, as a type parameter is: `comptime Node: Shown;`
+is a type member whose type conforms to `Shown`, and `comptime Edge: Shown &
+Named;` one whose type conforms to both. A member is told apart from a
+compile-time value as a type parameter is from a value parameter, by what its
+annotation names: a value's type (`int`, `i32`, `bool`, `str`) makes a value
+member, `type` a type member with no bound, and interfaces a bounded one. A
+conforming class gives it a type as it gives any type member, `comptime Node:
+type = Meters;`, and the type must conform to the bound (E1283, as a type
+argument that misses its bound is). Where a declaration is checked, in an
+interface's default or in a function bounded by the interface, a value of
+`Self.Node` or `S.Node` has what the bound gives and nothing else, and a value
+of a member with no bound has no method at all (E1030).
+
+```jac
+obj Shown {
+    def show -> str abst;
+}
+
+obj Graph {
+    comptime Node: Shown;
+    def first -> Self.Node abst;
+
+    def told -> str {
+        n = self.first();
+        return "first " + n.show();
+    }
+}
+
+obj Meters(Shown) {
+    has v: float = 1.0;
+
+    def show -> str {
+        return f"{self.v} m";
+    }
+}
+
+obj Map(Graph) {
+    comptime Node: type = Meters;
+
+    def first -> Meters {
+        return Meters(v=3.0);
+    }
+}
+
+def shown_first[G: Graph](g: G) -> str {
+    n: G.Node = g.first();
+    return n.show();
+}
+
+with entry {
+    print(Map().told(), shown_first(Map()));
+}
+```
+
+```output
+first 3.0 m 3.0 m
+```
+
+
 ## `dyn` references
 
 An interface is not a type of its own: a value is always of a class, so
@@ -796,7 +855,7 @@ program.
 | E1281 | A conforming class leaves out a method or compile-time member |
 | E1282 | A conforming class gives a method with other parameters or another return type, or a compile-time member of another type |
 | E1126 | A compile-time member's value does not fit its sized integer type |
-| E1283 | A call or a construction gives a type parameter a type that does not conform to its bound |
+| E1283 | A call or a construction gives a type parameter a type that does not conform to its bound, or a class gives a bounded type member one |
 | E1284 | A body uses what its bounds do not provide (with the error naming the use) |
 | E1482 | An interface used as a type of its own |
 | E1483 | `dyn` of a class that is not an interface |
