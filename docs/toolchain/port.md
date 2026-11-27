@@ -216,7 +216,9 @@ together.
   another (`web/twice.gen.ts`, CPython's `clinic/funcobject.c.h`) ports to a module whose name
   has `_` for it, `web/twice_gen.jac`, and every import of it names that module,
   `import from .twice_gen { twice }`, where `lib/sys.hermes.js` is still the hermes variant of
-  `lib/sys`;
+  `lib/sys`. The archwire names the module so too: where it named the source by its quoted path,
+  in a wire, a layer or a space, that becomes the module's name, so
+  `"web/twice.gen" ++> web.show { twice }` is `web.twice_gen ++> web.show { twice }`;
 - keeps the wires of the files that stay in their language and use it: a `-->` wire declares an
   import their own source writes (C's `#include` and calls, JavaScript's `import`), and it now
   names what they take of a Jac module; a name such a wire gives from a C source that the Jac
