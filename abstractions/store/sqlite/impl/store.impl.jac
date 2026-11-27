@@ -77,15 +77,21 @@ impl SqliteStore.of_type(type_name: str) -> list[Row] {
 }
 
 impl SqliteStore.rows(ids: list[str]) -> list[Row] {
+    db = self.db;
     out: list[Row] = [];
-    k = 0;
-    while k < len(ids) {
-        some = ids[k:k + 500];
-        k += 500;
-        marks = ", ".join(["?" for _ in some]);
-        for r in self.db.execute(f"select {COLUMNS} from rows where id in ({marks})", tuple(some)) {
-            out.append(row_of(r));
+    try {
+        db.execute("begin");
+        k = 0;
+        while k < len(ids) {
+            some = ids[k:k + 500];
+            k += 500;
+            marks = ", ".join(["?" for _ in some]);
+            for r in db.execute(f"select {COLUMNS} from rows where id in ({marks})", tuple(some)) {
+                out.append(row_of(r));
+            }
         }
+    } finally {
+        db.rollback();
     }
     return out;
 }
@@ -107,18 +113,24 @@ impl SqliteStore.mark -> int {
 }
 
 impl SqliteStore.since(mark: int) -> Changed | None {
-    if mark < self.count("mark") - KEPT_GONE {
-        return None;
+    db = self.db;
+    try {
+        db.execute("begin");
+        if mark < self.count("mark") - KEPT_GONE {
+            return None;
+        }
+        out = Changed();
+        out.rows = [
+            row_of(r)
+            for r in db.execute(
+                f"select {COLUMNS} from rows where mark > ? order by mark, ord", (mark,)
+            )
+        ];
+        out.gone = [str(r[0]) for r in db.execute("select id from gone where mark > ?", (mark,))];
+        return out;
+    } finally {
+        db.rollback();
     }
-    out = Changed();
-    out.rows = [
-        row_of(r)
-        for r in self.db.execute(
-            f"select {COLUMNS} from rows where mark > ? order by mark, ord", (mark,)
-        )
-    ];
-    out.gone = [str(r[0]) for r in self.db.execute("select id from gone where mark > ?", (mark,))];
-    return out;
 }
 
 impl SqliteStore.write(w: Writing) -> int {
