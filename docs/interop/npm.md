@@ -460,7 +460,8 @@ written as that operator where it stands, with nothing imported for it: `js_add(
 `js_shr`, `js_ushr`, `js_band`, `js_bor`, `js_bxor`, `js_same`, `js_loose_eq`, `js_item`,
 `js_set_item`, `js_delete`, `js_iter`, `js_meta` and `js_new_target`, `js_method` and
 `js_global` where the method's or the global's name is written as a string, and `new(C, ...)`.
-The others are functions of the JavaScript host's runtime.
+The others are functions of the JavaScript host's runtime. `JsNull` is written there as
+JavaScript's `null` itself.
 
 | Function | JavaScript |
 |---|---|
