@@ -34,15 +34,15 @@ conformed_builtin ::=
 
 impl_target_name ::=
     NAME
-    | "return"
-    | "deleter"
-    | "setter"
-    | "getter"
-    | "default"
-    | "exit"
-    | "entry"
     | "init"
     | "postinit"
+    | "entry"
+    | "exit"
+    | "default"
+    | "getter"
+    | "setter"
+    | "deleter"
+    | "return"
 ```
 
 `impl_target_name` is a name, or one of the listed keywords where it names

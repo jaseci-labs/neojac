@@ -85,7 +85,7 @@ pipe_call ::= ("|>" | ":>") atomic_chain | atomic_chain
 
 atomic_chain ::= atom ("?" (("<." | "." | ".>")? attr_name | index_slice) | ("<." | "." | ".>") attr_name | "(" ("=" (kw_arg ("," kw_arg)* ","?)? | call_args) ")" | "[" filter_body | index_slice)*
 
-attr_name ::= NAME | KEYWORD
+attr_name ::= KWESC_NAME | NAME | KEYWORD
 
 atom ::=
     graph_expr

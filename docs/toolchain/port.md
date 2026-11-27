@@ -211,10 +211,12 @@ together.
   and gets its wire too; a re-export (`export { total as summed } from "./total"`) is an `include`
   wire, `include web.total ++> web.gives { total as summed }`, naming every name it gives. An
   import by a path `tsconfig.json`'s `paths` aliases (`import { total } from "@/total"`) is the
-  wire of the module the alias resolves to, `web.total ++> web.halve { total }`, and a module
-  whose file's stem holds a dot is named by its quoted path,
-  `"web/twice.gen" ++> "web/quad.gen" { twice }`
-  ([a module whose name is no identifier](../language/modules.md#a-module-whose-name-is-no-identifier));
+  wire of the module the alias resolves to, `web.total ++> web.halve { total }`. A Jac
+  module's file holds no dot but the ones that mark a variant, so a source whose stem holds
+  another (`web/twice.gen.ts`, CPython's `clinic/funcobject.c.h`) ports to a module whose name
+  has `_` for it, `web/twice_gen.jac`, and every import of it names that module,
+  `import from .twice_gen { twice }`, where `lib/sys.hermes.js` is still the hermes variant of
+  `lib/sys`;
 - keeps the wires of the files that stay in their language and use it: a `-->` wire declares an
   import their own source writes (C's `#include` and calls, JavaScript's `import`), and it now
   names what they take of a Jac module; a name such a wire gives from a C source that the Jac
