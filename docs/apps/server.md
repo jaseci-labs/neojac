@@ -704,7 +704,7 @@ compiles, and nothing is registered as the module starts.
 
 | Argument | Meaning |
 |---|---|
-| `method` | `HTTPMethod.GET` or `HTTPMethod.POST`. A request with another method is 404. |
+| `method` | `HTTPMethod.GET` or `HTTPMethod.POST`, its two members: another is E1030. A request with another method is 404. |
 | `path` | Absolute: one that does not start with `/` does not compile |
 | `envelope` | `True`: the reply is the JSON envelope. `False`: the body is the function's result, which must be a `str` or a `Markup`. Left out, `False` for a function declared to return `Markup` and `True` for any other |
 | `produces` | The `Content-Type` of an unenveloped body. Left out, `text/html; charset=utf-8` for a function declared to return `Markup` and `text/plain` for any other |
@@ -716,7 +716,9 @@ the deployment's key (403 otherwise).
 
 Its arguments are checked as the program compiles: a missing `method` is E1050, an `envelope`
 that is not a `bool` is E1053, an unknown keyword is E1052, and a function with parameters or a
-path that does not start with `/` is E0109.
+path that does not start with `/` is E0109. It decorates a function: on a walker or a class it
+is E1247. Each is reported at the `@restspec` that is wrong, with the line of stdjac that
+refused it as the report's frame.
 
 A path is served by a transport that serves paths, as the standard one, `http`, does. Under one
 that carries calls between apps and nothing else, a program with a `@restspec` function (or a

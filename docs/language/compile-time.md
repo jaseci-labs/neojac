@@ -174,6 +174,39 @@ with entry {
 9 21 2432902008176640000
 ```
 
+An error raised while a `comptime def` runs (a failed `comptime assert`,
+a value it cannot evaluate) is reported at the call that ran it, in the
+compile-time value or the [decorator](decorators.md) that called it. The report carries the lines of the comptime functions the call passed
+through as its frames, outermost first, as a traceback does. In
+`--diagnostics json` they are the record's `frames`.
+
+```jac
+# expect: E0109
+comptime def positive(n: int) -> int {
+    comptime assert n > 0, "n is positive";
+    return n;
+}
+
+comptime def doubled(n: int) -> int {
+    return positive(n) * 2;
+}
+
+comptime NEG = doubled(-1);
+```
+
+```text
+main.jac:11:16: error[E0109]: comptime assertion failed: n is positive
+ 11 | comptime NEG = doubled(-1);
+    |                ^^^^^^^^^^^
+    Traceback (most recent call last):
+      File "main.jac", line 8, in doubled
+        return positive(n) * 2;
+               ^^^^^^^^^^^
+      File "main.jac", line 3, in positive
+        comptime assert n > 0, "n is positive";
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+```
+
 ## comptime if
 
 `comptime if` evaluates its condition as the program compiles and compiles
@@ -495,8 +528,13 @@ without it (E5090).
 ## What is rejected
 
 ```jac
-# expect: E0108 x2, E0033 x2, E0109 x2, E1001, E1126, E2197 x2, E5090
+# expect: E0108 x2, E0033 x2, E0109 x2, E1001, E1030, E1126, E2197 x2, E5090
 glob runtime_n: int = 3;
+
+enum Mode {
+    FAST,
+    SAFE,
+}
 
 comptime def half(n: int) -> int {
     return n // 2;
@@ -514,6 +552,7 @@ comptime SQUARES: list[int] = [i * i for i in [1, 2, 3]];
 comptime R: int = runtime_n + 1;
 comptime COUNT: int = 2.5;
 comptime M = 2 ** 100;
+comptime PICKED = Mode.TURBO;
 comptime assert half(4) == 3, "half is wrong";
 
 def f(n: int) -> int {
@@ -542,6 +581,7 @@ def h -> int {
 | E0033 | Something must be known at compile time and is not: a run-time name in a compile-time expression, a run-time argument to a `comptime` parameter or a comptime function. |
 | E0109 | A `comptime assert` failed. |
 | E1001 | A compile-time global's value is not of its declared type. |
+| E1030 | A member its owner does not have, as anywhere else: an enum member that does not exist. |
 | E1126 | A compile-time int does not fit the type it is read as (a global is an `int`). |
 | E2197 | Code that runs assigns a compile-time name. |
 | E5090 | A `comptime def` inside a function, or as a method. |
