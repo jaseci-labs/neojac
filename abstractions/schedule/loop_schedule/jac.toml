@@ -5,5 +5,5 @@ kind = "plugin"
 
 [plugin]
 fills = "schedule"
-interface_ver = 1
+interface_ver = 2
 class = "loop_schedule.schedule.LoopSchedule"

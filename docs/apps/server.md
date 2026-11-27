@@ -731,7 +731,8 @@ and do not stop it: under such a transport they are not reached, as the auth's o
 
 ## Scheduled functions: @schedule
 
-`@schedule` has a server run a function every so many seconds.
+`@schedule` has a server run a function every so many seconds, or at the times a cron expression
+names.
 
 ```jac
 glob beats: int = 0;
@@ -741,14 +742,34 @@ def heartbeat {
     beats += 1;
 }
 
+@schedule(at="30 2 * * 1-5")
+def weekday_reset {
+    beats = 0;
+}
+
 def:pub beat_count -> int {
     return beats;
 }
 ```
 
 - The function takes no parameters and returns nothing. An `async def` is run to its end.
-- It runs every `interval` seconds, the first time as the server starts. `interval` is a
-  compile-time value.
+- With `interval`, it runs every `interval` seconds, the first time as the server starts.
+- With `at`, it runs at the minutes the expression names, in UTC, and not as the server starts:
+  `@schedule(at="0 3 * * *")` runs it at 03:00 each day. The expression is cron's five fields,
+  minute (0 to 59), hour (0 to 23), day of the month (1 to 31), month (1 to 12) and day of the week
+  (0 to 7, Sunday both 0 and 7), each `*`, a number, a range `a-b`, any of these with a step
+  (`*/15`, `1-30/2`), or a list of them separated by commas (`0,30`). A day field that names
+  every value is as `*`. Where both day fields name fewer than all their values, a day either names
+  matches; where one names every value, the other alone decides.
+- A decorator gives one of `interval` and `at`, each a compile-time value: both or neither does not
+  compile (E0109). An `at` that is no time to run at, or that names no minute that comes
+  (`0 0 31 2 *`), stops the server as it starts, before it serves anything, with the function's
+  name and what is wrong:
+
+```text
+api can't start: svc.digest is scheduled at '0 25 * * *', which is no time to run at: the hour '25' is outside 0 to 23.
+```
+
 - A scheduled function runs for no caller: `root` raises there, and `root.shared` and `allroots()`
   are what it has. What it changes in the graph is kept.
 - One that raises is reported on the server's output, and runs again at its next turn.

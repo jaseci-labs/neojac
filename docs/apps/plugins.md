@@ -88,8 +88,9 @@ above the plugin imports it, and it imports nothing of either
 
 **Each interface has a version,** a number that goes up when the interface changes so that a
 plugin written for it would not survive. Every interface is at 1 in this neojac but
-`transport`'s and `files`', which are at 2, and `auth`'s, which is at 4: since its version 4 an
-`auth` plugin's class derives from `AuthSettings`. A plugin says
+`transport`'s, `files`' and `schedule`'s, which are at 2, and `auth`'s, which is at 4: since its
+version 4 an `auth` plugin's class derives from `AuthSettings`, and since its version 2 a
+`schedule` plugin runs a `Scheduled` whose `at` is not empty at the minutes it names. A plugin says
 the version it was written for (`interface_ver`, [below](#writing-a-plugin)), and one written for
 another is refused before anything is asked of it (E2230): the message is that the interface
 moved on, and not that some method of the plugin's class is missing.

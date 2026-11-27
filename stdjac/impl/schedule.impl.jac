@@ -1,7 +1,9 @@
-impl schedule(f: Callable, interval: float) {
+impl schedule(f: Callable, interval: float = 0.0, at: str = "") {
     comptime assert len(params(f)) == 0, "a scheduled function takes no parameters";
-    comptime assert interval > 0.0, "@schedule's interval is a number of seconds, more than none";
-    note(f, "schedule", interval);
+    comptime assert interval >= 0.0, "@schedule's interval is a number of seconds, more than none";
+    comptime assert (interval > 0.0)
+        != (at != ""), "@schedule takes an interval or a time to run at, one of the two";
+    note(f, "schedule", (interval, at));
 }
 
 impl run_scheduled(f: Callable[[], any]) {
@@ -22,7 +24,8 @@ impl scheduled -> list[Scheduled] {
             out.append(
                 Scheduled(
                     name=n.module + "." + n.name,
-                    every=n.value,
+                    every=n.value[0],
+                    at=n.value[1],
                     run=lambda {
                         run_scheduled(
                             lambda -> any {

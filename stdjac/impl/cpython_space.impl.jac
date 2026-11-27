@@ -44,8 +44,9 @@ impl run_cpython_space(
 impl space_scheduled(t: any) -> Scheduled {
     name: str = t.name;
     every: float = t.every;
+    at: str = t.at;
     work = t.run;
-    return Scheduled(name=name, every=every, run=lambda { work() });
+    return Scheduled(name=name, every=every, at=at, run=lambda { work() });
 }
 
 impl run_cpython_job(

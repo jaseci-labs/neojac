@@ -42,7 +42,7 @@ one of the four imported from a module of stdjac, is E2234.
 |---|---|---|
 | `restspec` | `@restspec(method: HTTPMethod, path: str, produces: str \| None = None, envelope: bool \| None = None, headers: dict[str, str] \| None = None)` | Serves the function, one of no parameters, at `path`: a `Markup` as HTML, anything else in the JSON envelope, unless `produces` and `envelope` say otherwise ([A path of its own](server.md#a-path-of-its-own-restspec)) |
 | `HTTPMethod` | `GET`, `POST` | A `@restspec` route's method |
-| `schedule` | `@schedule(interval: float)` | A server runs the function, one of no parameters, every `interval` seconds, the first time as it starts |
+| `schedule` | `@schedule(interval: float = 0.0, at: str = "")` | A server runs the function, one of no parameters, every `interval` seconds, the first time as it starts; or, given `at`, at the minutes that cron expression names, in UTC |
 | `limit` | `@limit(uses: int, per: float)` | A caller may call the endpoint `uses` times in each `per` seconds |
 | `consume_limit` | `consume_limit(scope: str, actor: str, limit: int, seconds: int) -> int` | Counts a use of `scope` by `actor`: 0 while it is within `limit` uses in `seconds`, else the seconds to wait |
 | `address_checked` | `address_checked() -> bool` | Whether the app may take the caller's address to be theirs: checked, vouched for by another service, or an app that checks none ([Serving a space](server.md#checked-addresses-and-new-passwords)) |
@@ -90,7 +90,7 @@ What they are given and give:
 | `DeviceSignIn` | `code: str` (what the program shows), `secret: str` (what it collects with), `lasts: int`, `every: int` (seconds: how long it may wait, and what it leaves between asking) |
 | `Rejected` | An exception: `detail: str`, `retry_after: int` |
 | `MailNotSent` | An exception: `detail: str`, why a letter was not taken, for whoever runs the program |
-| `Scheduled` | `name: str`, `every: float`, `run: Callable[[], None]` |
+| `Scheduled` | `name: str`, `every: float`, `run: Callable[[], None]`, `at: str = ""`: a function is due every `every` seconds, or, where `at` is not empty, at the next minute it names (`next_at(at, after)` gives it, and `cron_fields(at)` the minutes, hours, days, months and days of the week, raising `ValueError` for one that is not an expression) |
 | `JobState` | `notes: list[tuple[str, str]]`, `done: bool`, `result: any`, `failed: str` |
 
 What a plugin asks of the program, through the host its `open` was given:

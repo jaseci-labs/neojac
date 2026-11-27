@@ -13,7 +13,7 @@ kind = "abstraction"
 # another: it is in this directory.
 [abstraction]
 interface = "schedule.contract.Scheduler"
-interface_ver = 1
+interface_ver = 2
 per = "project"
 picked = "start"
 standard = "loop_schedule"

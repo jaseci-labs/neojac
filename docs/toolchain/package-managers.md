@@ -176,7 +176,7 @@ check fails. It fetches nothing, writes nothing and hashes nothing, so it is che
   "format": 1,
   "project": "shop",
   "neojac": "0.4.2",
-  "interfaces": { "auth": 4, "bundler": 1, "files": 2, "jobs": 1, "limits": 1, "llm": 1, "mail": 1, "schedule": 1, "store": 1, "transport": 2, "ui": 1 },
+  "interfaces": { "auth": 4, "bundler": 1, "files": 2, "jobs": 1, "limits": 1, "llm": 1, "mail": 1, "schedule": 2, "store": 1, "transport": 2, "ui": 1 },
   "packages": [
     {
       "name": "grid",

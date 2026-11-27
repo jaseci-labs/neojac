@@ -24,17 +24,34 @@ impl turn_of(s: Scheduled, waiting: list[bool], at: int) -> Callable[[], None] {
 }
 
 impl keep_time(work: list[Scheduled], on_loop: Callable[[Callable[[], None]], None], tick: float) {
-    due: list[float] = [time.time() for _ in work];
+    start = time.time();
+    due: list[float] = [first_due(s, start) for s in work];
     waiting: list[bool] = [False for _ in work];
     forever {
         now = time.time();
         for k in range(len(work)) {
             if due[k] <= now and not waiting[k] {
-                due[k] = now + work[k].every;
+                due[k] = due_after(work[k], now);
                 waiting[k] = True;
                 on_loop(turn_of(work[k], waiting, k));
             }
         }
         time.sleep(tick);
     }
+}
+
+impl due_after(s: Scheduled, now: float) -> float {
+    if s.at == "" {
+        return now + s.every;
+    }
+    try {
+        return next_at(s.at, now);
+    } except ValueError as e {
+        print(s.name + " is not scheduled again: " + str(e));
+        return float("inf");
+    }
+}
+
+impl first_due(s: Scheduled, start: float) -> float {
+    return start if s.at == "" else due_after(s, start);
 }

@@ -267,7 +267,7 @@ grid 1.4.0: a library, found, in eco/jac/grid, which 'jacpm' installed
 cells: a package, missing, in eco/jac/cells
     the library 'grid' asks for version 0.3 or later, below 0.4.0: not met
 
-Interfaces: auth 4, bundler 1, files 2, jobs 1, limits 1, llm 1, mail 1, schedule 1, store 1, transport 2, ui 1
+Interfaces: auth 4, bundler 1, files 2, jobs 1, limits 1, llm 1, mail 1, schedule 2, store 1, transport 2, ui 1
 
 eco/jac/grid/jac.toml:7:1: error[E5161]: the package 'cells' is not installed as the library 'grid' asks, version 0.3 or later, below 0.4.0: nothing is at 'eco/jac/cells'
 ```
