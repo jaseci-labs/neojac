@@ -338,8 +338,12 @@ with entry {
   with its `.name`.
 - Methods are written in a sum's body as in any enum's, and `self` there is
   the value.
-- Writing a member's field in place, `s.r = 2.0` in a case that narrows `s`,
-  is not built yet (E5090): make the member anew.
+- **A member's field is written in place where the subject is narrowed to
+  it**, `case Shape.Circle(): s.r = 2.0;`, exactly where it may be read, as a
+  struct's field is written: what the field held is let go of, and the value
+  `s` names holds the new one (an assignment of `s` whole ends the narrowing,
+  for writing as for reading). Elsewhere it is E1030, and `.name`, the
+  member's name, is not written (E1191).
 
 ### Generic sums
 
