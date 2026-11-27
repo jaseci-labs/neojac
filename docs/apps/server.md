@@ -704,7 +704,7 @@ compiles, and nothing is registered as the module starts.
 
 | Argument | Meaning |
 |---|---|
-| `method` | `HTTPMethod.GET` or `HTTPMethod.POST`. A request with another method is 404. |
+| `method` | `HTTPMethod.GET`, `POST`, `PUT`, `PATCH` or `DELETE`. One path may have a function for each method. A request with a method the path has no function for is answered as one no route takes: a served page's file where a page is served at that path, else 404. |
 | `path` | Absolute: one that does not start with `/` does not compile |
 | `envelope` | `True`: the reply is the JSON envelope. `False`: the body is the function's result, which must be a `str` or a `Markup`. Left out, `False` for a function declared to return `Markup` and `True` for any other |
 | `produces` | The `Content-Type` of an unenveloped body. Left out, `text/html; charset=utf-8` for a function declared to return `Markup` and `text/plain` for any other |

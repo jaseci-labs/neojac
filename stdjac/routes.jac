@@ -5,6 +5,9 @@ import from markup { Markup }
 enum HTTPMethod {
     GET = "GET",
     POST = "POST",
+    PUT = "PUT",
+    PATCH = "PATCH",
+    DELETE = "DELETE",
 }
 
 comptime def restspec(
