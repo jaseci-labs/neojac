@@ -171,7 +171,10 @@ because a JSON document, a Python API or a JavaScript API names it that way.
   (`type` alone is the builtin).
 - Do not write it where any word is taken (the table above): `r.type`, `f(type="x")`.
   After `.`, in a module path and in an `impl` target the backtick is an error (E0157), but for a
-  name that holds `$`, which is never written bare: `` box.`$count ``.
+  name that holds `$`, which is never written bare: `` box.`$count ``, and for `init` and
+  `postinit`, which there name the constructor and the post-initializer: `x.init(...)` is the
+  constructor and `` x.`init(...) `` a method named `init`
+  ([Fields](fields.md#init)).
 - A backtick before a word that is not a keyword and holds no `$` is an error (E0014).
 
 ```jac

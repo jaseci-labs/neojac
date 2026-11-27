@@ -220,7 +220,41 @@ Account(owner='Ann Lee', balance=5.0, log=['opened with 5.0'])
   subclass adds then needs a default (E1231). A subclass that writes `init`
   calls its base's with `super.init(...)`; see [Inheritance](inheritance.md).
 
-The name is `init`. `def __init__` is an error (W3004).
+The word `init` spells the constructor, whose own name is `__init__`: it is
+the name a host sees (CPython's `__init__`; on a JavaScript host the method
+the runtime constructs with, or the class's `constructor` where JavaScript
+makes the object), and `x.init(...)` and `super.init(...)` call it as a
+method. Written as `def __init__` it is Python's spelling, an error (W3004).
+A method that is named `init` and is no constructor is written behind a
+backtick, `` def `init ``, and called as `` x.`init(...) ``; a class may have
+both.
+
+```jac
+obj Tank {
+    has level: int = 0;
+
+    def init(level: int) {
+        self.level = level;
+    }
+
+    def `init -> int {
+        self.level = 0;
+        return self.level;
+    }
+}
+
+with entry {
+    t = Tank(5);
+    print(t.level, t.`init(), t.level);
+    t.init(7);
+    print(t.level);
+}
+```
+
+```output
+5 0 0
+7
+```
 
 ## `postinit`
 
@@ -253,8 +287,10 @@ Rect(w=2.0, h=3.0, area=6.0) 6.0
 ```
 
 A subclass inherits its base's `postinit`. One that defines its own runs
-only its own, and calls the base's with `super.postinit()`. The name is
-`postinit`; `def __post_init__` is an error (W3004).
+only its own, and calls the base's with `super.postinit()`. As with `init`,
+the word spells the post-initializer, whose own name is `__post_init__`;
+`def __post_init__` is an error (W3004), and `` def `postinit `` is a method
+of that name, no post-initializer.
 
 ## Properties
 
@@ -567,9 +603,11 @@ joins them. See `neojac docs combine-has`.
 
 - **In Python a default in a class body is evaluated once and shared; here
   it is evaluated for each object.** `has items: list[int] = [];` is safe.
-- **In Python `__init__` is the constructor; here it is `init`**, declared
-  without `self` in its parameters (see [Methods](methods.md)), and
-  `__init__` is refused (W3004). Likewise `postinit` for `__post_init__`.
+- **In Python `__init__` is the constructor; here it is written `init`**,
+  declared without `self` in its parameters (see [Methods](methods.md)). Its
+  own name is still `__init__`, so `x.init(...)` is Python's
+  `x.__init__(...)`, but `def __init__` is refused (W3004). Likewise
+  `postinit` for `__post_init__`.
 - **In Python a property is a decorated method; here it is a `has` with
   accessors**, and `@property` is refused (W3043).
 - **In Python an attribute assigned on an instance shadows a class

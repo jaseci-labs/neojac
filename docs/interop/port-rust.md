@@ -103,4 +103,4 @@ So is a construct in the table whose Jac would mean something else (E4005):
 - **A float converted to an integer.** Rust stops at the type's ends and Jac raises.
 - **A division whose operands are more than names.** Port tests the operands, and would
   evaluate them twice.
-- **A method named `init` or `postinit`**, which is a Jac object's constructor.
+- **A method named `__init__` or `__post_init__`**, the own names of a Jac object's constructor and post-initializer.

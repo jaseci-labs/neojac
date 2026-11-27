@@ -155,15 +155,15 @@ conformed_builtin ::=
 
 impl_target_name ::=
     NAME
-    | "return"
-    | "deleter"
-    | "setter"
-    | "getter"
-    | "default"
-    | "exit"
-    | "entry"
     | "init"
     | "postinit"
+    | "entry"
+    | "exit"
+    | "default"
+    | "getter"
+    | "setter"
+    | "deleter"
+    | "return"
 
 block_rest ::= stmts "}"
 
@@ -242,7 +242,7 @@ atom ::=
     | "True"
     | "False"
 
-attr_name ::= NAME | KEYWORD
+attr_name ::= KWESC_NAME | NAME | KEYWORD
 
 index_slice ::= "[" ((slice_from | expression slice_from?) ("," (slice_from | expression slice_from?))* ","?)? "]"
 
