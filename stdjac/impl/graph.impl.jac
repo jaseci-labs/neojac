@@ -33,9 +33,10 @@ impl keep_edge[E](name: str) -> bool {
             d: dict[str, any] = encode_object[E](e as E);
             return d;
         },
-        connect=lambda (a: Node, b: Node, d: dict[str, any]) {
+        connect=lambda (a: Node, b: Node, d: dict[str, any]) -> any {
             made = decode_object[E](d);
             a +>:made:+> b;
+            return made;
         },
         fill=lambda (e: any, d: dict[str, any]) { fill_object[E](e as E, d) },
         fits=lambda (d: dict[str, any]) { checked = decode_object[E](d); },
@@ -165,15 +166,15 @@ impl StoreCodec.edge_data(e: any) -> dict[str, any] {
     return {};
 }
 
-impl StoreCodec.connect(type_name: str, a: Node, b: Node, data: dict[str, any]) {
+impl StoreCodec.connect(type_name: str, a: Node, b: Node, data: dict[str, any]) -> any {
     if type_name == "" {
-        a ++> b;
-        return;
+        made = GenericEdge();
+        a +>:made:+> b;
+        return made;
     }
     for t in _edge_types {
         if t.name == type_name {
-            t.connect(a, b, data);
-            return;
+            return t.connect(a, b, data);
         }
     }
     raise UnknownType(name=type_name);
@@ -224,16 +225,16 @@ impl take_node(r: Row) -> Node {
 
 impl bring_nodes(ids: list[str]) {
     (s, _c) = keeper();
-    need: list[str] = [];
+    need: dict[str, bool] = {};
     for i in ids {
-        if i not in _nodes and i not in need {
-            need.append(i);
+        if i not in _nodes {
+            need[i] = True;
         }
     }
     if len(need) == 0 {
         return;
     }
-    for r in s.rows(need) {
+    for r in s.rows(list(need.keys())) {
         if r.kind == "n" and r.id not in _nodes {
             take_node(r);
         }
@@ -244,21 +245,20 @@ impl take_edge(r: Row) -> any {
     (_s, c) = keeper();
     a = _nodes[r.src];
     b = _nodes[r.dst];
+    made: any = None;
     try {
-        c.connect(r.type_name, a, b, json.loads(r.data));
+        made = c.connect(r.type_name, a, b, json.loads(r.data));
     } except UnknownType {
         raise unmade(r, "whose type this program no longer has");
     } except CodecError as e {
         raise unmade(r, f"which no longer fits its type ({e})");
     }
-    held = rt_edges_held(a, False);
-    e = held[len(held) - 1];
-    rt_jid_restore(e, r.id);
-    _edges[r.id] = e;
+    rt_jid_restore(made, r.id);
+    _edges[r.id] = made;
     _kept[r.id] = r.data;
     _versions[r.id] = r.version;
     _ends[r.id] = (r.src, r.dst);
-    return e;
+    return made;
 }
 
 impl forget(id: str) {
@@ -272,6 +272,11 @@ impl forget(id: str) {
         del _grants[id];
     }
     if id in _ends {
+        for end in _ends[id] {
+            if end in _edges_at and id in _edges_at[end] {
+                del _edges_at[end][id];
+            }
+        }
         del _ends[id];
     }
     if id in _edges {
@@ -289,14 +294,11 @@ impl forget(id: str) {
     }
 }
 
-impl edges_here(n: Node) -> list[str] {
-    out: list[str] = [];
+impl edges_here(n: Node) -> dict[str, bool] {
+    out: dict[str, bool] = {};
     for into in [False, True] {
         for e in rt_edges_held(n, into) {
-            eid = jid(e);
-            if eid not in out {
-                out.append(eid);
-            }
+            out[jid(e)] = True;
         }
     }
     return out;
@@ -318,13 +320,11 @@ impl bring_edges(n: Node) {
         }
         bring_nodes(ends);
         listed: dict[str, bool] = {};
-        kept: list[str] = [];
         for r in rows {
             if r.src not in _nodes or r.dst not in _nodes {
                 continue;
             }
             listed[r.id] = True;
-            kept.append(r.id);
             if r.id not in _edges {
                 take_edge(r);
             }
@@ -354,7 +354,7 @@ impl bring_edges(n: Node) {
             }
             rt_edges_order(n, into, ordered);
         }
-        _edges_at[nid] = kept;
+        _edges_at[nid] = listed;
         rt_edges_here(n);
     } finally {
         del _bringing[nid];
@@ -873,11 +873,6 @@ impl sweep_kept -> int {
     for r in w.gone {
         if r.kind == "e" and r.id in _edges {
             rt_drop_held_edge(_edges[r.id]);
-            for at in _edges_at.values() {
-                if r.id in at {
-                    at.remove(r.id);
-                }
-            }
             forget(r.id);
         }
     }
@@ -1040,11 +1035,24 @@ impl write_changes {
     for r in w.rows {
         _kept[r.id] = r.data;
         _versions[r.id] = r.version + 1;
+        if r.kind == "n" {
+            _nodes[r.id] = fresh_nodes[r.id];
+        }
+    }
+    for nid in fresh_nodes {
+        if nid not in _edges_at and not rt_awaits_edges(_nodes[nid]) {
+            _edges_at[nid] = {};
+        }
+    }
+    for r in w.rows {
         if r.kind == "e" {
             _ends[r.id] = (r.src, r.dst);
             _edges[r.id] = fresh_edges[r.id];
-        } else {
-            _nodes[r.id] = fresh_nodes[r.id];
+            for end in [r.src, r.dst] {
+                if end in _edges_at {
+                    _edges_at[end][r.id] = True;
+                }
+            }
         }
     }
     for r in w.gone {
@@ -1057,14 +1065,6 @@ impl write_changes {
     _new_roots.clear();
     _new_shared.clear();
     _removed.clear();
-    for nid in fresh_nodes {
-        if nid not in _edges_at and not rt_awaits_edges(_nodes[nid]) {
-            _edges_at[nid] = [];
-        }
-    }
-    for nid in list(_edges_at.keys()) {
-        _edges_at[nid] = [eid for eid in edges_here(_nodes[nid]) if eid in _edges];
-    }
     if mark == _mark[0] + 1 {
         _mark[0] = mark;
     }
@@ -1082,17 +1082,24 @@ impl fields_changed(nid: str) -> bool {
     return node_text(_nodes[nid], nid) != _kept[nid];
 }
 
-impl edge_changed(eid: str) -> bool {
+impl edge_changed(eid: str, seen_at: dict[str, dict[str, bool]]) -> bool {
     (_s, c) = keeper();
     if json.dumps(c.edge_data(_edges[eid])) != _kept[eid] {
         return True;
     }
     for end in _ends[eid] {
-        if eid in _edges_at.get(end, []) and eid not in edges_here(_nodes[end]) {
+        if end in _edges_at and eid in _edges_at[end] and eid not in held_here(end, seen_at) {
             return True;
         }
     }
     return False;
+}
+
+impl held_here(nid: str, seen_at: dict[str, dict[str, bool]]) -> dict[str, bool] {
+    if nid not in seen_at {
+        seen_at[nid] = edges_here(_nodes[nid]);
+    }
+    return seen_at[nid];
 }
 
 impl edges_changed(nid: str) -> bool {
@@ -1102,20 +1109,23 @@ impl edges_changed(nid: str) -> bool {
             return True;
         }
     }
-    for eid in _edges_at.get(nid, []) {
-        if eid not in now {
-            return True;
+    if nid in _edges_at {
+        for eid in _edges_at[nid] {
+            if eid not in now {
+                return True;
+            }
         }
     }
     return False;
 }
 
 impl node_changed(nid: str) -> bool {
+    (_s, c) = keeper();
     if fields_changed(nid) {
         return True;
     }
     for eid in edges_here(_nodes[nid]) {
-        if eid not in _edges or edge_changed(eid) {
+        if eid not in _edges or json.dumps(c.edge_data(_edges[eid])) != _kept[eid] {
             return True;
         }
     }
@@ -1149,18 +1159,14 @@ impl take_in {
             }
         }
     }
+    seen_at: dict[str, dict[str, bool]] = {};
     for i in since.gone {
         if i in _edges {
-            if edge_changed(i) {
+            if edge_changed(i, seen_at) {
                 held_back = True;
                 continue;
             }
             rt_drop_held_edge(_edges[i]);
-            for (nid, at) in _edges_at.items() {
-                if i in at {
-                    at.remove(i);
-                }
-            }
             forget(i);
         }
     }
@@ -1204,7 +1210,7 @@ impl take_in {
         }
         if r.id in _edges {
             if r.version != _versions[r.id] {
-                if edge_changed(r.id) {
+                if edge_changed(r.id, seen_at) {
                     held_back = True;
                     continue;
                 }
@@ -1221,8 +1227,8 @@ impl take_in {
             if r.src in _nodes and r.dst in _nodes {
                 take_edge(r);
                 for end in [r.src, r.dst] {
-                    if end in _edges_at and r.id not in _edges_at[end] {
-                        _edges_at[end].append(r.id);
+                    if end in _edges_at {
+                        _edges_at[end][r.id] = True;
                     }
                 }
             }
