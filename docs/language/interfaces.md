@@ -34,15 +34,21 @@ an ordinary name (`dyn = 3;` is an assignment).
 
 ## What makes an interface
 
-An `obj` is an interface when it has at least one member and every member
-is
+An `obj` is an interface when it has at least one required member:
 
 - an abstract method, `def area -> float abst;` (see [Methods](methods.md)), or
 - a compile-time member with no value, `comptime BYTES: int;`,
 
-and it has no fields and no bases but other interfaces. Anything else is an
-ordinary class: an `obj` with abstract methods and a field, for example,
-which the compiler does not check its subclasses against.
+and no fields, no bases but other interfaces, no `init` or `postinit`, no
+static method and no ability. Its other methods, those with a body, are its
+[defaults](#defaults). Anything else is an ordinary class: an `obj` with
+abstract methods and a field, for example, which the compiler does not check
+its subclasses against.
+
+A `class` is Python's class: it is an interface only when every member is
+required. A `class` with abstract methods and some methods given is an
+abstract base class, as in Python: a subclass may leave an abstract method
+out, and is then abstract itself.
 
 An interface has no instances: `Shape()` is E1280.
 
@@ -126,6 +132,78 @@ with entry {
 5.0 1.5
 Tri(b=2.0, h=2.0) rect 2.0x0.25: 0.5
 ```
+
+### Defaults
+
+An interface's method with a body is a default: a conformer that gives no
+method of that name takes it. A default is checked once, where the
+interface is declared, with `self` and `Self` having what the interface and
+the interfaces it extends give, and an error in it is reported there. It is
+compiled for each conformer that takes it, so its calls are the conformer's
+own. A conformer may give its own method in a default's place, in its body
+or in an [impl](#conforming-apart-from-the-type), and reach the default by
+`super`; a subclass of a conformer takes what its base took. A default is
+reached as any method is: `x.told()`, through a bound, through `dyn`, and as
+`Measured.told(x)`.
+
+```jac
+obj Measured {
+    def size -> int abst;
+
+    def twice -> int {
+        return self.size() * 2;
+    }
+
+    def told -> str {
+        return f"{self.twice()} of {self.size()}";
+    }
+}
+
+obj Lot(Measured) {
+    has n: int = 3;
+
+    def size -> int {
+        return self.n;
+    }
+}
+
+obj Pinned(Measured) {
+    def size -> int {
+        return 5;
+    }
+
+    def told -> str {
+        return "pinned " + super.told();
+    }
+}
+
+struct Steps {
+    has k: int = 2;
+}
+
+impl Steps(Measured) {
+    def size -> int {
+        return self.k;
+    }
+}
+
+def doubled[T: Measured](x: T) -> int {
+    return x.twice();
+}
+
+with entry {
+    print(Lot().told(), Pinned().told(), Steps(k=4).told(), doubled(Steps()));
+    each: list[dyn Measured] = [Lot(), Pinned(), Steps()];
+    print([m.twice() for m in each], Measured.told(Steps(k=1)));
+}
+```
+
+```output
+6 of 3 pinned 10 of 5 8 of 4 4
+[6, 10, 4] 2 of 1
+```
+
+A conformer that leaves out a method with no default is E1281, as before.
 
 ## Conforming apart from the type
 
@@ -725,7 +803,7 @@ program.
 | E1484 | `dyn` of an interface builtin values conform to |
 | E1185 | An impl names a class that is not an interface |
 | E1186 | `x.m()` that several conformances of `x`'s type give, and the type does not |
-| E1187 | An impl gives a method or compile-time member its interface does not require |
+| E1187 | An impl gives a method or compile-time member its interface does not declare |
 | E2108 | An impl conforming a type stands in neither the type's module nor the interface's |
 | E2109 | A second conformance of a type to an interface |
 | E2110 | An impl that names several interfaces |
