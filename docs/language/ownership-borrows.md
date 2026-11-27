@@ -78,6 +78,12 @@ moves.
 - **A borrow of a struct is its place**: a local declared `&mut P` and a
   function declared `-> &mut P` reach the struct they lend, and change it,
   rather than a copy ([Places](structs.md#places)).
+- **A type parameter's value may be borrowed**: `def larger[T: Measure](a:
+  &T, b: &T)` lends what each call gives, and `def grow[T: Measure](a: &mut
+  T)` reaches it: a class's object, or the struct a variable holds. A borrowed
+  parameter of a type that is no type parameter and no reference, `n: &int`,
+  is E1159; lending `&mut` of a scalar to a `&mut T` is E1330 at the call,
+  as it is anywhere.
 
 ```jac
 obj Player {
