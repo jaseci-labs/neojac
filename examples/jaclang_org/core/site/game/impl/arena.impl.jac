@@ -235,7 +235,7 @@ impl render(w: &RenderView, alpha: float) {
     }
 }
 
-impl init -> own Game {
+impl `init -> own Game {
     open_window();
     return world_new();
 }

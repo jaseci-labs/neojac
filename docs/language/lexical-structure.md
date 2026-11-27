@@ -104,8 +104,10 @@ Five points a reader coming from Python or from the reference design will not ex
 - **The type words are reserved.** `int`, `str`, `float`, `bool`, `bytes`, `list`, `dict`, `set`,
   `tuple`, `type`, `any` and every sized number type (`i32`, `u8`, `f32`, ...) are keywords.
   `list = [1]` and `def type() {...}` are errors, not shadowing.
-- **`self` is a parameter only as the receiver.** `init` and `postinit`, the names of a
-  constructor's hooks, may also name a function or a method.
+- **`self` is a parameter only as the receiver.** `init` and `postinit` are the words of the
+  constructor and the post-initializer, in a class and outside one: a function or a method of
+  either name is written behind a backtick, `` def `init ``, and `def init` outside a class is
+  [E0013](../reference/diagnostics/e00-1.md#e0013). A variable may still be named `init`.
 - **Words the grammar uses in one construct only are not reserved.** `struct`, `tail`, `where`,
   `dyn`, `defer` and `do` are ordinary names everywhere else: `defer` is a word only where a
   statement starts with `defer {`, and `do` only where an expression starts with `do {` or

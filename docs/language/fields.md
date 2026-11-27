@@ -227,7 +227,8 @@ makes the object), and `x.init(...)` and `super.init(...)` call it as a
 method. Written as `def __init__` it is Python's spelling, an error (W3004).
 A method that is named `init` and is no constructor is written behind a
 backtick, `` def `init ``, and called as `` x.`init(...) ``; a class may have
-both.
+both. Outside a class the word is still the constructor's: a function named
+`init` is `` def `init `` too, and `def init` there is E0013.
 
 ```jac
 obj Tank {

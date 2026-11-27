@@ -27,7 +27,7 @@ def draw_hud(w: &RenderView, rt: float);
 
 def render(w: &RenderView, alpha: float);
 
-def:pub init -> own Game;
+def:pub `init -> own Game;
 
 def:pub shutdown(w: own Game);
 
