@@ -43,6 +43,8 @@ platform
 | In the picture | Where it comes from |
 |---|---|
 | A box | A layer, with what it holds. Opened, a layer's boxes are the layers it holds, or its modules |
+| The bar at a box's left edge and the color of its frame, in `--svg`, `--png` and the viewer | What the box is: a layer in indigo, a module in grey, a space in orange, an app in pink |
+| A chevron at a box's right edge, in the same three | The box opens: a click in the viewer shows what it holds |
 | A module's words | The first sentence of the module's own docstring |
 | An arrow | The wires between the two boxes' modules, from the provider to the consumer |
 | A dotted arrow, its head hollow in `--text` (`▽`) | An arrow whose every wire is [declared](../language/modules-wiring.md#declared-wires---) (`-->`): the consumer is a file in another language, whose own source writes the import. A solid arrow has a wire that is the import (`++>`). In `--json` the arrow's `declared` says which, and each wire's `how` |
