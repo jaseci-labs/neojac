@@ -158,14 +158,14 @@ The address carries the viewer's key, made anew each time it starts. The page ke
 cookie, and the server answers nothing without it: a viewer can start an agent and run an app, so
 only the browser that was given its address may ask it to.
 
-- **A click on a layer or a module opens it.** The line at the top left says where it is, and
-  each part of that line goes back.
+- **A click on a layer or a module opens it.** The line at the top left of the picture says where
+  it is, and each part of that line goes back.
 - **The picture is a canvas.** A drag moves it, and so do the wheel and two fingers on a trackpad;
   a pinch, or the wheel with Ctrl or Cmd held, zooms where the pointer is. At the lower right,
   `−` and `+` zoom, the percentage fits the picture so that it reads (a tall one to its width),
   and the frame beside it shows the whole picture however small. A double click on the background
-  fits it again. Until it is moved by hand, the picture stays fitted as the window and the panels
-  around it change.
+  fits it again. Until it is moved by hand, the picture stays fitted as the window, the panels
+  around it and the cards on it change.
 - **One picture becomes the next.** A box that is in both moves to its new place and takes its
   new size and colors, a line that still joins the same two boxes is routed anew as they move,
   what is gone fades and what is new comes in last. A layer opened grows out of its box, and
@@ -178,7 +178,8 @@ only the browser that was given its address may ask it to.
 - **Find** looks up a layer, a module or a wired name as it is typed (`/` goes to it). A layer or
   a module is opened; a name opens the module that provides it, with its code at the name's
   declaration.
-- **Layers and Spaces** switch the view, and a project with profiles has a list of them.
+- **Layers and Spaces** switch the view, in a project of more than one space, and a project
+  with profiles has a list of them.
 - **Changes** always carries the lines added and removed since the revision it compares with,
   whatever is shown. Pressed, it marks [what has changed](#what-has-changed---diff) on the
   picture, and says at its top right how many modules and layers that is. The code then follows the picture: it
@@ -196,11 +197,12 @@ only the browser that was given its address may ask it to.
     or changed shows its wire in `archwire.jac`.
 
   `neojac arch --diff` opens the viewer with it on.
-- **A module opened shows its code under the picture.** The module's file slides up under the
-  picture, and the line between them drags to give either more room; a layer and the spaces show
-  none. The `×` at its right puts the code away; while it is away, **Code** at the lower left of
-  the picture brings it back. The browser's Back returns to
-  what was shown before.
+- **A module opened shows its code on the picture.** The module's file is a card over the
+  picture's lower right, half the picture's height, and the picture is fitted again in the room
+  beside it; the card's left edge drags to make it wider or narrower. A layer and the spaces show none. The `×` at its right
+  puts the code away; while it is away, **Code** at the lower right of the picture brings it
+  back. In a narrow window the card lies across the foot of the picture. The browser's Back
+  returns to what was shown before.
 - **A name in the code is what the language server says of it.** Resting on a name shows what it
   is. A click marks its other uses in the file; a click with Ctrl or Cmd held, or a double click, goes to its
   definition, and from there to its declaration: on a function whose body is in an impl annex, it
@@ -245,15 +247,29 @@ neojac agent                                           # the ones added, the one
   or forgets a variable, whose value the page is never sent.
 
 The panel beside the picture is the agent's, under **Agent**. The line between it and the
-picture drags to size it, and the button at the far right of the top bar puts it away and brings
+picture drags to size it, and the button at the far left of the top bar puts it away and brings
 it back:
 
 - **What is typed at its foot is asked of the agent**, with what the picture is opened on: a layer with
   its modules, a module with its file. A click on a box with Alt or Cmd held adds it too. Each
   is a chip above the text, and its `×` leaves it out. Enter sends; Shift and Enter is a new line.
+- **An image goes with what is asked:** a screen capture or a picture, pasted into the text,
+  dropped on the panel, or chosen with the button beside Send. Each is shown small above the
+  text until it is sent, and its `×` leaves it out; a click shows it whole. A turn takes eight, a
+  PNG, a JPEG, a GIF or a WebP of 8 MB at most, and an agent that takes no images is not sent
+  the turn: the panel says so.
 - **Its first line says what the agent is doing**, and under it is the conversation:
-  each turn with what was asked, what the agent answered, each file it read or changed (a click
-  shows it in the code), each command it ran, and its plan when it keeps one.
+  each turn with what was asked and when, what the agent answered, and its plan when it keeps
+  one.
+- **Each thing the agent does is one line:** what it is, the command beside it where it ran one,
+  the lines an edit added and removed, how long it took when that was a second or more, and
+  whether it failed. A click opens it to the whole of it: the command, the files (a click shows
+  one in the code), what it was called with, an edit as a diff, and what it gave back, each
+  with a button that copies it. A run of more than three is folded to one line that counts
+  them by kind once the agent goes on to say something, and opens again at a click. The agent's
+  reasoning, where it shares it, is one line that opens the same way.
+- **The conversation stays where you are reading it.** While its end is in view it follows what
+  arrives; scrolled back, it stays, and **Latest** returns to the end.
 - **The picture shows where the agent is.** The box of a file it says it is reading is outlined,
   and a box it has been in stays marked for the turn. **What it changes is seen, not taken on its
   word:** while a turn runs, the viewer watches which of the project's files differ from where
@@ -310,10 +326,19 @@ Each call reads the project as it stands, so an answer is never of a file as it 
 
 ## The project over time
 
-Along the foot of the picture and its code, once the project has more than one step, is its history: where the branch
-left its upstream (or the first commit, with no upstream), each commit since, each turn of an
-agent after the commit it was made on, what was changed by hand between two turns, and the
-project as it stands when that is different.
+A project in a git repository has a history: where the branch left its upstream (or the first
+commit, with no upstream), each commit since, each turn of an agent after the commit it was made
+on, what was changed by hand between two turns, and the project as it stands when that is not
+committed. Once there is more than one step it is a slider along the foot of the picture and,
+when asked for, a list on the picture.
+
+- **The button at the left of the slider shows the history as a list,** a card over the
+  picture's lower left, and puts it away again, as the `×` at the list's head does. The list is
+  the history from its newest step down: what is not yet committed first, then each commit with
+  the start of its hash and how long ago it was made, an agent's turns in the accent color, and
+  where the branch began. A click on a step goes to it, and its changes are the code in the card
+  at the right; a click on the step that is shown leaves the history. The list and the code are
+  shown and put away each by itself.
 
 - **The slider, and the arrows beside it, go to a step.** Each step is a dot on the slider, an
   agent's turns in the accent color. The picture is then the project's architecture as it stood
