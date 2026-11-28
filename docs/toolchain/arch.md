@@ -171,6 +171,13 @@ only the browser that was given its address may ask it to.
   what is gone fades and what is new comes in last. A layer opened grows out of its box, and
   going back folds it into that box again. A browser that asks for reduced motion is shown each
   picture at once.
+- **A legend at the lower left says what the picture's marks mean:** the bar at a box's edge
+  that tells a layer from a module, a space or an app, a dashed box, a box across the width, the
+  chevron of a box that opens, a solid arrow and a dotted one, lines that join, the words beside
+  an arrow, the colors of what has changed and what a change does not reach, and the outlines of
+  the box whose code is shown and of where an agent is. It lists only the marks the picture shown
+  has, each drawn as the picture draws it, so it changes with the picture. A click on **Legend**
+  puts the list away or shows it again, and the page keeps that choice.
 - **Resting on an arrow says what it carries:** which box takes how many names from which, and
   the edge rules that admit them. **A click lists the names**, in a card beside the line that
   Escape or a click elsewhere puts away. Where lines join into one, a branch answers for its own
