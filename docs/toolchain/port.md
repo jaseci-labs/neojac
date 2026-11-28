@@ -399,6 +399,12 @@ targets is one module: its Jac file and its target variant files, which share th
 and the C module's `jac` names the module's own file; each variant is checked for its target. Where that check fails, the file stays C,
 which its C module builds there as it is, with that check's errors shown (E4015).
 
+**A source is read for the platforms its libraries are built for.** Where the include path of a
+source's C module holds a library's headers (another C module, such as LLVM's of headers and
+archives), and that library's archives hold another platform's objects (an archive of ELF x86-64
+objects is `linux-x86_64`'s), the source is not read for the platform: no build of it there
+could link. A library whose archives are not there yet, or that has none, is no such limit.
+
 ## What is refused
 
 A file ports whole or not at all. Port reports every construct it refuses, each at its place in

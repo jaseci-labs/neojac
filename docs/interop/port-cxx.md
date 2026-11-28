@@ -81,7 +81,10 @@ interface's shim, and one it defines out of line at its symbol in its archives. 
 the C++ standard library is libcxx's, by its template form: `std::vector<int>` is
 `std_vector[i32]`, `std::lock_guard<std::mutex>` is `std_lock_guard[std_mutex]`, `std::string`
 is `std_string`. A local or field of one whose destructor runs code is bound `own`, so it is
-dropped where its scope ends, as C++ destroys it.
+dropped where its scope ends, as C++ destroys it. Port reads a library's interface for what
+the source names, its classes and the members its calls name, from the library's headers
+parsed once ([C modules](c-modules.md#what-a-program-binds-of-a-c-module)); and the source
+for the platforms the library's archives are built for.
 
 Each constructor, method, operator and conversion a call names is the member the class's
 interface binds for that very declaration, by the name the interface gives it, on each target:

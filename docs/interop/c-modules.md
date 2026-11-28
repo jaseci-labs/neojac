@@ -374,6 +374,30 @@ library links the toolchain's C++ runtime (libc++, libc++abi, and libunwind exce
 statically, after everything else, so the linker takes only what something references, and a
 program that references none of it links none.
 
+### What a program binds of a C++ module
+
+A C++ module's interface binds what the program names, and what the signatures of those reach,
+never every class its headers declare: a library as large as LLVM's costs a program what it uses
+of it.
+
+- **What a program names** is every name its Jac writes: a class, a function, a method or a
+  field, an operator by its `op_` name, a constructor by `make` or `init`, an overload by its
+  name with its parameters' types (`push_back_move` names `push_back`). A C++ source that
+  [`neojac port`](../toolchain/port.md) reads names what its own code names.
+- **Of the module's classes and C++ functions** the interface binds those the program names, by
+  their name or by their qualified name with `::` as `_` (`tally_Pair`). **Of each class it
+  binds** it binds the members the program names, its constructors that take no argument, its
+  copy and its destructor; and each class a bound member's signature names, by the same rule,
+  so that what a call gives has its class. A Jac class deriving a C++ class has every virtual
+  function a subclass may define.
+- **A class's name does not depend on what is named**: a class is named by its last part where
+  no other class the library declares, a nested one counted, has it, and by its qualified name
+  where one does.
+- **Clang parses a library's headers once** for a target: the parse is kept in the build cache,
+  keyed by the library (its headers and its flags), and every reading of the library starts from
+  it. What a reading binds is kept keyed by the library and what the program named and asked
+  for, so a program that names other things binds its own, from the same parse.
+
 ### What Jac uses of C++
 
 A C++ file is wired into Jac as a C file is (`shapes.figures ++> main { Figure, Rect, scaled }`),
@@ -442,8 +466,8 @@ as a call of a Jac generic method may ([Generics](../language/generics.md)): `o.
   not name the template's own: `add(const T &)` is `add_`, `add(const char *, const T &)` is
   `add_ptr_i8`.
 - **The program's build makes each instance it names**, though nothing in the C++ makes it: the
-  module's headers are read again with the instance asked for, and the interface binds it as a
-  member of the class. A result of a class type is owned, as any result by value is.
+  module's reading is asked again for the instance, from the headers' kept parse, and the
+  interface binds it as a member of the class. A result of a class type is owned, as any result by value is.
 - An instance the template does not take, or whose argument is no class or number type of C++, is
   E1620 where the program names another instance of the template that the build makes. Where it
   names none, the class has no member of that name, and the call is E1030 (`Counter has no field
