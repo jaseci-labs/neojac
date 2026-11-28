@@ -32,7 +32,7 @@ of the file's own is `__js_new(X, a)`. JavaScript's forms are intrinsics too: `n
 function value `f(a, ...xs)` is `__js_call(f, a, *xs)`, and `for (const k in o)` and
 `for (const x of xs)` are `for k in __js_for_in(o)` and `for x in __js_iter(xs)`, written as those
 loops. Nothing of `js` is named there: what it gives that is a function of its own
-(`js_as_method`, `js_unpack`, `js_promise`, ...) is the runtime's module `lib/js`'s, imported from
+(`js_unpack`, `js_promise`, ...) is the runtime's module `lib/js`'s, imported from
 it as any runtime module imports another. A function there is JavaScript's own: a parameter
 whose default is None is the bare parameter, any other default is JavaScript's and applies as
 JavaScript applies it, where the argument is undefined, which is None; `*rest` is `...rest`; the
@@ -40,6 +40,16 @@ arguments are not counted or bound by name; a function value is the function its
 lambda an arrow function. A handler binds what was thrown as it was thrown: `except
 BaseException as e` is `catch (e)`, `e` of type `any`, and a handler of another class tests it
 with `instanceof` and throws it on.
+
+JavaScript's `this` there is `__js_this()` in every function port writes as no Jac method: a
+function, a method or an accessor of an object literal, and a class's member that is given
+after the class (a static accessor, a member of a computed key), which is given as itself,
+`("get", getter_1)` in its descriptor. A function whose arrow functions read `this` reads it once,
+first, `this_1: any = __js_this();`, as an arrow function's `this` is the one of the function it
+is in. An object literal's method there is an entry of `__js_object`, as JavaScript makes it, an
+enumerable property, `("m", m_1)`; its accessor is given after the object is made, as each
+entry after it is, in order, by `Object.defineProperty` with an object literal's descriptor,
+enumerable and configurable.
 
 A value there is JavaScript's whatever TypeScript says of it: a property read is
 `__js_item(o, "p")` but of `self` and of `globalThis`, a call of a method `__js_method(o, "m", a)`
@@ -145,7 +155,8 @@ construct in the table whose Jac would mean something else (E4005):
   none. So the face JavaScript is given of a Jac async generator, which delegates with
   `yield*`, is the one function of the JavaScript host's runtime that stays JavaScript,
   `rt/hosts/js/lib/agen.js`, and port refuses it.
-- **A getter, a setter or `super` in an object literal.**
+- **`super` in an object literal; a getter or a setter there outside a file of the JavaScript
+  host's runtime, and in one a spread after a getter or a setter.**
 - **A variable declared inside the block of another of its name, where a third of its name
   is renamed already.** A Jac function has one variable of a name, so the inner one is a
   variable of another name, as is one a function inside another declares where the other
