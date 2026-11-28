@@ -104,7 +104,8 @@ impl page -> JsxPage {
             return;
         }
         told = True;
-        said = "If an account has that name or address, a link to set a new password was mailed to it.";
+        said = "If an account has that name or address, a link to set a new password was mailed to "
+            "it.";
     }
 
     async def leave {

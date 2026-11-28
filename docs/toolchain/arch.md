@@ -43,6 +43,8 @@ platform
 | In the picture | Where it comes from |
 |---|---|
 | A box | A layer, with what it holds. Opened, a layer's boxes are the layers it holds, or its modules |
+| The bar at a box's left edge and the color of its frame, in `--svg`, `--png` and the viewer | What the box is: a layer in indigo, a module in blue, a space in orange, an app in pink. A module's box is filled with blue as well, where a layer's is plain |
+| A chevron at a box's right edge, in the same three | The box opens: a click in the viewer shows what it holds |
 | A module's words | The first sentence of the module's own docstring |
 | An arrow | The wires between the two boxes' modules, from the provider to the consumer |
 | A dotted arrow, its head hollow in `--text` (`▽`) | An arrow whose every wire is [declared](../language/modules-wiring.md#declared-wires---) (`-->`): the consumer is a file in another language, whose own source writes the import. A solid arrow has a wire that is the import (`++>`). In `--json` the arrow's `declared` says which, and each wire's `how` |
@@ -171,6 +173,13 @@ only the browser that was given its address may ask it to.
   what is gone fades and what is new comes in last. A layer opened grows out of its box, and
   going back folds it into that box again. A browser that asks for reduced motion is shown each
   picture at once.
+- **A legend at the lower left says what the picture's marks mean:** the bar at a box's edge
+  that tells a layer from a module, a space or an app, a dashed box, a box across the width, the
+  chevron of a box that opens, a solid arrow and a dotted one, lines that join, the words beside
+  an arrow, the colors of what has changed and what a change does not reach, and the outlines of
+  the box whose code is shown and of where an agent is. It lists only the marks the picture shown
+  has, each drawn as the picture draws it, so it changes with the picture. A click on **Legend**
+  puts the list away or shows it again, and the page keeps that choice.
 - **Resting on an arrow says what it carries:** which box takes how many names from which, and
   the edge rules that admit them. **A click lists the names**, in a card beside the line that
   Escape or a click elsewhere puts away. Where lines join into one, a branch answers for its own
@@ -250,6 +259,23 @@ The panel beside the picture is the agent's, under **Agent**. The line between i
 picture drags to size it, and the button at the far left of the top bar puts it away and brings
 it back:
 
+- **Agents work in sessions, as many at a time as you begin.** A session is one conversation with
+  an agent, which keeps its own context. The tabs at the head of the panel are the sessions that
+  are open, each with a dot for what it is doing: pulsing while its agent works, orange while it
+  waits for your answer, green when it has finished a turn you have not seen. The panel shows one
+  conversation, the tab that is picked; the others go on working. **+** is a new session, begun by
+  what you ask in it, and a tab's `×` puts an idle session away.
+  - **A session that waits for your answer says so above the form,** whichever conversation is
+    shown, with **Show** to go to it.
+  - **The picture shows where the others are.** The box the shown session's agent is in is
+    outlined as below; a box another session's agent is working in has a dotted outline.
+  - **The clock beside the tabs lists every session the project has kept,** the newest first,
+    with its agent, its turns and when it last did something. A click shows one, opening it again
+    if it was put away. **Delete**, at a second click, removes a session's conversation for good.
+  - **The sessions share the project's files,** and each agent is told when another is at work.
+    So what a turn is said to have changed is what changed in the project while it ran, and
+    **Undo** puts back what every session changed since that turn began. It waits until no turn is
+    running, and the other sessions and their agents are then told.
 - **What is typed at its foot is asked of the agent**, with what the picture is opened on: a layer with
   its modules, a module with its file. A click on a box with Alt or Cmd held adds it too. Each
   is a chip above the text, and its `×` leaves it out. Enter sends; Shift and Enter is a new line.
@@ -268,6 +294,8 @@ it back:
   with a button that copies it. A run of more than three is folded to one line that counts
   them by kind once the agent goes on to say something, and opens again at a click. The agent's
   reasoning, where it shares it, is one line that opens the same way.
+- **An image the agent looks at is shown in the conversation,** under the step that read it: a
+  screen capture it took, a picture it opened. A click shows it whole.
 - **The conversation stays where you are reading it.** While its end is in view it follows what
   arrives; scrolled back, it stays, and **Latest** returns to the end.
 - **The picture shows where the agent is.** The box of a file it says it is reading is outlined,
@@ -282,9 +310,12 @@ it back:
   file, and the answers the agent offers, which are sent back as they are; the panel comes
   forward when one arrives. The list beside Follow holds the agent's own modes of asking; neojac adds none and answers nothing by itself.
   **Stop** ends a turn, and answers what is open with a refusal.
-- **What is asked while a turn runs waits.** Send is then **Queue**: the message is shown above
-  the form, with a `×` that takes it back, and is asked as the next turn when this one ends,
-  several of them as one.
+- **What is asked while a turn runs waits.** Send is then **Queue**, and the message is shown
+  above the form. An agent that takes a message while it works (the Claude adapter does) is given
+  it at once: the message then says **Sent**, and it enters the conversation where the agent
+  takes it up, between two steps of its work. For any other agent the message says **Queued**,
+  with a `×` that takes it back, and is asked as the next turn when this one ends, several of
+  them as one. After **Stop**, what was waiting is asked next, sent or not.
 - **Plan first asks for the change as architecture before any of it is built.** With it on, the
   agent is asked to change only `archwire.jac` and the declarations in the modules' files, with
   no bodies, and to stop. What it proposes is then on the picture as any change is: a new layer
@@ -300,8 +331,11 @@ it back:
   put back is kept too, under `refs/neojac/undone/`. An agent cannot be made to forget a turn, so
   after an undo the next turn starts the agent again and tells it what was said and what was
   undone.
-- **The conversation is the project's.** It is kept in `.jac/arch/`, which git is told to ignore,
-  and a viewer started again shows it and goes on from it.
+- **The conversations are the project's.** Each session is kept in `.jac/arch/`, which git is told
+  to ignore. A viewer started again lists them all, shows the one worked in last and goes on from
+  it, and a page loaded again shows the session it was on. A session an earlier neojac kept is
+  shown too while its events are the ones this neojac reads; one that is not is listed, greyed,
+  and can only be deleted.
 
 An agent is given the project's directory, what was asked, one paragraph that says the
 project is Jac, that `archwire.jac` is its wiring, and how neojac is run here, and neojac's own
@@ -331,8 +365,10 @@ Each call reads the project as it stands, so an answer is never of a file as it 
 
 A project in a git repository has a history: where the branch left its upstream (or the first
 commit, with no upstream), each commit since, each turn of an agent after the commit it was made
-on, what was changed by hand between two turns, and the project as it stands when that is not
-committed. Once there is more than one step it is a slider along the foot of the picture and,
+on, what was changed by hand between two turns, what the project held when a turn began while
+another session's was running, and the project as it stands when that is not committed. The turns
+of sessions that worked at the same time are in the order they were made, each named with its
+session. Once there is more than one step it is a slider along the foot of the picture and,
 when asked for, a list on the picture.
 
 - **The button at the left of the slider shows the history as a list,** a card over the

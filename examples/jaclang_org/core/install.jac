@@ -18,7 +18,9 @@ node InstallMeta {
         updated_at: str = "";
 }
 
-glob UNAVAILABLE_SH: str = "#!/usr/bin/env bash\necho 'jac: installer temporarily unavailable' >&2\nexit 1\n";
+glob UNAVAILABLE_SH: str = "#!/usr/bin/env bash\n"
+    "echo 'jac: installer temporarily unavailable' >&2\n"
+    "exit 1\n";
 
 def _get_meta -> InstallMeta | None;
 

@@ -93,7 +93,8 @@ impl route_answer(
     }
     if not isinstance(data, str) {
         print(
-            f"route {r.path} failed: its function gives a {type(data).__name__}, not the str its body is",
+            f"route {r.path} failed: its function gives a {type(data).__name__}, not the str its "
+            f"body is",
         );
         (status, reply) = reply_fail(500, "failed", r.path + " failed");
         return (status, "application/json", reply, {});

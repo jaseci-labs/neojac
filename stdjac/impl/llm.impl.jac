@@ -263,7 +263,8 @@ impl LLM.choose(choice: ByChoice) -> list[int] {
             arg_docs={
                 "walker": "The walker's own state.",
                 "at": "The node the walker is at.",
-                "options": "Where it may go: each option's number, the node there, and the edges that lead to it, each with what its type means.",
+                "options": "Where it may go: each option's number, the node there, and the edges "
+                    "that lead to it, each with what its type means.",
             },
             result_schema={"type": "array", "items": {"type": "integer"}},
             decode=None,

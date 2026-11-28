@@ -47,7 +47,8 @@ impl open_db(
         if len(step) != 1 {
             raise DataError(
                 path=path,
-                problem=f"is laid out as an older neojac wrote it, which this one can't upgrade {reads}",
+                problem=f"is laid out as an older neojac wrote it, which this one can't upgrade "
+                    f"{reads}",
             );
         }
         steps.append(step[0]);
@@ -77,7 +78,8 @@ impl open_db(
     }
     if host is not None {
         host.upgraded(
-            f"upgraded {os.path.basename(path)} from layout {version} to {format}; the file as it was is kept as {os.path.basename(kept)}",
+            f"upgraded {os.path.basename(path)} from layout {version} to {format}; the file as it "
+            f"was is kept as {os.path.basename(kept)}",
         );
     }
     return db;

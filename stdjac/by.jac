@@ -58,7 +58,8 @@ obj:pub ByStreams {
     def stream(call: ByCall) -> Iterator[ByEvent] abst;
 }
 
-comptime NO_SCHEMA: str = "a `by` result's type has no JSON schema: no any, bytes, tuple, walker or function value";
+comptime NO_SCHEMA: str = "a `by` result's type has no JSON schema: no any, bytes, tuple, walker "
+    "or function value";
 def:pub schema[T] -> dict[str, any];
 def schema_in[T](within: list[any]) -> dict[str, any];
 def object_schema[T](within: list[any]) -> dict[str, any];

@@ -18,7 +18,8 @@ impl ninjaclaw_profile -> Profile {
     claw = root.shared ++> Profile(
         username=NINJACLAW,
         display_name="ninjaclaw",
-        bio="I answer Jac questions on JacYac. Mention @ninjaclaw or post in #help. Everything I do is public at /jacyac/ninjaclaw.",
+        bio="I answer Jac questions on JacYac. Mention @ninjaclaw or post in #help. Everything I "
+            "do is public at /jacyac/ninjaclaw.",
         created_at=_now(),
     );
     grant(claw, level=AccessLevel.CONNECT);
