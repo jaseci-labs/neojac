@@ -39,7 +39,9 @@ JavaScript applies it, where the argument is undefined, which is None; `*rest` i
 arguments are not counted or bound by name; a function value is the function itself, and a
 lambda an arrow function. A handler binds what was thrown as it was thrown: `except
 BaseException as e` is `catch (e)`, `e` of type `any`, and a handler of another class tests it
-with `instanceof` and throws it on.
+with `instanceof` and throws it on. `throw x` is `__js_throw(x);`, JavaScript's own `throw`, a
+statement after which nothing runs: Jac's `raise` would record what was being handled as the
+exception's cause, which JavaScript's `throw` does not.
 
 JavaScript's `this` there is `__js_this()` in every function port writes as no Jac method: a
 function, a method or an accessor of an object literal, and a class's member that is given
