@@ -1,0 +1,39 @@
+{
+  "public_revision": "3f8a290d7f71df41f117aae9a7b9ce948b41318b",
+  "compiler": {
+    "version": "0.5.3",
+    "build": "4da9bcccf875",
+    "linux_x86_64_gzip_sha256": "4cf6f4f40cf4d0f949db2f1e4994d5605f8d6100e3644862ce238509acd7c511"
+  },
+  "rune": {
+    "repository": "https://github.com/anomalyco/rune",
+    "revision": "41cfc073ca5845f1d689a41535d796f37a8f7eba",
+    "default_features": false,
+    "features": [
+      "embedded-fonts"
+    ],
+    "patches": [
+      "wgpu-hal",
+      "naga",
+      "winit",
+      "sctk-adwaita",
+      "parley_engine",
+      "accesskit_windows",
+      "accesskit_atspi_common",
+      "accesskit_macos"
+    ]
+  },
+  "xkb": {
+    "version": "1.7.0",
+    "url": "https://xkbcommon.org/download/libxkbcommon-1.7.0.tar.xz",
+    "sha256": "65782f0a10a4b455af9c6baab7040e2f537520caa2ec2092805cdfd36863b247",
+    "static": true
+  },
+  "cargo_jobs": 2,
+  "target": "x86_64-unknown-linux-gnu",
+  "gates": {
+    "general_typed_bindings": "blocked: reproduced compiler gaps",
+    "foreign_entry_protocol": "blocked: no documented foreign-wait lock release API",
+    "component_runtime": "out of scope"
+  }
+}

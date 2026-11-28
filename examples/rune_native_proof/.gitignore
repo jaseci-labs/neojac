@@ -1,0 +1,5 @@
+/artifacts/
+/native/target/
+
+/__pycache__/
+/.jac/
