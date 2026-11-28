@@ -65,7 +65,7 @@ default_element ::= "default" (global_vars | decorated)
 
 ability ::= decorators "comptime"? "override"? "class"? "static"? "async"? ("def" | "can") access_tag (NAME | "init" | "postinit")? ("[" type_params "]")? (event_sig | func_signature) where_clause? (block | ("by" expression | "abst")? ";")
 
-global_vars ::= "glob" access_tag global_var ("," global_var)* ";"
+global_vars ::= decorators "glob" access_tag global_var ("," global_var)* ";"
 
 comptime_element ::=
     comptime_decls
@@ -80,7 +80,7 @@ sem_def ::= "sem" impl_target_name ("." impl_target_name)* "=" STRING+ ";"
 
 module_code ::= "with" ("entry" | "exit")? (":" NAME)? block
 
-decorated ::= test_decl | ability | enum_decl | impl_def | archetype
+decorated ::= global_vars | test_decl | ability | enum_decl | impl_def | archetype
 
 async_element ::= ability | archetype
 

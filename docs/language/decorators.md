@@ -1,14 +1,14 @@
 ---
-description: Decorators, compile-time calls that record facts on the declaration they precede; the facts jaclang.comptime provides (inline, noinline, cold, align, packed, fast_math, reads), writing your own, and what replaces a run-time wrapper, @staticmethod and @property.
-keywords: decorator, decorators, @, inline, noinline, cold, align, packed, fast_math, fast-math, reads, only_reads
+description: Decorators, compile-time calls that record facts on the declaration they precede; the facts jaclang.comptime provides (inline, noinline, cold, align, packed, fast_math, reads, thread_local), writing your own, and what replaces a run-time wrapper, @staticmethod and @property.
+keywords: decorator, decorators, @, inline, noinline, cold, align, packed, fast_math, fast-math, reads, only_reads, thread_local
 grammar: decorators, decorated
 ---
 # Decorators
 
 A decorator is a compile-time call on the declaration it precedes, and
-nothing else. `@d` before a function, a method, a nested `def` or an
-archetype calls the `comptime` function `d` while the program compiles,
-giving it the declaration. What `d` records is a fact of the declaration
+nothing else. `@d` before a function, a method, a nested `def`, an
+archetype or a `glob` calls the `comptime` function `d` while the program
+compiles, giving it the declaration. What `d` records is a fact of the declaration
 (inline it, align it, keep it cold); what the declaration computes is what
 it would compute undecorated. A decorator never wraps or replaces a
 function.
@@ -46,7 +46,9 @@ with entry {
 ```ebnf
 decorators ::= ("@" atomic_chain)*
 
-decorated ::= test_decl | ability | enum_decl | impl_def | archetype
+decorated ::= global_vars | test_decl | ability | enum_decl | impl_def | archetype
+
+global_vars ::= decorators "glob" access_tag global_var ("," global_var)* ";"
 ```
 
 A decorator is `@` and a name, optionally called with arguments
@@ -56,7 +58,8 @@ A decorator is `@` and a name, optionally called with arguments
 
 - **It is a call of a `comptime` function.** `@d(a, b)` before a declaration
   calls `d(decl, a, b)` as the program compiles: first the declaration (a
-  function as a `Callable`, an archetype as a type), then the decorator's
+  function as a `Callable`, an archetype as a type, a glob as a value a
+  `comptime def` takes as `any` and gives on to a fact), then the decorator's
   own arguments. Those arguments are compile-time values (see
   [Compile-time evaluation](compile-time.md)), positional only.
 - **A declaration's decorators run top to bottom**, before any body is
@@ -74,8 +77,8 @@ A decorator is `@` and a name, optionally called with arguments
 ## The facts
 
 `jaclang.comptime` provides these. Each is of a function with a body, a
-method among them, but `packed`, which is of a [struct](structs.md), and
-`align`, which is of either.
+method among them, but `packed`, which is of a [struct](structs.md),
+`align`, which is of either, and `thread_local`, which is of a `glob`.
 
 | Decorator | Fact |
 |---|---|
@@ -86,6 +89,7 @@ method among them, but `packed`, which is of a [struct](structs.md), and
 | `@packed`, `@packed(n)` | Of a struct: its fields are laid out with no padding, or each at most `n`-aligned. See below. |
 | `@fast_math(*flags)` | Its float operations may be computed as LLVM's fast-math flags allow. See below. |
 | `@reads` | Calls of it may run at the same time as one another: it changes nothing but what it makes. The compiler holds it to that in the program's own code (E1643), and a tool made of it is one a model's round runs with its other reads. See [By and sem](by-and-sem.md#tools-that-only-read-reads). `only_reads(f)` asks whether `f` was declared so. |
+| `@thread_local` | Of a `glob` of C plain data with a constant value: each thread has its own, made from the value. See below. |
 
 ### align of a struct
 
@@ -187,6 +191,55 @@ with entry {
 A struct is packed once (two `@packed`s that disagree are E1494). A struct held in a packed one
 below the alignment it needs is not supported yet (E5090): its own fields would be read where
 they do not align.
+
+### thread_local
+
+`@thread_local` before a `glob` gives each thread its own: a thread reads and writes its
+glob, which no other thread sees, and `addressof()` of it is its address in the thread that
+asks. Each thread's is made from the glob's value as the thread starts, without running code,
+as C's `_Thread_local` is, so the glob is C plain data (a sized number, `int`, `float`,
+`bool`, a pointer, a C record, a plain struct, a union or an array of those) and its value a
+constant: literals, constant records, structs and arrays of them, a C string, `addressof()`
+of a glob that is no thread-local, a function.
+
+```jac
+import threading;
+import from jaclang.comptime { thread_local }
+
+@thread_local
+glob depth: i32 = i32(0);
+
+glob seen: list[int] = [];
+
+def nest(n: int) {
+    for _ in range(n) {
+        depth += i32(1);
+    }
+    seen.append(int(depth));
+}
+
+with entry {
+    nest(3);
+    t = threading.Thread(target=nest, args=(2,));
+    t.start();
+    t.join();
+    print(seen, depth, addressof(depth)[0]);
+}
+```
+
+```output
+[3, 2] 3 3
+```
+
+The thread counted its own `depth` from 0, and the main thread's stayed 3.
+
+- **In an `import from c` block** it binds a thread-local the library defines, C's
+  `extern _Thread_local int64_t count;` as `@thread_local glob count: i64;`, and with a value
+  it defines one under the C name, as a `glob` there defines C data
+  ([C libraries](../interop/c-libraries.md#globals)).
+- **Native and wasm.** WebAssembly without threads has one thread, whose glob it is. A JS
+  host's module state is already one thread's: there the glob is a plain one. On a `cpython`
+  host it is refused (E5090).
 
 ### fast_math
 
@@ -378,8 +431,8 @@ obj Box {
 ## What is rejected
 
 ```jac
-# expect: E1490, E1491, E1492 x2, E1493, E1494, E1495, E1496, E1561, E1572
-import from jaclang.comptime { inline, noinline, cold, align, fast_math }
+# expect: E1490, E1491, E1492 x3, E1493, E1494, E1495, E1496, E1561, E1572, E2346
+import from jaclang.comptime { inline, noinline, cold, align, fast_math, thread_local }
 
 def wrap(f: Callable[[int], int]) -> Callable[[int], int] {
     return f;
@@ -433,6 +486,12 @@ impl body -> int {
     return 1;
 }
 
+@thread_local
+glob label: str = "x";
+
+@thread_local
+glob made: i32 = i32(len([1, 2]));
+
 with entry {
     inline(wrapped);
 }
@@ -443,13 +502,14 @@ with entry {
 | E1490 | The decorator is not a `comptime` function (a run-time wrapper, a C function). Call a wrapper instead. |
 | E5174 | Outside a `cpython` space, the decorator is a Python callable (`@dataclass`). |
 | E1491 | A fact is recorded outside a decorator's evaluation, or on a declaration other than the one the decorator was given. |
-| E1492 | A fact is applied to a declaration it is not of: a class (but `align` or `packed` of a struct), a C function, a `comptime` function, an abstract method; `packed` of anything but a struct. |
+| E1492 | A fact is applied to a declaration it is not of: a class (but `align` or `packed` of a struct), a C function, a `comptime` function, an abstract method; `packed` of anything but a struct; `thread_local` of anything but a `glob` of C plain data, and any other fact of a `glob`. |
 | E1493 | `@inline` of a function on a cycle of calls. |
 | E1494 | Two facts that disagree (`@inline` and `@cold`, two different `@align`s or `@packed`s). |
 | E1495 | An alignment that is not a power of two up to 4096, `@packed(n)`'s among them. |
 | E1496 | A decorator before an `impl` or a `test`. Write it before the declaration the `impl` is of. |
 | E1561 | `@align(n)` of a struct with `n` less than its fields' alignment. |
 | E1572 | `fast_math` given a name that is not one of its flags. |
+| E2346 | A `@thread_local` glob with no value, or with a value that is no constant: code a call runs, the address of another thread-local. |
 | E1643 | A `@reads` function that assigns a name outside itself, changes an object it did not make, or changes a graph. |
 | E0033 | A decorator's argument is not known at compile time (a `glob`). |
 | E1052 | A decorator's argument is passed by keyword (`@align(n=32)`). |

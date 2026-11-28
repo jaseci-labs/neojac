@@ -200,7 +200,7 @@ list, a tuple, an object or an item, and in what order the target is evaluated, 
 ## Globals: `glob`
 
 ```ebnf
-global_vars ::= "glob" access_tag global_var ("," global_var)* ";"
+global_vars ::= decorators "glob" access_tag global_var ("," global_var)* ";"
 
 global_var ::= NAME (":" ownership_prefix pipe)? ("=" expression ("=" expression)*)?
 ```
@@ -210,6 +210,8 @@ global_var ::= NAME (":" ownership_prefix pipe)? ("=" expression ("=" expression
 reading it first raises `NameError`.
 
 - One `glob` may declare several globals, separated by commas.
+- A [decorator](decorators.md) before a `glob` records a fact of each global it declares:
+  `@thread_local` gives each thread its own ([thread_local](decorators.md#thread_local)).
 - `glob a = b = 7;` declares `a` and `b` with the same value.
 - A global has one type, like a local: its declared type, else its initial value's. Assigning
   another type is E1001.
