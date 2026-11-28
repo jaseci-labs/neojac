@@ -282,6 +282,9 @@ it back:
   file, and the answers the agent offers, which are sent back as they are; the panel comes
   forward when one arrives. The list beside Follow holds the agent's own modes of asking; neojac adds none and answers nothing by itself.
   **Stop** ends a turn, and answers what is open with a refusal.
+- **What is asked while a turn runs waits.** Send is then **Queue**: the message is shown above
+  the form, with a `×` that takes it back, and is asked as the next turn when this one ends,
+  several of them as one.
 - **Plan first asks for the change as architecture before any of it is built.** With it on, the
   agent is asked to change only `archwire.jac` and the declarations in the modules' files, with
   no bodies, and to stop. What it proposes is then on the picture as any change is: a new layer

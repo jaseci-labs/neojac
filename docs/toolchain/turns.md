@@ -53,11 +53,12 @@ notification for each thing that happens.
 | `initialize` | `protocolVersion`, `clientInfo?` | Answers with the server's version of the protocol, the project and the session's state |
 | `session/state` | | The session's state: its `state` (`idle`, `starting`, `working`), its `turn`, the `agent`, the agent's `modes` and `options`, the revision the project `stands` at, the number of the `last` event, and the project's `stamp`, which moves when a file the picture reads has changed |
 | `session/events` | `since?` | The events numbered after `since`, with the state: for a client that polls, and to replay a session |
-| `session/prompt` | `text`, `scope?`, `plan?`, `agent?`, `images?` | Starts a turn. `scope` is ids of the picture's boxes (`layer:core`, `module:core.clock`) sent with what is asked; `plan` asks for the change as architecture first; `agent` names one in place of the one in use; `images` are sent with what is asked, each its `mime` (`image/png`, `image/jpeg`, `image/gif`, `image/webp`) and its `data` in base64, eight at most and 8 MB each, and are refused for an agent that takes none |
+| `session/prompt` | `text`, `scope?`, `plan?`, `agent?`, `images?` | Starts a turn, and answers with its `turn`. While a turn runs, what is asked waits instead and the answer is its `queued` id: what waits is asked as the next turn when this one ends, several plain messages of one agent as one. `scope` is ids of the picture's boxes (`layer:core`, `module:core.clock`) sent with what is asked; `plan` asks for the change as architecture first; `agent` names one in place of the one in use; `images` are sent with what is asked, each its `mime` (`image/png`, `image/jpeg`, `image/gif`, `image/webp`) and its `data` in base64, eight at most and 8 MB each, and are refused for an agent that takes none |
 | `session/image` | `turn`, `index` | An image a turn was asked with, counted from 0: its `mime` and its `data` in base64 |
 | `session/build` | `turn` | Starts the turn that builds what a plan turn proposed |
 | `session/answer` | `request`, `option?` | Answers what the agent asked, with the id of one of the options it offered; with no option, refuses |
-| `session/cancel` | | Stops the turn that is running |
+| `session/withdraw` | `id` | Takes back what waits by that id, so that it is not asked |
+| `session/cancel` | | Stops the turn that is running; what waits is then the next turn |
 | `session/undo` | `turn` | Puts the project's files back as they stood before that turn |
 | `session/setMode` | `mode` | Sets the agent's own mode of asking, by its id |
 | `session/setOption` | `id`, `value` | Sets one of the agent's own options |
@@ -81,7 +82,9 @@ were sent, one a line, the first of them `opened`.
 | Kind | Fields | Says |
 |---|---|---|
 | `opened` | `protocol`, `session` | A session began, under this version of the protocol |
-| `turn` | `text`, `scope`, `before`, `agent`, `how`, `images` | A turn began: what was asked, the revision the project stood at, and `how` (`""`, `plan`, or `build:<turn>`). Each of its `images` is its `mime` and the `file` it is kept in, under `.jac/arch/<session>/`; [`session/image`](#methods) gives one back |
+| `turn` | `text`, `scope`, `before`, `agent`, `how`, `images`, `queued?` | A turn began: what was asked, the revision the project stood at, and `how` (`""`, `plan`, or `build:<turn>`). Each of its `images` is its `mime` and the `file` it is kept in, under `.jac/arch/<session>/`; [`session/image`](#methods) gives one back. `queued` is the ids of what had waited and is asked with it |
+| `queued` | `id`, `text`, `scope`, `how`, `images` | What was asked while a turn ran, waiting by its `id`; its `images` are their `mime`s |
+| `withdrawn` | `id` | What waited by that id was taken back, or was left waiting when its server stopped |
 | `message` | `id`, `text` | A piece of what the agent says; pieces with one `id` are one message |
 | `thought` | `id`, `text` | A piece of the agent's reasoning, where it shares it |
 | `tool` | `id`, `title`, `tool`, `status`, `files`, `input`, `said`, `diffs` | A tool call as it now stands, sent again each time it changes: its kind (`read`, `edit`, `execute`, ...), its status (`pending`, `in_progress`, `completed`, `failed`, `cancelled`), and the files it names, each with its box in the picture. `input` is what the agent called the tool with, as the agent names it (a command is its `command`); `said` is what the tool gave back, as Markdown; each of `diffs` is a change to one `file`: whether the file is `made` by it, the lines `added` and `removed`, and its `lines` as a unified diff's, with the number `left` out of a long one. A long text is cut in its middle, and says so there |
