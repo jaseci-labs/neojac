@@ -190,8 +190,7 @@ impl open_docs_pr(c: PromoteCandidate, config: PromoteConfig, http: Callable) ->
             "head": head_owner + ":" + branch,
             "base": config.base,
             "body": (
-                "ninjaclaw wrote this tutorial on JacYac when no existing page answered a "
-                    "question, and it has since answered "
+                "ninjaclaw wrote this tutorial on JacYac when no existing page answered a question, and it has since answered "
                 + str(c.askers)
                 + " people. Every example was compiled and run on jac "
                 + c.verified_version

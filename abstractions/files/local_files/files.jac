@@ -8,8 +8,7 @@ import from sqlfile { open_db }
 glob FILES_FORMAT: int = 1;
 
 glob FILES_TABLES: list[str] = [
-    "create table files (id text primary key, type text not null, size integer not null, made real "
-        "not null, whole integer not null)",
+    "create table files (id text primary key, type text not null, size integer not null, made real not null, whole integer not null)",
 ];
 
 glob COLUMNS: str = "id, size, type, made, whole";

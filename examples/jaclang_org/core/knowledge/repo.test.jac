@@ -34,8 +34,7 @@ test "ensure_repo clones once and checks out the serving tag" {
             moved = ensure_repo("0.37.2");
             assert moved.phase == "ready"
                 and moved.checked_out
-                    == "v0.37.2", ("a new serving release must check out its own tag, not wait for "
-                "the next fetch");
+                    == "v0.37.2", ("a new serving release must check out its own tag, not wait for the next fetch");
         } finally {
             for (k, v) in saved.items() {
                 if v is None {

@@ -6,8 +6,7 @@ impl encode[T](v: T) -> any {
     comptime if sendable(T) {
         return encode_sent[T](v);
     } else {
-        comptime assert False, "the codec sends only what is sendable: no `any`, function value, "
-            "Shared object or other type whose values are not their own";
+        comptime assert False, "the codec sends only what is sendable: no `any`, function value, Shared object or other type whose values are not their own";
         raise CodecError(detail="not sendable");
     }
 }
@@ -69,8 +68,7 @@ impl decode[T](v: any) -> T {
     comptime if sendable(T) {
         return decode_sent[T](v);
     } else {
-        comptime assert False, "the codec sends only what is sendable: no `any`, function value, "
-            "Shared object or other type whose values are not their own";
+        comptime assert False, "the codec sends only what is sendable: no `any`, function value, Shared object or other type whose values are not their own";
         raise CodecError(detail="not sendable");
     }
 }

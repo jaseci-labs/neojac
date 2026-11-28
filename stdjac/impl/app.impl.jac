@@ -37,8 +37,7 @@ impl claim_address(window: bool) -> Claim {
     address: str = os.environ.get(DEV_LISTEN, "");
     elsewhere = "";
     if address != "" and os.environ.get(DEV_SERVED, "") != "" {
-        elsewhere = "`neojac dev` chose that address, behind its page's dev server: start it again "
-            "for another.";
+        elsewhere = "`neojac dev` chose that address, behind its page's dev server: start it again for another.";
     } elif address != "" {
         elsewhere = f"To listen elsewhere, run `neojac dev {p.app}` with another --listen.";
     } elif not window {
@@ -102,8 +101,7 @@ impl open_data(callers: bool) {
     if os.environ.get(env_name(p.app, "DATA"), "") != "" {
         out += "To start empty, move that directory aside.";
     } else {
-        out += f"To set that data aside and start empty, run `neojac run {p.app} --fresh` in the "
-            f"project, or start the program with {FRESH}=1.";
+        out += f"To set that data aside and start empty, run `neojac run {p.app} --fresh` in the project, or start the program with {FRESH}=1.";
     }
     raise CannotStart(why=out);
 }
@@ -125,8 +123,7 @@ impl set_aside(d: str) {
     told = env_name(p.app, "DATA");
     if os.environ.get(told, "") != "" {
         raise CannotStart(
-            why=f"{p.app} keeps its data where {told} says, in {shown_path(d)}: only a project's "
-                f"own data is set aside for a fresh start. Move that directory yourself.",
+            why=f"{p.app} keeps its data where {told} says, in {shown_path(d)}: only a project's own data is set aside for a fresh start. Move that directory yourself.",
         );
     }
     if not os.path.isdir(d) or len(os.listdir(d)) == 0 {
@@ -322,9 +319,7 @@ impl refuse_unserved {
         return;
     }
     raise CannotStart(
-        why=f"{p.app} can't start with the transport it was given: it serves {', '.join(wants)}, "
-            f"and that transport carries calls and serves no paths. Bind one that serves them in "
-            f"jac.toml's [transport], or pick it where the program runs with JAC_TRANSPORT.",
+        why=f"{p.app} can't start with the transport it was given: it serves {', '.join(wants)}, and that transport carries calls and serves no paths. Bind one that serves them in jac.toml's [transport], or pick it where the program runs with JAC_TRANSPORT.",
     );
 }
 

@@ -9,8 +9,7 @@ glob STORE_FORMAT: int = 3;
 glob KEPT_GONE: int = 4096;
 
 glob STORE_TABLES: list[str] = [
-    "create table rows (id text primary key, kind text, type text, data text, src text, dst text, "
-        "ord integer, version integer not null, mark integer not null)",
+    "create table rows (id text primary key, kind text, type text, data text, src text, dst text, ord integer, version integer not null, mark integer not null)",
     "create index rows_src on rows (src) where kind = 'e'",
     "create index rows_dst on rows (dst) where kind = 'e'",
     "create index rows_type on rows (type)",

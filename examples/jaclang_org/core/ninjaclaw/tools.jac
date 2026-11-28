@@ -24,14 +24,10 @@ def read_jac_guide(name: str) -> str;
 
 def list_jac_guides -> list[str];
 
-sem search_jac = "Search the official Jac documentation, the jac guide skills and the example "
-    "projects in the jac repository. Returns up to 6 hits, each as 'path: title: excerpt'.";
+sem search_jac = "Search the official Jac documentation, the jac guide skills and the example projects in the jac repository. Returns up to 6 hits, each as 'path: title: excerpt'.";
 sem search_jac.query = "What to look for, in a few words.";
-sem read_jac_file = "Read one file from the jac repository: a docs page, a guide or an example. "
-    "Use a path from search_jac, without the #anchor.";
-sem read_jac_file.path = "The repository path, for example "
-    "jac/jaclang/cli/docs/reference/language/walkers.md.";
-sem read_jac_guide = "Read a jac guide skill by name, for example jac-has-fields. Guides are "
-    "curated, version-matched Jac coding guidance.";
+sem read_jac_file = "Read one file from the jac repository: a docs page, a guide or an example. Use a path from search_jac, without the #anchor.";
+sem read_jac_file.path = "The repository path, for example jac/jaclang/cli/docs/reference/language/walkers.md.";
+sem read_jac_guide = "Read a jac guide skill by name, for example jac-has-fields. Guides are curated, version-matched Jac coding guidance.";
 sem read_jac_guide.name = "The guide name from list_jac_guides.";
 sem list_jac_guides = "List the names of the jac guide skills bundled with this release.";

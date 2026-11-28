@@ -5,12 +5,10 @@ import from accountbook { AccountsAuth, Book }
 import from auth.contract { AuthHost }
 import from sqlfile { Upgrade, open_db }
 
-glob DEVICES: str = "create table devices (code text primary key, key text not null unique, "
-    "answered integer not null, user_id text not null, expires real not null)";
+glob DEVICES: str = "create table devices (code text primary key, key text not null unique, answered integer not null, user_id text not null, expires real not null)";
 def with_devices(db: any);
 
-glob LINKS: str = "create table links (token_hash text primary key, user_id text not null, purpose "
-    "text not null, expires real not null)";
+glob LINKS: str = "create table links (token_hash text primary key, user_id text not null, purpose text not null, expires real not null)";
 def with_links(db: any);
 
 glob ACCOUNTS_FORMAT: int = 3,

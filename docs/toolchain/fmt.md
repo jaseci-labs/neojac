@@ -133,21 +133,23 @@ def refuse(name: str) {
 }
 ```
 
-- **A string that fits is one literal.** Parts written side by side that fit on the line together
-  are joined: `"one " "two"` is written `"one two"`.
+- **A string that fits is one literal.** Parts written side by side are joined where one ends
+  after a space or a line end, which is where `fmt` breaks a string: `"one " "two"` is written
+  `"one two"`, and a string `fmt` broke is laid out afresh when its line changes.
+- **A part that ends anywhere else is its author's, and is kept:** `"ab" "cd"` stays two, and so
+  does a table of data written a row to a part.
 - **A string that does not fit is broken after a space,** as late on each line as the width
   allows, and each part keeps the prefix and the quotes it was written with. An f-string is never
   broken inside a replacement field.
-- **A string that holds line ends is broken after one,** the last `\n` the line has room for, so
-  that text of several lines reads a line or more to a part. A line of it that runs past the
-  width is broken after a space.
+- **A string that holds line ends is written a line of it to a part,** broken after each `\n`
+  (after the last of several together), so that text of several lines reads as its lines. A line
+  of it that runs past the width is broken after a space.
 - **What cannot be broken is left whole:** a string with no space in it, a string in triple quotes,
   and a string where the grammar takes one token: a docstring, a JSX attribute, an import's path.
 - **A test's name is written as one literal,** whether or not it was written in parts.
-- Parts are not joined across different quotes or prefixes (`"a " 'b'` stays two), nor where
-  joining would run an octal escape into a digit (`"\1" "2"`).
-- **To choose where a string is divided, join its parts with `+`.** The operands of a chain are
-  kept as they were written, one to a line where the chain does not fit.
+- Parts are not joined across different quotes or prefixes: `"a " 'b'` stays two.
+- **To divide a string after a space of one's own choosing, join its parts with `+`.** The
+  operands of a chain are kept as they were written, one to a line where the chain does not fit.
 
 ### Comments
 

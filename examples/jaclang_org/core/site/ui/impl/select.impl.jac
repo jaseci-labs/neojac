@@ -42,8 +42,7 @@ impl SelectContent(**kwargs: any) -> JsxElement {
     align = kwargs.get("align") or "center";
     popperClass = "";
     if position == "popper" {
-        popperClass = "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 "
-            "data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1";
+        popperClass = "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1";
     }
     return <SelectPrimitive.Portal>
         <SelectPrimitive.Content

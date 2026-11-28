@@ -18,8 +18,7 @@ impl link_reply(title: str, href: str, job_id: str) -> str {
 }
 
 impl gap_reply(links: list[LinkView], job_id: str) -> str {
-    text = "I couldn't find a tutorial or docs page that answers this yet, so I logged it as a "
-        "docs gap: "
+    text = "I couldn't find a tutorial or docs page that answers this yet, so I logged it as a docs gap: "
         + job_path(job_id);
     for link in links {
         extra = " · closest: " + link.href;
@@ -31,8 +30,7 @@ impl gap_reply(links: list[LinkView], job_id: str) -> str {
 }
 
 impl generated_reply(job_id: str) -> str {
-    return "I wrote a short tutorial for this, with every example checked on this jac: {tutorial} "
-        "· how I wrote it: "
+    return "I wrote a short tutorial for this, with every example checked on this jac: {tutorial} · how I wrote it: "
         + job_path(job_id);
 }
 

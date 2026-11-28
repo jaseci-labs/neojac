@@ -35,16 +35,14 @@ glob _TODO_LINES: list[str] = [
              "title": "`def:pub` is an API endpoint",
              "from": 5,
              "to": 13,
-             "body": "A public function becomes a typed, validated HTTP endpoint with an OpenAPI "
-                 "entry.",
+             "body": "A public function becomes a typed, validated HTTP endpoint with an OpenAPI entry.",
              "replaces": ["routes.py", "request validators", "openapi.yaml"],
          },
          {
              "title": "Connecting a node is the write",
              "from": 7,
              "to": 7,
-             "body": "`root ++> todo` saves under the caller's root, so per-user isolation comes "
-                 "from the graph.",
+             "body": "`root ++> todo` saves under the caller's root, so per-user isolation comes from the graph.",
              "replaces": ["db session", "INSERT INTO …", "WHERE user_id = ?"],
          },
          {
@@ -58,16 +56,14 @@ glob _TODO_LINES: list[str] = [
              "title": "A remote call is a function call",
              "from": 19,
              "to": 19,
-             "body": "`await get_todos()` is an RPC whose request, serialization and types are "
-                 "generated.",
+             "body": "`await get_todos()` is an RPC whose request, serialization and types are generated.",
              "replaces": ["api/client.ts", "fetch wrapper", "JSON serializers"],
          },
          {
              "title": "Deployment is a command",
              "from": 0,
              "to": -1,
-             "body": "`jac scale deploy` ships the same program to Kubernetes with derived "
-                 "manifests.",
+             "body": "`jac scale deploy` ships the same program to Kubernetes with derived manifests.",
              "replaces": ["Dockerfile", "docker-compose.yml", "k8s/*.yaml"],
          },
      ];

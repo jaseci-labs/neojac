@@ -8,8 +8,7 @@ glob EXIT_OK: int = 0,
      EXIT_TIMEOUT: int = 4,
      EXIT_REJECTED: int = 5;
 
-glob START_HINT: str = "hint: start the site with `neojac run web`, and set JAC_REMOTE_SOCIAL and "
-    "JAC_REMOTE_SITE_API to its URL";
+glob START_HINT: str = "hint: start the site with `neojac run web`, and set JAC_REMOTE_SOCIAL and JAC_REMOTE_SITE_API to its URL";
 
 def warn(text: str);
 

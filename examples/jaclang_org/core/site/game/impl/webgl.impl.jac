@@ -290,8 +290,7 @@ impl _compile_shader(gl: any, kind: int, source: str) -> any {
 
 impl _init_gl(sh: WebGLHost) {
     gl = sh.gl;
-    vs = "attribute vec3 aPos; attribute vec4 aCol; uniform mat4 uMVP; varying vec4 vCol; void "
-        "main(){ gl_Position = uMVP * vec4(aPos,1.0); vCol = aCol; }";
+    vs = "attribute vec3 aPos; attribute vec4 aCol; uniform mat4 uMVP; varying vec4 vCol; void main(){ gl_Position = uMVP * vec4(aPos,1.0); vCol = aCol; }";
     fs = "precision mediump float; varying vec4 vCol; void main(){ gl_FragColor = vCol; }";
     vsh = _compile_shader(gl, gl.VERTEX_SHADER, vs);
     fsh: any = None;

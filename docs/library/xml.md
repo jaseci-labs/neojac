@@ -28,7 +28,7 @@ import from xml.sax.saxutils { escape, quoteattr }
 import from xml.sax.xmlreader { AttributesImpl }
 
 glob DOC: str = '<shelf owner="Ada"><book id="b1" year="1843"><title>Notes</title></book>'
-         + '<book id="b2" year="1936"><title>On Computable Numbers</title></book></shelf>',
+         '<book id="b2" year="1936"><title>On Computable Numbers</title></book></shelf>',
      opened: list[str] = [];
 
 class Titles(xml.sax.ContentHandler) {
@@ -143,7 +143,7 @@ import xml.dom.xmlbuilder as xmlbuilder;
 import xml.parsers.expat;
 
 glob DOC: str = '<shelf owner="Ada"><book id="b1"><title>Notes</title></book>'
-    + '<book id="b2"><title>On Computable Numbers</title></book></shelf>';
+    '<book id="b2"><title>On Computable Numbers</title></book></shelf>';
 
 with entry {
     doc = minidom.parseString(DOC);

@@ -7,8 +7,7 @@ impl kept -> dyn Files {
         p = plan();
         if p.app == "" or p.has_entry {
             raise RuntimeError(
-                "a File's bytes are kept by an app that serves: this program is none, so it makes "
-                    "and reads no File",
+                "a File's bytes are kept by an app that serves: this program is none, so it makes and reads no File",
             );
         }
         f: dyn Files = bound("files");

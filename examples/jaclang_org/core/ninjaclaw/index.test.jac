@@ -37,8 +37,7 @@ test "an excerpt starts near the first matching term" {
 
 test "pages split into sections that link to their anchors" {
     secs = page_sections(
-        "# Title\n\nintro text\n\n## Default values {#defaults}\n\nhas x: int = 0;\n\n## Lists\n\n"
-            "```\n## not a heading\n```\nlist body\n",
+        "# Title\n\nintro text\n\n## Default values {#defaults}\n\nhas x: int = 0;\n\n## Lists\n\n```\n## not a heading\n```\nlist body\n",
     );
     assert [s[0] for s in secs] == ["", "Default values", "Lists"];
     assert secs[1][1] == "defaults";

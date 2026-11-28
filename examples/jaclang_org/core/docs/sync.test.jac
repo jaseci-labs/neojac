@@ -19,9 +19,9 @@ test "first h1 skips headings inside fences" {
 
 test "rewrite links routes relative docs up-level links and images" {
     got = rewrite_links(
-        "[a](walkers.md#spawn) ![i](assets/x.png) <img src=\"assets/y.png\"> "
-            "[up](../../apps/archwire.md) [skill](../../skills/writing-jac/SKILL.md) "
-            "[ext](https://example.com) https://docs.jaseci.org/learn/",
+        "[a](walkers.md#spawn) ![i](assets/x.png) <img src=\"assets/y.png\">"
+            " [up](../../apps/archwire.md) [skill](../../skills/writing-jac/SKILL.md)"
+            " [ext](https://example.com) https://docs.jaseci.org/learn/",
         "v0.2",
         "reference/diagnostics/e13.md",
     );
@@ -198,12 +198,11 @@ impl _tree(base: Path) -> Path {
     pages: dict[str, str] = {
         "start/index.md": "---\ndescription: What it is.\n---\n# What neojac is\n\nProse.\n",
         "start/install.md": "---\ndescription: Install it.\n---\n# Install\n\nRun it.\n",
-        "reference/grammar.md": "---\ndescription: The grammar.\n---\n# Grammar\n\n```ebnf\n"
-            "x ::= y\n```\n",
+        "reference/grammar.md": "---\ndescription: The grammar.\n---\n# Grammar\n\n```ebnf\nx ::= y\n```\n",
         "reference/diagnostics/e13.md": "---\ndescription: E13 codes.\n---\n# E13\n\n"
             "See [walkers](../../language/walkers.md#spawn).\n\n"
-            "<!-- example: not checked: needs a file beside it -->\n```jac\n<!-- the code's -->\n"
-            "```\n<!--\nspread over\nlines -->\nAfter.\n",
+            "<!-- example: not checked: needs a file beside it -->\n```jac\n<!-- the code's -->\n```\n"
+            "<!--\nspread over\nlines -->\nAfter.\n",
         "skills/writing-jac/SKILL.md": "---\nname: writing-jac\ndescription: Write Jac.\n---\n"
             "# Writing Jac\n\nSteps.\n",
         "language/variables.md": "---\ndescription: Name a value.\n---\n# Variables\n",
@@ -218,16 +217,23 @@ impl _tree(base: Path) -> Path {
         path.write_text(text);
     }
     (docs / "nav.json").write_text(
-        '{"version": 1, "site_name": "neojac", "nav": [{"title": "Start here", "items": [{"title": '
-            '"What neojac is", "page": "start/index.md"},{"title": "Install", "page": '
-            '"start/install.md"}]},{"title": "Language", "items": [{"title": "Basics", "items": '
-            '[{"title": "Variables", "page": "language/variables.md"}]},{"title": "Object-spatial '
-            'programming", "items": [{"title": "Walkers", "page": "language/walkers.md"},{"title": '
-            '"Visit", "page": "language/visit.md"}]}]},{"title": "Reference", "items": [{"title": '
-            '"Grammar", "page": "reference/grammar.md"},{"title": "Diagnostics", "items": '
-            '[{"title": "E13", "page": "reference/diagnostics/e13.md"}]},{"title": "Commands", '
-            '"page": "reference/commands.md"}]},{"title": "Skills", "items": [{"title": "Writing '
-            'Jac", "page": "skills/writing-jac/SKILL.md"}]}]}',
+        '{"version": 1, "site_name": "neojac", "nav": ['
+            '{"title": "Start here", "items": ['
+            '{"title": "What neojac is", "page": "start/index.md"},'
+            '{"title": "Install", "page": "start/install.md"}]},'
+            '{"title": "Language", "items": ['
+            '{"title": "Basics", "items": ['
+            '{"title": "Variables", "page": "language/variables.md"}]},'
+            '{"title": "Object-spatial programming", "items": ['
+            '{"title": "Walkers", "page": "language/walkers.md"},'
+            '{"title": "Visit", "page": "language/visit.md"}]}]},'
+            '{"title": "Reference", "items": ['
+            '{"title": "Grammar", "page": "reference/grammar.md"},'
+            '{"title": "Diagnostics", "items": ['
+            '{"title": "E13", "page": "reference/diagnostics/e13.md"}]},'
+            '{"title": "Commands", "page": "reference/commands.md"}]},'
+            '{"title": "Skills", "items": ['
+            '{"title": "Writing Jac", "page": "skills/writing-jac/SKILL.md"}]}]}',
     );
     return docs;
 }

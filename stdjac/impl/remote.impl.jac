@@ -638,8 +638,7 @@ impl json_values(v: any) -> any {
         return out;
     }
     raise CodecError(
-        detail=f"a report of a {type(v).__name__} has no JSON form: what a walker reports over a "
-            f"crossing is JSON's values",
+        detail=f"a report of a {type(v).__name__} has no JSON form: what a walker reports over a crossing is JSON's values",
     );
 }
 
