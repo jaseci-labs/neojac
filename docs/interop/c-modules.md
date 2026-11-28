@@ -149,8 +149,11 @@ headers (`<stdio.h>`, `<stdint.h>`) are not part of the module.
 | An anonymous member, a record with no name and no field name (`struct value { int32_t kind; union { int64_t whole; double real; }; }`) | A field `anon0` (the next anonymous member `anon1`) of a record named by its record and that name (`value_anon0`): C's `v.whole` is `v.anon0.whole`. Where the record has a field of its own named `anon0`, the member stays unnamed, and `neojac port` refuses a use of it |
 | A record whose tag is also a function's name (`struct extent` beside `int64_t extent(struct extent *e)`) | A record named `struct_` and its tag, `obj extent as struct_extent` in the interface: `struct_extent(w=i32(6), h=i32(7))`. It is the one type `struct extent` is across the program, and a wire names it `struct_extent` (see [A record named in Jac other than by its tag](c-libraries.md#a-record-named-in-jac-other-than-by-its-tag)) |
 | An `extern` variable | A global the program reads and assigns in place; one of an opaque type is used through `addressof()` |
+| An `extern` array of a length (`extern const uint32_t table[256];`) | A global of the array, `glob table: array[u32, 256]`, read and written in place |
+| An `extern` array of no length, which another file defines (`extern const int32_t shapes_primes[];`) | A global of its first item, which its symbol names, `glob shapes_primes: i32`: `addressof(shapes_primes)` is the array as C's name gives it, a `ptr[i32]` indexed as C indexes it, unchecked, since the declaration gives no length |
 | An enum constant, an integer `#define` | An `int` constant; a sign and a suffix (`(-17)`, `0xff00u`) are kept |
-| A header's `static const` variable of an integer type, or of a record or a union whose value is integers and floats (`static const int SHAPES_STEP = 4;`, `static const union number SHAPES_ONE = { 1 };`) | A global of its value, which has no symbol in C either, each file that includes the header holding its own: `SHAPES_STEP`, of its type, and `SHAPES_ONE`, `number(i=1)` |
+| A header's `static const` variable of a number, or of a record or a union whose value is integers and floats (`static const int SHAPES_STEP = 4;`, `static const double SHAPES_HALF = 0.5;`, `static const union number SHAPES_ONE = { 1 };`) | A global of its value, which has no symbol in C either, each file that includes the header holding its own: `SHAPES_STEP` and `SHAPES_HALF`, of their types, and `SHAPES_ONE`, `number(i=1)`. A float that is no finite number has no literal and is left out |
+| A header's `static` array of numbers, or of strings for `char *` items (`static const char *SHAPES_NAMES[] = {"square", "circle"};`, `static const int16_t SHAPES_STEPS[4] = {3, -1};`) | A global of the array it is, made from its items, each interface holding its own as each file that includes the header does: `glob SHAPES_NAMES: array[ptr[i8], 2] = array[ptr[i8], 2](ptr[i8]("square"), ptr[i8]("circle"))`; the items the initializer leaves out are zero, as C's are |
 | A `static inline` function of a header | A function of its C name, called through a C shim the module compiles |
 
 **A header's `static inline` function** defines no symbol, so neojac writes a shim for it: a C
@@ -163,12 +166,12 @@ among them.
 A declaration the interface cannot express is left out, and a module that imports it is told why
 (E5133):
 
-- a function taking or returning a union by value, or a record holding one: the calling
-  convention of such a record is not bound;
 - a `static inline` function taking C's `...`, which a shim cannot pass on;
 - a record whose bound fields do not make C's size: an array of anything but numbers, pointers
-  and records, a bit-field with no name, a layout that differs from Clang's;
-- a global C array.
+  and records, a layout that differs from Clang's;
+- a header's `static` variable that is no constant of the kinds above: one that is not `const`
+  and no array, or an array of items other than numbers and strings;
+- a thread-local variable (`_Thread_local`, `__thread`).
 
 A name the headers do not declare at all is E1145.
 
