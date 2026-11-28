@@ -1008,6 +1008,10 @@ other place of C plain data: a `glob`, a local, a parameter, a field or an item 
 - **A `glob` of an opaque record** (`glob first_counter: counter;`, C's `extern counter
   first_counter;`) is bound, and used through its address: `counter_next(addressof(
   first_counter))`. Reading it as a value is E1151, since its size is C's alone.
+- **`@thread_local glob name: T;`** (`thread_local` from `jaclang.comptime`) binds a thread-local
+  the library defines, C's `extern _Thread_local T name;`: each thread reads and writes its own.
+  With a constant value it defines one in the program under the C name, made for each thread
+  from that value ([Decorators](../language/decorators.md#thread_local)).
 
 ## Naming the library, and how a program links
 

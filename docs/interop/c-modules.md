@@ -149,6 +149,7 @@ headers (`<stdio.h>`, `<stdint.h>`) are not part of the module.
 | An anonymous member, a record with no name and no field name (`struct value { int32_t kind; union { int64_t whole; double real; }; }`) | A field `anon0` (the next anonymous member `anon1`) of a record named by its record and that name (`value_anon0`): C's `v.whole` is `v.anon0.whole`. Where the record has a field of its own named `anon0`, the member stays unnamed, and `neojac port` refuses a use of it |
 | A record whose tag is also a function's name (`struct extent` beside `int64_t extent(struct extent *e)`) | A record named `struct_` and its tag, `obj extent as struct_extent` in the interface: `struct_extent(w=i32(6), h=i32(7))`. It is the one type `struct extent` is across the program, and a wire names it `struct_extent` (see [A record named in Jac other than by its tag](c-libraries.md#a-record-named-in-jac-other-than-by-its-tag)) |
 | An `extern` variable | A global the program reads and assigns in place; one of an opaque type is used through `addressof()` |
+| A thread-local variable (`extern _Thread_local int64_t shapes_tls_count;`) | A thread-local global, `@thread_local glob shapes_tls_count: int`, each thread reading and writing its own |
 | An `extern` array of a length (`extern const uint32_t table[256];`) | A global of the array, `glob table: array[u32, 256]`, read and written in place |
 | An `extern` array of no length, which another file defines (`extern const int32_t shapes_primes[];`) | A global of its first item, which its symbol names, `glob shapes_primes: i32`: `addressof(shapes_primes)` is the array as C's name gives it, a `ptr[i32]` indexed as C indexes it, unchecked, since the declaration gives no length |
 | An enum constant, an integer `#define` | An `int` constant; a sign and a suffix (`(-17)`, `0xff00u`) are kept |
@@ -170,8 +171,7 @@ A declaration the interface cannot express is left out, and a module that import
 - a record whose bound fields do not make C's size: an array of anything but numbers, pointers
   and records, a layout that differs from Clang's;
 - a header's `static` variable that is no constant of the kinds above: one that is not `const`
-  and no array, or an array of items other than numbers and strings;
-- a thread-local variable (`_Thread_local`, `__thread`).
+  and no array, or an array of items other than numbers and strings.
 
 A name the headers do not declare at all is E1145.
 
