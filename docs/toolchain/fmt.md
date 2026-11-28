@@ -112,7 +112,7 @@ True
 | Blank lines between statements | Kept, one at most |
 | Declarations with bodies | Set apart by a blank line |
 | String literals | Keep their spelling: quotes, prefixes and escapes are not rewritten |
-| A string that runs past the line | Written in parts, each ending after a space, the parts after the first indented under it ([below](#a-string-that-runs-past-the-line)) |
+| A string that runs past the line | Written in parts, each ending after a space, the parts after the first under it ([below](#a-string-that-runs-past-the-line)) |
 | Parentheses | Those the author wrote are kept: `(a)`, `(-x) ** 2` |
 | A lambda of one simple statement | Stays on one line when it fits |
 | A `match` or `switch` case | Its statements on indented lines under it |
@@ -128,8 +128,14 @@ spacing:
 def refuse(name: str) {
     raise ValueError(
         f"the layer {name} takes a name from a layer above it, which no edge rule of the project "
-            f"admits: declare the edge, or move the name",
+        f"admits: declare the edge, or move the name",
     );
+}
+
+def advice(name: str) -> str {
+    said = f"the layer {name} takes a name from a layer above it, which no edge rule of the "
+        f"project admits: declare the edge, or move the name";
+    return said;
 }
 ```
 
@@ -141,6 +147,9 @@ def refuse(name: str) {
 - **A string that does not fit is broken after a space,** as late on each line as the width
   allows, and each part keeps the prefix and the quotes it was written with. An f-string is never
   broken inside a replacement field.
+- **The parts after the first stand under it where the string begins its line,** as an argument
+  on a line of its own does, and a step in where it follows code on its line (`said = "..."`),
+  so that a part is never taken for the start of a statement.
 - **A string that holds line ends is written a line of it to a part,** broken after each `\n`
   (after the last of several together), so that text of several lines reads as its lines. A line
   of it that runs past the width is broken after a space.
