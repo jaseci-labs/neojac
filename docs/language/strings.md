@@ -72,14 +72,13 @@ f-strings may take part. The parts are all strings or all bytes; mixing them is 
 literals are joined when the program is read, into one literal: `len("x" "y" "z")` is `3`, the
 joined string is the same object each time it is evaluated, and it stands wherever a single
 literal does, a name given to `getattr` among them. Only the parts next to an f-string are joined
-as the program runs. [`neojac fmt`](../toolchain/fmt.md#a-string-that-runs-past-the-line) writes a
-string that runs past the line this way.
+as the program runs.
 
 ```jac
 with entry {
-    s = "one " 'two ' "three";
+    s = "one " "two " 'three';
     t = "n=" f"{1 + 1}" " done";
-    b = b"ab" rb"cd";
+    b = b"ab" b"cd";
     print(s, t, b);
 }
 ```

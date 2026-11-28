@@ -112,44 +112,10 @@ True
 | Blank lines between statements | Kept, one at most |
 | Declarations with bodies | Set apart by a blank line |
 | String literals | Keep their spelling: quotes, prefixes and escapes are not rewritten |
-| A string that runs past the line | Written in parts, each ending after a space, the parts after the first indented under it ([below](#a-string-that-runs-past-the-line)) |
 | Parentheses | Those the author wrote are kept: `(a)`, `(-x) ** 2` |
 | A lambda of one simple statement | Stays on one line when it fits |
 | A `match` or `switch` case | Its statements on indented lines under it |
 | JSX text | Kept as written |
-
-### A string that runs past the line
-
-String literals written side by side are one literal ([Adjacent literals](../language/strings.md#adjacent-literals)),
-so how a string is divided into parts changes nothing it means, and `fmt` decides it as it decides
-spacing:
-
-```jac
-def refuse(name: str) {
-    raise ValueError(
-        f"the layer {name} takes a name from a layer above it, which no edge rule of the project "
-            f"admits: declare the edge, or move the name",
-    );
-}
-```
-
-- **A string that fits is one literal.** Parts written side by side are joined where one ends
-  after a space or a line end, which is where `fmt` breaks a string: `"one " "two"` is written
-  `"one two"`, and a string `fmt` broke is laid out afresh when its line changes.
-- **A part that ends anywhere else is its author's, and is kept:** `"ab" "cd"` stays two, and so
-  does a table of data written a row to a part.
-- **A string that does not fit is broken after a space,** as late on each line as the width
-  allows, and each part keeps the prefix and the quotes it was written with. An f-string is never
-  broken inside a replacement field.
-- **A string that holds line ends is written a line of it to a part,** broken after each `\n`
-  (after the last of several together), so that text of several lines reads as its lines. A line
-  of it that runs past the width is broken after a space.
-- **What cannot be broken is left whole:** a string with no space in it, a string in triple quotes,
-  and a string where the grammar takes one token: a docstring, a JSX attribute, an import's path.
-- **A test's name is written as one literal,** whether or not it was written in parts.
-- Parts are not joined across different quotes or prefixes: `"a " 'b'` stays two.
-- **To divide a string after a space of one's own choosing, join its parts with `+`.** The
-  operands of a chain are kept as they were written, one to a line where the chain does not fit.
 
 ### Comments
 
