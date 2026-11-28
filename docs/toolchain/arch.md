@@ -86,10 +86,17 @@ neojac arch [<layer> | <module>] --diff [--base <revision>] [<output>]
 | `--svg <file>` | The same picture as an SVG. It is the same bytes each time for the same project |
 | `--png <file>` | The SVG as the browser [`neojac browse`](browse.md) drives draws it. The first use fetches that browser |
 | `--mermaid` | A Mermaid flowchart, for a README, an issue or a pull request, where GitHub draws it |
+| `--steps` | The steps of the project's history, one a line, or with `--json` as data: where the branch left its upstream, each commit since, each turn of an agent, and the project as it stands when that is different |
 | `--json` | What the picture is drawn from: each box and what it holds, each arrow with its wires, the names each carries, the rule that admits it at each level of the layers (`levels`), and its file and line |
 
 The layout of `--text`, `--svg` and `--png` is neojac's own, and all three are one layout. Mermaid
 lays its flowchart out itself, so it looks different and says the same.
+
+`--at <revision>` draws the project as it stood at a git revision, in place of as it stands; with
+`--diff`, the marks are what changed from the base up to that revision.
+
+A tool of your own is made on these outputs and on the protocols beside them:
+[building a tool on neojac](turns.md).
 
 ## What has changed: --diff
 
@@ -144,26 +151,42 @@ prints them as records.
 With no output option, `neojac arch` serves the picture and prints where:
 
 ```text
-The architecture of shop is at http://127.0.0.1:8090/
+The architecture of shop is at http://127.0.0.1:8090/?key=5f0c2a9e41b7d3c86a1e0f9b2d4c7a35
 ```
 
-- **A click on a layer or a module opens it.** The line above the picture says where it is, and
+The address carries the viewer's key, made anew each time it starts. The page keeps it as a
+cookie, and the server answers nothing without it: a viewer can start an agent and run an app, so
+only the browser that was given its address may ask it to.
+
+- **A click on a layer or a module opens it.** The line at the top left says where it is, and
   each part of that line goes back.
+- **The picture is a canvas.** A drag moves it, and so do the wheel and two fingers on a trackpad;
+  a pinch, or the wheel with Ctrl or Cmd held, zooms where the pointer is. At the lower right,
+  `−` and `+` zoom, the percentage fits the picture so that it reads (a tall one to its width),
+  and the frame beside it shows the whole picture however small. A double click on the background
+  fits it again. Until it is moved by hand, the picture stays fitted as the window and the panels
+  around it change.
+- **One picture becomes the next.** A box that is in both moves to its new place and takes its
+  new size and colors, a line that still joins the same two boxes is routed anew as they move,
+  what is gone fades and what is new comes in last. A layer opened grows out of its box, and
+  going back folds it into that box again. A browser that asks for reduced motion is shown each
+  picture at once.
 - **Resting on an arrow says what it carries:** which box takes how many names from which, and
   the edge rules that admit them. **A click lists the names**, in a card beside the line that
   Escape or a click elsewhere puts away. Where lines join into one, a branch answers for its own
   arrow and the shared line for all of them.
-- **Find** looks up a layer, a module or a wired name as it is typed. A layer or a module is
-  opened; a name opens the module that provides it, with its code at the name's declaration.
+- **Find** looks up a layer, a module or a wired name as it is typed (`/` goes to it). A layer or
+  a module is opened; a name opens the module that provides it, with its code at the name's
+  declaration.
 - **Layers and Spaces** switch the view, and a project with profiles has a list of them.
 - **Changes** always carries the lines added and removed since the revision it compares with,
   whatever is shown. Pressed, it marks [what has changed](#what-has-changed---diff) on the
-  picture, and says beside it how many modules and layers that is. The code then follows the picture: it
+  picture, and says at its top right how many modules and layers that is. The code then follows the picture: it
   shows the changes of whatever is open, a layer's or the whole project's as much as a module's.
   - **The code is a diff:** the lines added in green, the lines removed in red where they stood,
     and the unchanged code between changes folded to a line that a click opens (**Whole file**
     shows it all).
-  - **Previous** and **Next** (`p` and `n`) step through every change of what is open, on from one
+  - **The arrows above the code** (`p` and `n`) step through every change of what is open, on from one
     file to the next; `[` and `]` step by file, and a list names the files by module. A module's
     files come before those of the modules that take from it, so a change is read before what
     depends on it. The count says where that is: `37 of 102 · file 3 of 9`.
@@ -173,15 +196,16 @@ The architecture of shop is at http://127.0.0.1:8090/
     or changed shows its wire in `archwire.jac`.
 
   `neojac arch --diff` opens the viewer with it on.
-- **A module opened shows its code beside the picture.** The module's file is shown under the
-  picture; a layer and the spaces show none. **Close** puts the code away; while it is
-  away, **Code** at the lower right of the page brings it back. The browser's Back returns to
+- **A module opened shows its code under the picture.** The module's file slides up under the
+  picture, and the line between them drags to give either more room; a layer and the spaces show
+  none. The `×` at its right puts the code away; while it is away, **Code** at the lower left of
+  the picture brings it back. The browser's Back returns to
   what was shown before.
 - **A name in the code is what the language server says of it.** Resting on a name shows what it
   is. A click marks its other uses in the file; a click with Ctrl or Cmd held, or a double click, goes to its
   definition, and from there to its declaration: on a function whose body is in an impl annex, it
-  goes back and forth between the declaration and the impl. **Outline** lists what the file
-  declares. Names are colored by what they are, and a diagnostic is underlined where it is. When the code is of another module than the picture's,
+  goes back and forth between the declaration and the impl. The list at the right of the file's
+  name is its outline: what the file declares. Names are colored by what they are, and a diagnostic is underlined where it is. When the code is of another module than the picture's,
   **Show ... in the picture** opens that module.
 - **The page follows the project.** It asks the server each second whether a file it read has
   changed, and the server reads the project again when one has.
@@ -196,6 +220,116 @@ to be is what an editor is told, and the first answer about a file waits for its
 checked, which the code view says while it lasts (`checking main.jac...`). The server also indexes
 the project's other programs in the background, as it does for an editor. A file that is not Jac
 is shown as it is, with no answers. Only files of the project and of neojac's runtime are shown.
+
+## Working with an agent
+
+The viewer is also where a coding agent is put to work on the project. An agent is a program that
+speaks the [Agent Client Protocol](https://agentclientprotocol.com): Claude Code, Gemini CLI,
+Codex and the others its registry lists, or one of your own.
+
+```sh
+neojac agent registry claude                           # what the registry has by that word
+neojac agent add claude-acp --env ANTHROPIC_API_KEY    # add one, with the key this shell has
+neojac agent add mine -- ./my-agent --acp              # or a command of your own
+neojac agent                                           # the ones added, the one in use marked
+```
+
+- **`neojac agent add <name>`** takes the agent the registry lists by that name: it fetches the
+  build the registry pins for this machine and checks it against the registry's digest. After
+  `--`, the agent is the command given, started as written, with no shell.
+- **An agent keeps its own sign-in.** One that is signed in by its own command needs nothing more.
+  `--env <NAME>=<value>` gives an agent a variable of its environment, such as an API key, and
+  `--env <NAME>` takes the value this environment has. The agents and their variables are kept in
+  `agents.json` in neojac's configuration directory, which only you can read, never in the
+  project. **Agents** in the viewer does the same: it lists the registry, adds from it, and sets
+  or forgets a variable, whose value the page is never sent.
+
+The panel beside the picture is the agent's, under **Agent**. The line between it and the
+picture drags to size it, and the button at the far right of the top bar puts it away and brings
+it back:
+
+- **What is typed at its foot is asked of the agent**, with what the picture is opened on: a layer with
+  its modules, a module with its file. A click on a box with Alt or Cmd held adds it too. Each
+  is a chip above the text, and its `×` leaves it out. Enter sends; Shift and Enter is a new line.
+- **Its first line says what the agent is doing**, and under it is the conversation:
+  each turn with what was asked, what the agent answered, each file it read or changed (a click
+  shows it in the code), each command it ran, and its plan when it keeps one.
+- **The picture shows where the agent is.** The box of a file it says it is reading is outlined,
+  and a box it has been in stays marked for the turn. **What it changes is seen, not taken on its
+  word:** while a turn runs, the viewer watches which of the project's files differ from where
+  the turn began, and the box of a file that has just changed is outlined strongly, whether the
+  agent edited it with its own tools, a shell command or a script. With **Follow** on, the
+  picture opens the layer the agent is working in when that is not in view, and from the first
+  change of a turn it marks [what has changed](#what-has-changed---diff) since the turn began, as
+  it happens, with the code at the change.
+- **What the agent asks to do waits for an answer.** A request is a card with the command or the
+  file, and the answers the agent offers, which are sent back as they are; the panel comes
+  forward when one arrives. The list beside Follow holds the agent's own modes of asking; neojac adds none and answers nothing by itself.
+  **Stop** ends a turn, and answers what is open with a refusal.
+- **Plan first asks for the change as architecture before any of it is built.** With it on, the
+  agent is asked to change only `archwire.jac` and the declarations in the modules' files, with
+  no bodies, and to stop. What it proposes is then on the picture as any change is: a new layer
+  or module, a new arrow, the names a wire gained or lost. **Build it** starts the turn that
+  writes the bodies; **Discard** puts the files back; another message with Plan first on changes
+  the plan. Nothing holds an agent to a plan but what is checked afterwards, and the viewer says
+  what it finds: a plan turn that changed other files names them, and a build says whether it
+  kept to the wiring the plan proposed or changed it.
+- **Every turn is two checkpoints.** As a turn begins and as it ends, the project as it stands is
+  kept as a commit under `refs/neojac/turns/`, which no branch holds and which changes neither
+  the index nor a branch. The turn's line says what it changed; **Review** marks that on the picture and steps
+  through it in the code, and **Undo** puts the files back as they stood before the turn. What is
+  put back is kept too, under `refs/neojac/undone/`. An agent cannot be made to forget a turn, so
+  after an undo the next turn starts the agent again and tells it what was said and what was
+  undone.
+- **The conversation is the project's.** It is kept in `.jac/arch/`, which git is told to ignore,
+  and a viewer started again shows it and goes on from it.
+
+An agent is given the project's directory, what was asked, one paragraph that says the
+project is Jac, that `archwire.jac` is its wiring, and how neojac is run here, and neojac's own
+tools ([below](#neojacs-tools-for-an-agent)). What it may do is
+what it asks and is allowed, by its own rules: neojac starts it and relays, and runs none of its
+tools.
+
+## neojac's tools for an agent
+
+`neojac mcp` serves an agent the project over the
+[Model Context Protocol](https://modelcontextprotocol.io), on its standard input and output.
+`neojac arch` hands it to the agent it works with; any other agent or editor that takes an MCP
+server is given the command `neojac mcp`, started in the project (or with `--project <directory>`).
+
+| Tool | Answers |
+|---|---|
+| `architecture` | The picture as `--json` prints it: the layers, or with `focus` a layer opened or a module with everything it takes and gives; with `view` `spaces`, the spaces and the apps |
+| `find` | Where a layer, a module or a wired name is: what it is, the module that provides it, its file |
+| `changes` | What has changed since a revision (`base`, or where the branch left its upstream): the modules and layers, and each file with its module and its lines |
+| `check` | What `neojac check` prints for the project, and the status it ended with |
+| `symbols` | What a Jac file declares, with each name's line and column |
+| `docs` | A page of this documentation, what defines a word, or the list of pages |
+
+Each call reads the project as it stands, so an answer is never of a file as it was.
+
+## The project over time
+
+Along the foot of the picture and its code, once the project has more than one step, is its history: where the branch
+left its upstream (or the first commit, with no upstream), each commit since, each turn of an
+agent after the commit it was made on, what was changed by hand between two turns, and the
+project as it stands when that is different.
+
+- **The slider, and the arrows beside it, go to a step.** Each step is a dot on the slider, an
+  agent's turns in the accent color. The picture is then the project's architecture as it stood
+  there, marked with what that step changed from the one before, and the code is that step's,
+  with its changes. The picture moves from one step to the next as it does between any two
+  pictures, so sliding shows the project take shape.
+- **Play** goes through the steps from where the slider is, one every two seconds or so.
+- **Back to now** leaves the history.
+
+## Running an app
+
+A project whose archwire declares [apps](../apps/building.md) has **App** beside **Agent** in
+the panel, with a button for each. Pressing one runs `neojac dev <app>` at a free port and shows
+the app's page there, beside the picture; what the build says is shown until the page is up, and again when a build fails. The
+page is loaded again each time the app starts again, so what an agent changes is seen running.
+**Stop** ends it.
 
 `--listen <address>` says where it serves (`127.0.0.1:8090` when not given; port 0 is any free
 port). It serves until it is interrupted. It opens no browser: open the address in one, or have
