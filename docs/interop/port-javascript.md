@@ -57,8 +57,9 @@ A value there is JavaScript's whatever TypeScript says of it: a property read is
 `__js_item(o, "p")` but of `self` and of `globalThis`, a call of a method `__js_method(o, "m", a)`
 but of `self`, `super` and a module, a call of a value that is no function or class of the file
 `__js_call(f, a)`, `typeof x === "string"` is `__js_typeof(x) == "string"`, `x.length`
-`__js_item(x, "length")`, an element `__js_item(xs, i)`, a part of a template
-`__js_call(globalThis.String, v)`, each operator its intrinsic, a `switch` a chain of
+`__js_item(x, "length")`, an element `__js_item(xs, i)`, a template `` `a${v}b` `` the
+template itself, `__js_template("a", v, "b")`, its text and its values in turn (a tagged
+template is refused there), each operator its intrinsic, a `switch` a chain of
 `__js_same` tests, and an array pattern JavaScript's own destructuring, `[a, , ...rest] = xs` an
 unpacking assignment `(a, hole_1, *rest) = __js_unpack(xs);` (a hole a name nothing reads), in
 a declaration, an assignment, a loop's target and a parameter, which is taken apart as the
