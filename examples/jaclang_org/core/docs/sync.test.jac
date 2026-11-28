@@ -198,13 +198,32 @@ impl _tree(base: Path) -> Path {
     pages: dict[str, str] = {
         "start/index.md": "---\ndescription: What it is.\n---\n# What neojac is\n\nProse.\n",
         "start/install.md": "---\ndescription: Install it.\n---\n# Install\n\nRun it.\n",
-        "reference/grammar.md": "---\ndescription: The grammar.\n---\n# Grammar\n\n```ebnf\nx ::= y\n```\n",
-        "reference/diagnostics/e13.md": "---\ndescription: E13 codes.\n---\n# E13\n\n"
+        "reference/grammar.md": "---\n"
+            "description: The grammar.\n"
+            "---\n"
+            "# Grammar\n\n"
+            "```ebnf\n"
+            "x ::= y\n"
+            "```\n",
+        "reference/diagnostics/e13.md": "---\n"
+            "description: E13 codes.\n"
+            "---\n"
+            "# E13\n\n"
             "See [walkers](../../language/walkers.md#spawn).\n\n"
-            "<!-- example: not checked: needs a file beside it -->\n```jac\n<!-- the code's -->\n```\n"
-            "<!--\nspread over\nlines -->\nAfter.\n",
-        "skills/writing-jac/SKILL.md": "---\nname: writing-jac\ndescription: Write Jac.\n---\n"
-            "# Writing Jac\n\nSteps.\n",
+            "<!-- example: not checked: needs a file beside it -->\n"
+            "```jac\n"
+            "<!-- the code's -->\n"
+            "```\n"
+            "<!--\n"
+            "spread over\n"
+            "lines -->\n"
+            "After.\n",
+        "skills/writing-jac/SKILL.md": "---\n"
+            "name: writing-jac\n"
+            "description: Write Jac.\n"
+            "---\n"
+            "# Writing Jac\n\n"
+            "Steps.\n",
         "language/variables.md": "---\ndescription: Name a value.\n---\n# Variables\n",
         "language/walkers.md": "---\ndescription: Walk.\n---\n# Walkers\n",
         "language/visit.md": "---\ndescription: Queue a node.\n---\n# Visit\n",

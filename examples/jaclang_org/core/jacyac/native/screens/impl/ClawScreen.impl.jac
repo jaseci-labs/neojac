@@ -210,7 +210,8 @@ impl ClawScreen -> JsxElement {
                                 </View>
                                 <Text style={styles.sectionHint}>
                                     {a.detail
-                                        or "Mention @ninjaclaw or post in #help with a Jac question."}
+                                        or "Mention @ninjaclaw or post in #help with a Jac "
+                                            "question."}
                                 </Text>
                                 {
                                     if a.current {

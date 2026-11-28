@@ -117,19 +117,16 @@ def _llms_entry(pg: TreeNode, by_path: dict[str, DocPage]) -> str;
 
 def _first_prose(md_lines: list[str]) -> str;
 
-glob LLMS_HEADER: str = ("# neojac\n"
-    "\n"
+glob LLMS_HEADER: str = ("# neojac\n\n"
     "> neojac is a native-first implementation of the Jac language. Its"
     " compiler is written in Jac and compiles itself, and it compiles a Jac"
     " program, with neojac's own runtime, into one native executable through"
     " LLVM. One download carries everything a build needs: the compiler, the"
     " runtime, and CPython, Node, Clang and Rust, which run under the"
-    " `neojac` command too.\n"
-    "\n"
+    " `neojac` command too.\n\n"
     "neojac defines the Jac language it compiles. It is not jaseci's `jac`"
     " with another backend: some forms `jac` accepts are errors here, so read"
-    " the language pages rather than assuming what `jac` or Python does.\n"
-    "\n"
+    " the language pages rather than assuming what `jac` or Python does.\n\n"
     "Offline access: the same pages ship with every release and"
     " `neojac docs` prints them, for exactly the version installed:"
     " `neojac docs <word>` looks up a keyword, a grammar rule, a diagnostic"
