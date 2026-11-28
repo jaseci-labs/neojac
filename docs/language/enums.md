@@ -237,7 +237,8 @@ refused (E5090), so there are no flag enums.
 A function for an enum's members is written inside the enum, in a `with
 entry` block after the members. It takes the member as an explicit first
 parameter, `self`, typed as the enum, and is called on a member. In its body
-`Self` is the enum.
+`Self` is the enum. A `static def` there takes no member and is called
+through the enum, `Level.parsed("high")`.
 
 ```jac
 enum Level {
@@ -256,17 +257,23 @@ enum Level {
         def label(self: Level, prefix: str = "level") -> str {
             return f"{prefix} {self.name.lower()}";
         }
+
+        static def parsed(text: str) -> Level {
+            return Level.HIGH if text == "high" else Level.LOW;
+        }
     }
 }
 
 with entry {
     l = Level.LOW;
     print(l.weight(), l.next(), l.next().next(), l.label(), Level.HIGH.label(prefix="is"));
+    print(Level.parsed("high"), Level.parsed("x").weight());
 }
 ```
 
 ```output
 10 Level.HIGH Level.LOW level low is high
+Level.HIGH 10
 ```
 
 The block holds `def`s only. Any other statement in an enum's body is
