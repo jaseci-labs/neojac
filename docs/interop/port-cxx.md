@@ -198,13 +198,19 @@ of a member function on `this` in its constructor or destructor (C++ dispatches 
 class being made), an overloaded virtual function, more than one base or constructor and a
 `return` in its destructor are refused.
 
-A reference to a record port writes as a struct is a borrow of its place: `Counts &k =
-c->tally();` is `k: &mut Counts = &mut c.tally();`, `const Counts &seen = c->counts;` is
-`seen: &Counts = &c.counts;`, and `Counts &tally() { return counts; }` is
-`def tally -> &mut Counts { return &mut self.counts; }`. A field or a method of the borrow
-changes the place, as C++ changes it through the reference. A reference to a local record is
-a borrow of the local: `Counts &mr = mine;` is `mr: &mut Counts = &mut mine;`, and one that
-would outlive the local (returned, or kept past its block) is refused (E1306, E1304).
+A reference to an object of a class port writes as an `obj` is the object. A reference to
+anything else, a number, a pointer, a record port writes as a struct or a C record, is its
+address, a `ptr[T]` that `addressof` makes, read and written through `[0]` as C's pointer is:
+a C++ reference is an alias nothing checks, as a pointer is. `void bump_by(int &n, const int &step)`
+is `def bump_by(n: ptr[i32], step: ptr[i32])`, its body's `n += step` is `n[0] += step[0]`, and its
+caller gives places, `bump_by(addressof(k), addressof(step))`; a constant one given a value is
+given the address of a local that holds it (`bump_by(addressof(k), addressof(was_1))` after
+`was_1: i32 = 2;`). `int &r = k;` is `r: ptr[i32] = addressof(k);`, `Counts &k = c->tally();`
+is `k: ptr[Counts] = c.tally();`, `Counts &tally() { return counts; }` is
+`def tally -> ptr[Counts] { return addressof(self.counts); }`, `tally_at(1) = 20;` of a
+function giving `int &` is `tally_at(1)[0] = 20;`, and a member `int &at;` is
+`has at: ptr[i32]`, which the constructor sets to the place it is given. A reference to an object
+of a library class is the borrow above.
 
 ## What is refused
 
@@ -217,8 +223,10 @@ standard library class the library keeps to itself (`std::__wrap_iter`) named bu
 local a call gives it to, operators of the file's own classes but those the table maps,
 a non-member operator, `std::move` but as a
 library class's `T&&` argument, the destructor of a class
-port does not write as an `obj`, references but a library class's as a parameter, an `obj`'s
-and a struct's place, lambdas, a range `for` over an array whose variable is a reference to
+port does not write as an `obj`, an rvalue reference to what is no class object, a reference
+to a number a field of an `obj` holds, a reference to a temporary made where C++ evaluates it
+only sometimes, a member operator that takes a reference to what is no class object, lambdas,
+a range `for` over an array whose variable is a reference to
 its item, a conversion to a virtual base or to a base at another address than a library
 object's own, exceptions, a placement `new` (into storage the
 program gives) and an explicit destructor call (no Jac form keeps an object in raw memory), `new[]` and
