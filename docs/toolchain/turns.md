@@ -26,8 +26,8 @@ Protocol do. The client sends requests; the server answers each, and sends a `se
 notification for each thing that happens.
 
 ```text
-> {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":2}}
-< {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":2,"server":{...},"project":{...},"state":{...}}}
+> {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":3}}
+< {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":3,"server":{...},"project":{...},"state":{...}}}
 > {"jsonrpc":"2.0","id":2,"method":"session/prompt","params":{"text":"Add a Clear done button"}}
 < {"jsonrpc":"2.0","id":2,"result":{"turn":1}}
 < {"jsonrpc":"2.0","method":"session/event","params":{"event":{"n":2,"kind":"turn","turn":1,...}}}
@@ -36,7 +36,7 @@ notification for each thing that happens.
 > {"jsonrpc":"2.0","id":3,"method":"session/answer","params":{"request":"ask5","option":"yes"}}
 ```
 
-- **The protocol has a version,** now 2, which `initialize` answers with. `neojac turns --schema`
+- **The protocol has a version,** now 3, which `initialize` answers with. `neojac turns --schema`
   prints the version, each method with its parameters and each event with its fields, as JSON; a
   name ending in `?` may be left out.
 - **An error is JSON-RPC's:** `-32601` for a method there is none of, `-32602` for a parameter
@@ -53,11 +53,11 @@ notification for each thing that happens.
 | `initialize` | `protocolVersion`, `clientInfo?` | Answers with the server's version of the protocol, the project and the session's state |
 | `session/state` | | The session's state: its `state` (`idle`, `starting`, `working`), its `turn`, the `agent`, the agent's `modes` and `options`, the revision the project `stands` at, the number of the `last` event, and the project's `stamp`, which moves when a file the picture reads has changed |
 | `session/events` | `since?` | The events numbered after `since`, with the state: for a client that polls, and to replay a session |
-| `session/prompt` | `text`, `scope?`, `plan?`, `agent?`, `images?` | Starts a turn, and answers with its `turn`. While a turn runs, what is asked waits instead and the answer is its `queued` id: what waits is asked as the next turn when this one ends, several plain messages of one agent as one. `scope` is ids of the picture's boxes (`layer:core`, `module:core.clock`) sent with what is asked; `plan` asks for the change as architecture first; `agent` names one in place of the one in use; `images` are sent with what is asked, each its `mime` (`image/png`, `image/jpeg`, `image/gif`, `image/webp`) and its `data` in base64, eight at most and 8 MB each, and are refused for an agent that takes none |
-| `session/image` | `turn`, `index` | An image a turn was asked with, counted from 0: its `mime` and its `data` in base64 |
+| `session/prompt` | `text`, `scope?`, `plan?`, `agent?`, `images?` | Starts a turn, and answers with its `turn`. While a turn runs, what is asked waits instead and the answer is its `queued` id. An agent that takes a prompt while a turn runs is handed it at once ([below](#what-is-asked-while-a-turn-runs)); otherwise what waits is asked as the next turn when this one ends, several plain messages of one agent as one. `scope` is ids of the picture's boxes (`layer:core`, `module:core.clock`) sent with what is asked; `plan` asks for the change as architecture first; `agent` names one in place of the one in use; `images` are sent with what is asked, each its `mime` (`image/png`, `image/jpeg`, `image/gif`, `image/webp`) and its `data` in base64, eight at most and 8 MB each, and are refused for an agent that takes none |
+| `session/image` | `turn`, `index`, `tool?` | An image a turn was asked with, counted from 0: its `mime` and its `data` in base64. With `tool`, the id of a tool call of that turn, an image that call's result holds |
 | `session/build` | `turn` | Starts the turn that builds what a plan turn proposed |
 | `session/answer` | `request`, `option?` | Answers what the agent asked, with the id of one of the options it offered; with no option, refuses |
-| `session/withdraw` | `id` | Takes back what waits by that id, so that it is not asked |
+| `session/withdraw` | `id` | Takes back what waits by that id, so that it is not asked. What an agent has been handed is not taken back |
 | `session/cancel` | | Stops the turn that is running; what waits is then the next turn |
 | `session/undo` | `turn` | Puts the project's files back as they stood before that turn |
 | `session/setMode` | `mode` | Sets the agent's own mode of asking, by its id |
@@ -84,10 +84,11 @@ were sent, one a line, the first of them `opened`.
 | `opened` | `protocol`, `session` | A session began, under this version of the protocol |
 | `turn` | `text`, `scope`, `before`, `agent`, `how`, `images`, `queued?` | A turn began: what was asked, the revision the project stood at, and `how` (`""`, `plan`, or `build:<turn>`). Each of its `images` is its `mime` and the `file` it is kept in, under `.jac/arch/<session>/`; [`session/image`](#methods) gives one back. `queued` is the ids of what had waited and is asked with it |
 | `queued` | `id`, `text`, `scope`, `how`, `images` | What was asked while a turn ran, waiting by its `id`; its `images` are their `mime`s |
+| `handed` | `id` | What waited by that id was given to the agent, which takes it up when it can; it can no longer be taken back |
 | `withdrawn` | `id` | What waited by that id was taken back, or was left waiting when its server stopped |
 | `message` | `id`, `text` | A piece of what the agent says; pieces with one `id` are one message |
 | `thought` | `id`, `text` | A piece of the agent's reasoning, where it shares it |
-| `tool` | `id`, `title`, `tool`, `status`, `files`, `input`, `said`, `diffs` | A tool call as it now stands, sent again each time it changes: its kind (`read`, `edit`, `execute`, ...), its status (`pending`, `in_progress`, `completed`, `failed`, `cancelled`), and the files it names, each with its box in the picture. `input` is what the agent called the tool with, as the agent names it (a command is its `command`); `said` is what the tool gave back, as Markdown; each of `diffs` is a change to one `file`: whether the file is `made` by it, the lines `added` and `removed`, and its `lines` as a unified diff's, with the number `left` out of a long one. A long text is cut in its middle, and says so there |
+| `tool` | `id`, `title`, `tool`, `status`, `files`, `input`, `said`, `diffs`, `images` | A tool call as it now stands, sent again each time it changes: its kind (`read`, `edit`, `execute`, ...), its status (`pending`, `in_progress`, `completed`, `failed`, `cancelled`), and the files it names, each with its box in the picture. `input` is what the agent called the tool with, as the agent names it (a command is its `command`); `said` is what the tool gave back, as Markdown; each of `diffs` is a change to one `file`: whether the file is `made` by it, the lines `added` and `removed`, and its `lines` as a unified diff's, with the number `left` out of a long one. A long text is cut in its middle, and says so there. Each of `images` is an image the tool's result holds (a picture the agent read), its `mime` and the `file` it is kept in beside the turn's; [`session/image`](#methods) gives one back by the call's id. One that is no PNG, JPEG, GIF or WebP, or is larger than 8 MB, is not kept, and `said` says so |
 | `plan` | `entries` | The agent's own list of steps, each with its status |
 | `request` | `id`, `call`, `options` | The agent asks to do something, and waits: the tool call, and the answers it offers |
 | `answer` | `id`, `option` | A request was answered, with that option or, where it is empty, refused |
@@ -101,3 +102,21 @@ were sent, one a line, the first of them `opened`.
 
 The revisions an event names are commits under `refs/neojac/turns/`, which any git command reads:
 `git diff <before> <rev>` is what a turn changed.
+
+### What is asked while a turn runs
+
+What is asked while a turn runs waits, by an id (`queued`). What happens to it next is the
+agent's to say:
+
+- **An agent that takes a prompt while a turn runs is handed it at once** (`handed`). It says so
+  when it starts, as `agentCapabilities._meta.claudeCode.promptQueueing`, which the Claude
+  adapter does. The agent takes the message up when it can, between two steps of its work. Where
+  it does, the turn that was running ends, and what was handed begins the next turn (`turn`, with
+  the id in its `queued`): so the events after it are that turn's, and a client shows the message
+  where the agent took it up.
+- **What has been handed cannot be taken back.** `session/withdraw` refuses it.
+- **Any other agent is asked when the turn ends:** what waits is the next turn, several plain
+  messages of one agent as one. A plan, a build and a message for another agent wait so with
+  every agent.
+- **`session/cancel` stops the running turn, and what waits is then asked.** An agent drops what
+  it was handed and had not taken up, and it is asked again as the next turn.

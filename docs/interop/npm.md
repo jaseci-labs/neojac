@@ -329,7 +329,7 @@ def summed(*, a: int = 1, b: int = 2, **more: any) -> int {
 with entry {
     calls = runInThisContext(
         "(f, g) => [f.length, g.length, f(1, { page: 'p' }), f(2, { page: 'q', n: 5, more: 0 }), "
-            "g(), g({ b: 5, c: 1 })].join(' / ')",
+        "g(), g({ b: 5, c: 1 })].join(' / ')",
     );
     print(calls(opened, summed));
 }
@@ -411,7 +411,7 @@ obj Thing {
 with entry {
     kind = runInThisContext(
         "(x) => x === null ? 'null' : Array.isArray(x) ? 'array' : x instanceof Map ? 'map' : "
-            "Buffer.isBuffer(x) ? 'buffer' : typeof x",
+        "Buffer.isBuffer(x) ? 'buffer' : typeof x",
     );
     keyed: dict[any, any] = {1: "a"};
     print(kind(None), kind(JsNull), kind(True), kind(5), kind(1.5), kind("s"));

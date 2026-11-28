@@ -275,6 +275,8 @@ it back:
   with a button that copies it. A run of more than three is folded to one line that counts
   them by kind once the agent goes on to say something, and opens again at a click. The agent's
   reasoning, where it shares it, is one line that opens the same way.
+- **An image the agent looks at is shown in the conversation,** under the step that read it: a
+  screen capture it took, a picture it opened. A click shows it whole.
 - **The conversation stays where you are reading it.** While its end is in view it follows what
   arrives; scrolled back, it stays, and **Latest** returns to the end.
 - **The picture shows where the agent is.** The box of a file it says it is reading is outlined,
@@ -289,9 +291,12 @@ it back:
   file, and the answers the agent offers, which are sent back as they are; the panel comes
   forward when one arrives. The list beside Follow holds the agent's own modes of asking; neojac adds none and answers nothing by itself.
   **Stop** ends a turn, and answers what is open with a refusal.
-- **What is asked while a turn runs waits.** Send is then **Queue**: the message is shown above
-  the form, with a `×` that takes it back, and is asked as the next turn when this one ends,
-  several of them as one.
+- **What is asked while a turn runs waits.** Send is then **Queue**, and the message is shown
+  above the form. An agent that takes a message while it works (the Claude adapter does) is given
+  it at once: the message then says **Sent**, and it enters the conversation where the agent
+  takes it up, between two steps of its work. For any other agent the message says **Queued**,
+  with a `×` that takes it back, and is asked as the next turn when this one ends, several of
+  them as one. After **Stop**, what was waiting is asked next, sent or not.
 - **Plan first asks for the change as architecture before any of it is built.** With it on, the
   agent is asked to change only `archwire.jac` and the declarations in the modules' files, with
   no bodies, and to stop. What it proposes is then on the picture as any change is: a new layer
