@@ -192,8 +192,9 @@ port: 6 sources would port
 
 **A run follows the plan.** Each step of it is one change, made in the plan's order: a module
 that imports one the run refuses, or does not port, is held back with it (E4012), unless its Jac
-can import the one left behind as it stands (a JavaScript module, which a Jac module of a
-JavaScript space imports as any module of its space), and every other step that checks is
+can import the one left behind as it stands (a module of the language its space's host runs, a
+JavaScript module in a JavaScript space and a Python module in a `cpython` space, which a Jac
+module of the space imports as any module of its space), and every other step that checks is
 written. Where a module of a group is refused for its own code, each other module of the group is
 E4012 too, naming that one: modules that import each other port together.
 
