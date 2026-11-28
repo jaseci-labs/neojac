@@ -32,7 +32,7 @@ of the file's own is `__js_new(X, a)`. JavaScript's forms are intrinsics too: `n
 function value `f(a, ...xs)` is `__js_call(f, a, *xs)`, and `for (const k in o)` and
 `for (const x of xs)` are `for k in __js_for_in(o)` and `for x in __js_iter(xs)`, written as those
 loops. Nothing of `js` is named there: what it gives that is a function of its own
-(`js_unpack`, `js_promise`, ...) is the runtime's module `lib/js`'s, imported from
+(`js_promise`, `js_with_length`, ...) is the runtime's module `lib/js`'s, imported from
 it as any runtime module imports another. A function there is JavaScript's own: a parameter
 whose default is None is the bare parameter, any other default is JavaScript's and applies as
 JavaScript applies it, where the argument is undefined, which is None; `*rest` is `...rest`; the
@@ -59,7 +59,11 @@ but of `self`, `super` and a module, a call of a value that is no function or cl
 `__js_call(f, a)`, `typeof x === "string"` is `__js_typeof(x) == "string"`, `x.length`
 `__js_item(x, "length")`, an element `__js_item(xs, i)`, a part of a template
 `__js_call(globalThis.String, v)`, each operator its intrinsic, a `switch` a chain of
-`__js_same` tests, and an array pattern JavaScript's iteration (`js_unpack`). A coroutine there
+`__js_same` tests, and an array pattern JavaScript's own destructuring, `[a, , ...rest] = xs` an
+unpacking assignment `(a, hole_1, *rest) = __js_unpack(xs);` (a hole a name nothing reads), in
+a declaration, an assignment, a loop's target and a parameter, which is taken apart as the
+function's first statement, a default applied after it where its name is None and a nested
+pattern taken apart from the name that holds its item. A coroutine there
 is JavaScript's async function, `await x` JavaScript's `await`, and a generator JavaScript's own,
 `yield from` its `yield*`; a call of a function of the runtime gives a `*` of its arguments
 to its `*rest` as JavaScript's spread.
