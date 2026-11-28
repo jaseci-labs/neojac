@@ -764,6 +764,7 @@ neojac arch --steps [--json]
 | `--text` | Print the picture on the terminal |
 | `--svg <file>` | Write the picture as an SVG |
 | `--png <file>` | Write the picture as a PNG, drawn by the browser `neojac browse` drives |
+| `--no-sandbox` | Start the browser that draws --png without its sandbox |
 | `--diff` | Mark what has changed since the branch this one follows: the modules whose files changed, the arrows that are new, gone or carry other names, and what takes from what changed |
 | `--base <revision>` | --diff against this git revision, in place of where the branch left its upstream (or origin's main branch) |
 | `--at <revision>` | The project's architecture as it stood at this git revision, in place of as it stands; with --diff, what changed from the base up to it |

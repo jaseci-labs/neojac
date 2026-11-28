@@ -86,7 +86,7 @@ neojac arch [<layer> | <module>] --diff [--base <revision>] [<output>]
 | none | The picture is served as a page: see [The viewer](#the-viewer) |
 | `--text` | The picture, on the terminal |
 | `--svg <file>` | The same picture as an SVG. It is the same bytes each time for the same project |
-| `--png <file>` | The SVG as the browser [`neojac browse`](browse.md) drives draws it. The first use fetches that browser |
+| `--png <file>` | The SVG as the browser [`neojac browse`](browse.md) drives draws it. The first use fetches that browser. `--no-sandbox` starts it without its sandbox, as [`neojac browse open`](browse.md) does: a container that gives no user namespaces, or refuses the sandbox's filters, needs it |
 | `--mermaid` | A Mermaid flowchart, for a README, an issue or a pull request, where GitHub draws it |
 | `--steps` | The steps of the project's history, one a line, or with `--json` as data: where the branch left its upstream, each commit since, each turn of an agent, and the project as it stands when that is different |
 | `--json` | What the picture is drawn from: each box and what it holds, each arrow with its wires, the names each carries, the rule that admits it at each level of the layers (`levels`), and its file and line |
