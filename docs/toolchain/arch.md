@@ -259,6 +259,23 @@ The panel beside the picture is the agent's, under **Agent**. The line between i
 picture drags to size it, and the button at the far left of the top bar puts it away and brings
 it back:
 
+- **Agents work in sessions, as many at a time as you begin.** A session is one conversation with
+  an agent, which keeps its own context. The tabs at the head of the panel are the sessions that
+  are open, each with a dot for what it is doing: pulsing while its agent works, orange while it
+  waits for your answer, green when it has finished a turn you have not seen. The panel shows one
+  conversation, the tab that is picked; the others go on working. **+** is a new session, begun by
+  what you ask in it, and a tab's `×` puts an idle session away.
+  - **A session that waits for your answer says so above the form,** whichever conversation is
+    shown, with **Show** to go to it.
+  - **The picture shows where the others are.** The box the shown session's agent is in is
+    outlined as below; a box another session's agent is working in has a dotted outline.
+  - **The clock beside the tabs lists every session the project has kept,** the newest first,
+    with its agent, its turns and when it last did something. A click shows one, opening it again
+    if it was put away. **Delete**, at a second click, removes a session's conversation for good.
+  - **The sessions share the project's files,** and each agent is told when another is at work.
+    So what a turn is said to have changed is what changed in the project while it ran, and
+    **Undo** puts back what every session changed since that turn began. It waits until no turn is
+    running, and the other sessions and their agents are then told.
 - **What is typed at its foot is asked of the agent**, with what the picture is opened on: a layer with
   its modules, a module with its file. A click on a box with Alt or Cmd held adds it too. Each
   is a chip above the text, and its `×` leaves it out. Enter sends; Shift and Enter is a new line.
@@ -314,8 +331,11 @@ it back:
   put back is kept too, under `refs/neojac/undone/`. An agent cannot be made to forget a turn, so
   after an undo the next turn starts the agent again and tells it what was said and what was
   undone.
-- **The conversation is the project's.** It is kept in `.jac/arch/`, which git is told to ignore,
-  and a viewer started again shows it and goes on from it.
+- **The conversations are the project's.** Each session is kept in `.jac/arch/`, which git is told
+  to ignore. A viewer started again lists them all, shows the one worked in last and goes on from
+  it, and a page loaded again shows the session it was on. A session an earlier neojac kept is
+  shown too while its events are the ones this neojac reads; one that is not is listed, greyed,
+  and can only be deleted.
 
 An agent is given the project's directory, what was asked, one paragraph that says the
 project is Jac, that `archwire.jac` is its wiring, and how neojac is run here, and neojac's own
@@ -345,8 +365,10 @@ Each call reads the project as it stands, so an answer is never of a file as it 
 
 A project in a git repository has a history: where the branch left its upstream (or the first
 commit, with no upstream), each commit since, each turn of an agent after the commit it was made
-on, what was changed by hand between two turns, and the project as it stands when that is not
-committed. Once there is more than one step it is a slider along the foot of the picture and,
+on, what was changed by hand between two turns, what the project held when a turn began while
+another session's was running, and the project as it stands when that is not committed. The turns
+of sessions that worked at the same time are in the order they were made, each named with its
+session. Once there is more than one step it is a slider along the foot of the picture and,
 when asked for, a list on the picture.
 
 - **The button at the left of the slider shows the history as a list,** a card over the
