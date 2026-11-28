@@ -164,8 +164,8 @@ construct in the table whose Jac would mean something else (E4005):
   may change after the function is made**: one written after it, in a loop of the pass that
   makes it again, or by a function. Each pass of a JavaScript loop has its own; a Jac function
   has one.
-- **`yield*` in an async generator.** Jac's async generator has no `yield from`, and gets
-  none. So the face JavaScript is given of a Jac async generator, which delegates with
+- **`yield*` in an async generator**, with E4048: Jac's async generator has no `yield from`,
+  and gets none. So the face JavaScript is given of a Jac async generator, which delegates with
   `yield*`, is the one function of the JavaScript host's runtime that stays JavaScript,
   `rt/hosts/js/lib/agen.js`, and port refuses it.
 - **`super` in an object literal; a getter or a setter there outside a file of the JavaScript
