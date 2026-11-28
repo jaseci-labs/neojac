@@ -751,6 +751,8 @@ neojac arch [<layer> | <module>] [--mermaid | --json | --text]
 neojac arch [<layer> | <module>] --svg <file> | --png <file>
 neojac arch --view spaces [--profile <profile>] [<output>]
 neojac arch [<layer> | <module>] --diff [--base <revision>] [<output>]
+neojac arch [<layer> | <module>] --at <revision> [--diff] [<output>]
+neojac arch --steps [--json]
 ```
 
 | Option | What it does |
@@ -764,6 +766,8 @@ neojac arch [<layer> | <module>] --diff [--base <revision>] [<output>]
 | `--png <file>` | Write the picture as a PNG, drawn by the browser `neojac browse` drives |
 | `--diff` | Mark what has changed since the branch this one follows: the modules whose files changed, the arrows that are new, gone or carry other names, and what takes from what changed |
 | `--base <revision>` | --diff against this git revision, in place of where the branch left its upstream (or origin's main branch) |
+| `--at <revision>` | The project's architecture as it stood at this git revision, in place of as it stands; with --diff, what changed from the base up to it |
+| `--steps` | Print the steps of the project's history the viewer's slider goes through: where the branch began, each commit since, each turn of an agent, and the project as it stands when that is different |
 | `--listen <address>` | Where the viewer is served (default: 127.0.0.1:8090) |
 | `--diagnostics <form>` | How diagnostics are written on stderr: human (the default), or json, one record a line |
 
@@ -782,6 +786,85 @@ Every module archwire.jac names is read, whether or not a program loads it, and 
 | `neojac arch --mermaid` | A flowchart for a README or a pull request |
 | `neojac arch --diff --mermaid` | What a branch changes, for its pull request |
 | `neojac arch --view spaces --svg spaces.svg` | The spaces, as a file |
+
+Its guide: [toolchain/arch](../toolchain/arch.md) (`neojac docs toolchain/arch`).
+
+### `neojac turns`
+
+Serve a client a session of work with an agent, over JSON-RPC.
+
+```sh
+neojac turns [--project <directory>] [--base <revision>]
+neojac turns --schema
+```
+
+| Option | What it does |
+|---|---|
+| `--project <directory>` | The project the session is in (default: the directory it is started in) |
+| `--base <revision>` | What the project's steps and changes are counted from, in place of where the branch left its upstream |
+| `--schema` | Print the protocol as JSON: its version, each method with its parameters, and each event with its fields |
+
+A client starts it in a project and speaks JSON-RPC 2.0 to it, one message a line, on its standard input and output. It is what `neojac arch` is made on: the client asks for a turn of an agent, answers what the agent asks to do, stops or undoes a turn, plans a change and builds it, and is sent each thing that happens as a `session/event`. The same methods answer about the project: its picture, what changed between two revisions, and the steps of its history.
+
+The protocol has a version, and --schema prints it. The session's log, in the project's `.jac/arch/`, is its events as they were sent.
+
+| Example | What it does |
+|---|---|
+| `neojac turns` | What a client is configured to run, in a project |
+| `neojac turns --schema` | The methods and the events |
+
+Its guide: [toolchain/turns](../toolchain/turns.md) (`neojac docs toolchain/turns`).
+
+### `neojac mcp`
+
+Serve an agent the project as tools, over the Model Context Protocol.
+
+```sh
+neojac mcp [--project <directory>]
+```
+
+| Option | What it does |
+|---|---|
+| `--project <directory>` | The project the tools answer about (default: the directory it is started in) |
+
+An agent starts it and speaks the Model Context Protocol to it, on its standard input and output. Its tools answer about the project: `architecture` is the picture `neojac arch` draws, as its boxes and its arrows with the names each wire carries; `find` says where a layer, a module or a wired name is; `changes` says what has changed since a revision; `check` checks the project; `symbols` lists what a file declares; `docs` prints the documentation.
+
+`neojac arch` gives it to the agent it works with. Any other agent or editor that takes an MCP server is given the command `neojac mcp`.
+
+| Example | What it does |
+|---|---|
+| `neojac mcp` | What an agent is configured to run, in a project |
+
+Its guide: [toolchain/arch](../toolchain/arch.md) (`neojac docs toolchain/arch`).
+
+### `neojac agent`
+
+Add the coding agents `neojac arch` works with, or list them.
+
+```sh
+neojac agent [--json]
+neojac agent add <name> [--env <NAME>[=<value>]]... [-- <command>...]
+neojac agent use <name>
+neojac agent remove <name>
+neojac agent registry [<word>] [--json]
+```
+
+| Option | What it does |
+|---|---|
+| `--env <NAME>[=<value>]` | A variable of the agent's environment, such as its API key; without a value, the one this environment has |
+| `--json` | Print the agents added, or what the registry has, as JSON; a variable is listed by its name, never with its value |
+| `-- <command>...` | The agent is this command, which speaks the Agent Client Protocol on its standard input and output, in place of one the ACP registry names |
+
+An agent is a program that speaks the Agent Client Protocol: `neojac arch` starts it in the project, sends it what is asked for in the viewer, and shows what it does on the picture. add takes one the ACP registry lists by its name there, fetched and checked against the digest the registry pins, or a command of your own after `--`. With no command, agent lists the ones that are added, the one in use marked.
+
+An agent signs in by itself and keeps its own credentials. One that takes a key from its environment is given it with --env; the agents and their variables are kept in a file only you can read, in neojac's configuration directory, never in the project.
+
+| Example | What it does |
+|---|---|
+| `neojac agent registry claude` | What the registry has by that word |
+| `neojac agent add claude-acp --env ANTHROPIC_API_KEY` | Add one from the registry, with the key this shell has |
+| `neojac agent add mine -- ./my-agent --acp` | Add a command of your own |
+| `neojac agent use mine` | Work with that one |
 
 Its guide: [toolchain/arch](../toolchain/arch.md) (`neojac docs toolchain/arch`).
 
