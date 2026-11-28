@@ -57,11 +57,13 @@ What the `any` holds decides what arrives:
 | `None` | `T \| None` | `None` |
 | Anything else | `T` | `TypeError: expected T, found U`, with `None` named `None` and a class by its name |
 
-A typed list, dict or set given to a `list[any]`, `dict[K, any]` or `set[any]` place is the
-same container, not a copy: what the callee appends or stores through the `list[any]` the
-caller sees. The other way, an `any` (or a `list[any]`) given to a `list[T]`, `dict[K, V]` or
-`set[T]` place is a **new** container with every item converted, even when no item changes. The
-source is never changed, and when an item does not convert the `TypeError` leaves it as it was.
+A typed list given to a `list[any]` place is the same container, not a copy: what the callee
+appends or stores through the `list[any]` the caller sees. A typed dict or set is not given to a
+`dict[K, any]` or `set[any]` place: such a place takes a dict or set of that type (E1053), so one
+made for it is declared so where it is made (`held: dict[str, any] = {"n": [1]};`). The other
+way, an `any` (or a `list[any]`) given to a `list[T]`, `dict[K, V]` or `set[T]` place is a
+**new** container with every item converted, even when no item changes. The source is never
+changed, and when an item does not convert the `TypeError` leaves it as it was.
 
 ```jac
 def bump(xs: list[any]) {

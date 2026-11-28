@@ -68,7 +68,9 @@ For each app, from its archwire:
 3. Runs each browser or hermes space's bundler ([UI plugins and bundlers](ui-bindings.md)).
 4. Compiles the app's program: its native spaces with neojac's app runtime, `stdjac`, which starts
    it. No server code is generated; the runtime reads what the app is from the **plan** the build
-   bakes into the program (below).
+   bakes into the program (below). Before it, it compiles the browser spaces of each library the
+   program loads, stdjac's sign-in pages among them, and the program holds their files
+   ([A package's browser spaces](archwire.md#a-packages-browser-spaces)).
 5. Assembles the artifact in `dist/`.
 
 The work in between is in `.jac/build/<app>/` in the project, and a JavaScript space's in its npm
@@ -93,12 +95,20 @@ holds, as its app needs:
 |---|---|
 | `<app>` | The program |
 | `libgeom.dylib`, `libhalf.so`, `libneojac-rust-<hash>.so` | Each shared library the program loads from beside itself: a C module built `shared`, a library of the project's own that an import names (built with `neojac cc`), and on Linux the program's Rust library |
-| `pages/<space>/` | Each browser space it serves, as its bundler wrote it |
+| `pages/<space>/` | Each browser space of the project it serves, as its bundler wrote it |
 | `lib/python315.zip` | CPython's standard library, compressed |
 | `lib/python3.15/site-packages/` | The project's Python packages |
 | `eco/web/package.json`, `eco/web/node_modules/` | The packages of an npm tree its code requires (here the tree `eco/web`), with their production dependencies, where the tree is in the project |
 | `spaces/<space>/` | The code of each cpython space it runs in its process |
 | `eco/web/spaces/<space>/` | The code of each node space it runs in its process, under its tree's packages, where Node resolves them from |
+
+### What the artifact holds
+
+A library's pages go where the library's code goes: inside the program that loaded it. The
+browser spaces of the libraries an app's program loads (stdjac's sign-in pages, at `/__jac/auth/`,
+and a library's own, [A package's browser spaces](archwire.md#a-packages-browser-spaces)) are
+compiled into the program as its files, and served from it, so an app of native spaces alone stays
+one program. Only the project's own browser spaces are files beside it, in `pages/`.
 
 Copy the directory to a machine of that platform and run the program; nothing else is needed
 there. When an app's artifact changes from a single program to a directory (it starts serving a

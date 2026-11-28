@@ -1,0 +1,81 @@
+name: Release check
+
+# What this repository holds, checked by the latest release of neojac, the
+# way a contributor checks it: scripts/check.py, run by that neojac. Its
+# opening says what it runs, and what it leaves out and why.
+#
+# It compiles the pull request's code, which may come from anyone's fork: so
+# it runs on `pull_request`, never `pull_request_target`, with a token that
+# can only read, no secrets, and nothing kept from one run for another.
+#
+# A pull request that needs a neojac not released yet (one paired with a
+# change to the compiler, which merges first) fails here, as it should. A
+# maintainer marks it with the label `needs unreleased neojac`: the check
+# still runs, and its failure is then reported as that need, where the run
+# and the label are seen, not as a broken pull request. The label is read
+# from the event, which needs no access beyond reading, and adding or
+# removing one runs the check again.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEEDS_UNRELEASED: ${{ contains(github.event.pull_request.labels.*.name, 'needs unreleased neojac') }}
+      NEOJAC_TELEMETRY: "off"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      # The latest release's neojac for this runner, one file, checked against
+      # the checksum the release publishes beside it.
+      - name: Install the latest neojac
+        run: |
+          set -euo pipefail
+          releases="https://github.com/jaseci-labs/neojac/releases"
+          latest="$(curl -fsSLI -o /dev/null -w '%{url_effective}' "$releases/latest")"
+          version="${latest##*/v}"
+          name="neojac-${version}-linux-x86_64"
+          cd "$RUNNER_TEMP"
+          curl -fsSL -o "$name.gz" "$releases/download/v$version/$name.gz"
+          curl -fsSL -o "$name.gz.sha256" "$releases/download/v$version/$name.gz.sha256"
+          sha256sum -c "$name.gz.sha256"
+          mkdir -p bin
+          gzip -dc "$name.gz" > bin/neojac
+          chmod 755 bin/neojac
+          rm "$name.gz"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          bin/neojac --version
+
+      - name: Check
+        id: check
+        continue-on-error: ${{ contains(github.event.pull_request.labels.*.name, 'needs unreleased neojac') }}
+        run: neojac python -I scripts/check.py
+
+      - name: Marked as needing an unreleased neojac
+        if: env.NEEDS_UNRELEASED == 'true'
+        env:
+          OUTCOME: ${{ steps.check.outcome }}
+        run: |
+          if [ "$OUTCOME" = failure ]; then
+            title="Needs an unreleased neojac"
+            said="This pull request fails against the latest release of neojac, and is marked as needing a neojac not released yet: the compiler's own tests, which a maintainer runs, check it."
+            echo "::warning title=$title::$said"
+          else
+            title="Passes against the latest release"
+            said="This pull request is marked as needing a neojac not released yet, and passes against the latest release: the label can be removed."
+            echo "::notice title=$title::$said"
+          fi
+          printf '### %s\n\n%s\n' "$title" "$said" >> "$GITHUB_STEP_SUMMARY"

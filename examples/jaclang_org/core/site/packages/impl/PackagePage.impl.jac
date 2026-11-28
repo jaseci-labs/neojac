@@ -64,9 +64,14 @@ impl PackagePage(name: str, detail: PackageDetail | None, loading: bool) -> JsxE
         return <p role="status" className="text-muted-foreground">{"Loading " + name + "…"}</p>;
     }
     if not detail.found or detail.summary is None {
-        return <div><Link to="/packages" className="text-sm text-primary hover:underline">
+        return <div>
+            <Link to="/packages" className="text-sm text-primary hover:underline">
                     All packages
-                </Link><p role="alert" className="mt-4 text-destructive">{detail.error or (name + " is not in the index.")}</p></div>;
+                </Link>
+            <p role="alert" className="mt-4 text-destructive">
+                {detail.error or (name + " is not in the index.")}
+            </p>
+        </div>;
     }
     pkg = detail.summary;
     current = [v for v in detail.versions if v.version == detail.version];

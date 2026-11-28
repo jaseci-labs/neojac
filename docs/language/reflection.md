@@ -1,6 +1,6 @@
 ---
-description: What a program can ask about types and values, as it runs (type, isinstance, getattr, hasattr, setattr, vars, dir) and as it compiles (jaclang.comptime's fields, params, kind, type_args, members, get_field, set_field, restore, args_type, apply).
-keywords: reflection, introspection, jaclang.comptime, Kind, kind, type_args, params, members, get_field, set_field, restore, args_type, apply
+description: What a program can ask about types and values, as it runs (type, isinstance, getattr, hasattr, setattr, vars, dir) and as it compiles (jaclang.comptime's fields, params, returns, kind, type_args, members, get_field, set_field, restore, args_type, apply).
+keywords: reflection, introspection, jaclang.comptime, Kind, kind, type_args, params, returns, members, get_field, set_field, restore, args_type, apply
 ---
 # Reflection
 
@@ -185,6 +185,7 @@ name: str, verified: bool | True False ''
 |---|---|
 | `fields(T)` | A class's or struct's fields in declaration order, a base's first: records with `name`, `type`, `has_default`, `doc` and `` `postinit `` (whether the class sets the field in `postinit`, so that no constructor takes it), read behind its backtick, `` f.`postinit ``, since after a dot the word names the post-initializer |
 | `params(f)` | A function's parameters: records with `name`, `type`, `has_default` and `doc`. `f` is a function, or a method named by its class (`params(Greeter.greet)`), whose `self` is not among them |
+| `returns(f)` | The type a function is declared to return (an `async` function's, the type its call gives when awaited). `f` is as for `params`. `@restspec` serves a function that returns `Markup` as HTML by it |
 | `kind(T)` | What a type is: a member of the enum `Kind` |
 | `type_args(T)` | The types a type is made of: a list's, set's or array's item type, a dict's key and value types, a tuple's item types, a union's members |
 | `members(E)` | An enum's members, in order |

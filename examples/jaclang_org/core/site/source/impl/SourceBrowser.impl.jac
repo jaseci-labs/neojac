@@ -107,11 +107,11 @@ impl SourceBrowser(className: str = "", initial_path: str = "web.jac") -> JsxEle
             <span className="size-2.5 rounded-full bg-white/15"></span>
             <span className="ml-2 font-mono text-xs text-white/45">
                     jaclang.org — this site, serving itself, for real,{" "}<a
-                href="https://github.com/jaseci-labs/jac/tree/main/jac/examples/jaclang_org"
-                target="_blank"
-                rel="noreferrer"
-                className="underline decoration-white/30 underline-offset-2 transition-colors hover:text-white/70"
-            >
+                    href="https://github.com/jaseci-labs/jac/tree/main/jac/examples/jaclang_org"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline decoration-white/30 underline-offset-2 transition-colors hover:text-white/70"
+                >
                         see github
                     </a></span>
             <span

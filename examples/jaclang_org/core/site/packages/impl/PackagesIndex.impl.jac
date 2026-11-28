@@ -73,11 +73,14 @@ impl PackagesIndex(
 ) -> JsxElement {
     shown = [p for p in (catalog.packages if catalog else []) if matches(p, q)];
     return <div>
-        <header className="mb-8"><h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+        <header className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
                     Packages
-                </h1><p className="mt-3 max-w-2xl text-muted-foreground">
+                </h1>
+            <p className="mt-3 max-w-2xl text-muted-foreground">
                     Jac libraries and project templates published to the jac-index. Libraries install with jac install org/name; templates start a project with jac create --use org/name.
-                </p></header>
+                </p>
+        </header>
         <Ecosystems />
         <h2 className="mb-3 text-lg font-semibold tracking-tight">The jac-index</h2>
         <Input

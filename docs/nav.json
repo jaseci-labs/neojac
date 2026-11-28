@@ -836,12 +836,20 @@
           "page": "toolchain/arch.md"
         },
         {
+          "title": "turns",
+          "page": "toolchain/turns.md"
+        },
+        {
           "title": "launch",
           "page": "toolchain/launch.md"
         },
         {
           "title": "telemetry",
           "page": "toolchain/telemetry.md"
+        },
+        {
+          "title": "update",
+          "page": "toolchain/update.md"
         },
         {
           "title": "docs and skills",
@@ -956,7 +964,7 @@
               "page": "reference/diagnostics/e15-2.md"
             },
             {
-              "title": "E1615 to E1643: type parameter packs, wide text, C++ and Rust templates, C++ comparisons, C++ constructors, C++ function pointers, objects lent to C, sizeof, managed places, objects found by a field, statics written through a subclass, C++ templates deduced from a function, and several C++ functions written as one name, and @reads functions that change something",
+              "title": "E1615 to E1646: type parameter packs, wide text, C++ and Rust templates, C++ comparisons, C++ constructors, C++ function pointers, objects lent to C, sizeof, managed places, objects found by a field, statics written through a subclass, C++ templates deduced from a function, several C++ functions written as one name, @reads functions that change something, what markup cannot hold, and C's variadic arguments read as what `...` does not carry",
               "page": "reference/diagnostics/e16.md"
             },
             {
@@ -988,7 +996,7 @@
               "page": "reference/diagnostics/e22-3.md"
             },
             {
-              "title": "E2240 to E2337: imports in code, a place's plugins, defaults, JavaScript classes, unions, bit-fields, crates, comptime if, Python names, quoted paths, JavaScript's faces, classes over values, TypeScript faces, C tags, C++ bases and async generators",
+              "title": "E2240 to E2345: imports in code, a place's plugins, defaults, JavaScript classes, unions, bit-fields, crates, comptime if, Python names, quoted paths, JavaScript's faces, classes over values, TypeScript faces, C tags, C++ bases, async generators and a package's browser spaces",
               "page": "reference/diagnostics/e22-4.md"
             },
             {
@@ -1008,7 +1016,7 @@
               "page": "reference/diagnostics/e51.md"
             },
             {
-              "title": "E5173 to E5272: what a host makes, JSX, C calling Jac, Rust and C++ instances, a class body's try, a surrogate pair, an extension's links and entries, a runtime as a program",
+              "title": "E5173 to E5274: what a host makes, JSX, C calling Jac, a package that is no program, Rust and C++ instances, a class body's try, a surrogate pair, an extension's links and entries, a space with no bundler, React's names under the dom form, a runtime as a program",
               "page": "reference/diagnostics/e51-2.md"
             },
             {

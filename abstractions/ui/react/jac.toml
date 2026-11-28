@@ -16,8 +16,9 @@ runtime = "runtime.js"
 boot = "@jac/runtime"
 
 [ui.jsx]
-lowercase_tags = true
+form = "calls"
 source = "react"
+lowercase_tags = true
 
 [ui.state]
 from = "react"

@@ -9,8 +9,8 @@ impl UiLibraries -> JsxElement {
         <div className="mt-8 grid gap-4 lg:grid-cols-3">
             <div className="flex flex-col gap-2">
                 <div className="font-medium">React <span
-                    className="text-sm text-muted-foreground"
-                >re-renders; this site runs on it</span></div>
+                        className="text-sm text-muted-foreground"
+                    >re-renders; this site runs on it</span></div>
                 <div className="rounded-xl bg-[#0b0b0b] p-2 min-h-[460px]">
                     <Playground lib="React" />
                 </div>
@@ -18,8 +18,8 @@ impl UiLibraries -> JsxElement {
             {[
                 <div key={f["name"]} className="flex flex-col gap-2">
                     <div className="font-medium">{f["name"]} <span
-                        className="text-sm text-muted-foreground"
-                    >{f["note"]}</span></div>
+                            className="text-sm text-muted-foreground"
+                        >{f["note"]}</span></div>
                     <iframe
                         title={f["name"]}
                         src={f["src"]}

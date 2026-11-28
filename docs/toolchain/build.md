@@ -44,9 +44,9 @@ neojac run hello.rs                       # build it, then run it
 neojac run -- input.txt                   # the program in this directory, with an argument
 ```
 
-`neojac run` builds a program as `build` does, in its project's `.jac/build/` unless `-o` says where, then runs it with what follows `--` and exits with its status. A Jac module that a `cpython` or a `node` space of its project holds runs on that space's host, as `__main__`: `neojac run scripts/gen.jac` of a module of `space oracle: cpython { scripts.gen; }` builds the space's program with that module as its entry, whatever entry the space names (a space with none too), and runs it on CPython. It takes the options of a build for this machine that is then run: `-o`, `--release`, `--cpu`, `--gui`, `--monitor`, `--memory` and `--rt`. One it does not take is named with the command that does: ``it has no option '--lib' (`neojac build` and `neojac check` have it)``. A module of the runtime a space runs on (`rt/hosts/js`, `rt/hosts/py`) is no program, and naming one is [E5272](../reference/diagnostics/e51-2.md#e5272).
+`neojac run` builds a program as `build` does, in its project's `.jac/build/` unless `-o` says where, then runs it with what follows `--` and exits with its status. A Jac module that a `cpython` or a `node` space of its project holds runs on that space's host, as `__main__`: `neojac run scripts/gen.jac` of a module of `space oracle: cpython { scripts.gen; }` builds the space's program with that module as its entry, whatever entry the space names (a space with none too), and runs it on CPython. It takes the options of a build for this machine that is then run: `-o`, `--release`, `--cpu`, `--gui`, `--monitor` and `--memory`. One it does not take is named with the command that does: ``it has no option '--lib' (`neojac build` and `neojac check` have it)``. A module of the runtime a space runs on (`rt/hosts/js`, `rt/hosts/py`) is no program, and naming one is [E5274](../reference/diagnostics/e51-2.md#e5274).
 
-What is no program is refused: a file of another extension (E5150), a directory with none of the manifests (E5151), a Jac project with no `main.jac` (E5152). A Python project (`pyproject.toml`), an npm package (`package.json`) and a JavaScript or TypeScript file are recognized and refused until their builds are made (E5090).
+What is no program is refused: a file of another extension (E5150), a directory with none of the manifests (E5151), a Jac project with no `main.jac` (E5152), and a plugin, a library, an abstraction or a contract, which the programs that use it build (E5184). A Python project (`pyproject.toml`), an npm package (`package.json`) and a JavaScript or TypeScript file are recognized and refused until their builds are made (E5090).
 
 ## What a build does
 
@@ -73,12 +73,11 @@ The exit status is 0 when the output was built or was up to date, and 1 otherwis
 | `--memory <profile>` | The memory profile: `managed`, `rc` or `nogc` |
 | `--emit-ir <file>` | Also write the program's LLVM IR |
 | `--verify-reuse` | Compile every module, and check each one an earlier build made against what its sources make now ([the build cache](cache.md#modules-taken-from-an-earlier-build)) |
-| `--rt <dir>` | The runtime to build against |
 | `--diagnostics <form>` | How diagnostics are written on stderr: `human` (the default), or `json`, one record a line ([check](check.md#diagnostics-as-json)) |
 | `--profile <profile>` | For app builds only: see [Building apps](../apps/building.md) |
 | `--place <directory>` | The place the program is built for, which provides a plugin for each abstraction the project leaves open: see [Plugins](../apps/plugins.md#the-place-a-program-is-built-for) |
 
-An option that takes a value takes it as the next argument, or, spelled with `--`, after `=` (`--rt=<dir>`); every command reads its arguments the same way ([Commands](../reference/commands.md#how-a-command-line-is-read)). A build takes one program, or several Jac programs for [one executable](#several-programs-in-one-executable). Mistakes are answered with the usage and the nearest option:
+An option that takes a value takes it as the next argument, or, spelled with `--`, after `=` (`--memory=<profile>`); every command reads its arguments the same way ([Commands](../reference/commands.md#how-a-command-line-is-read)). A build takes one program, or several Jac programs for [one executable](#several-programs-in-one-executable). Mistakes are answered with the usage and the nearest option:
 
 ```text
 neojac build: it has no option '--relese' (did you mean '--release'?)
@@ -127,14 +126,14 @@ What is the whole program's is kept in a unit of the program's own, which every 
 
 A plain build also links less, on Linux:
 
-- Where neojac's `lib/` holds a library both as static archives and as a shared library (LLVM, which a program that compiles code links), a plain build links the shared one, and the program then runs with neojac's `lib/` where it was when it was built.
+- Where a library is held both as static archives and as a shared library ([C modules](../interop/c-modules.md)), a plain build links the shared one, and the program then runs with that library where it was when it was built. The LLVM a build of neojac itself links is held so.
 - A program's Rust modules are linked once into one shared library, `libneojac-rust-<hash>.so`, kept in the [build cache](cache.md) and put beside the program (a hard link, where the cache is on the same disk). The program finds it beside itself, so the two move together. Rust that calls the program's own functions (a Jac function it is given, a C module's) is linked into the program as before: such a library could not stand alone.
 
 The link then has that much less to read and write on every build. A `--release` build links all of it in, and its program is one file that needs nothing of neojac's to run.
 
 Use a plain build while developing and `--release` for what you ship or measure.
 
-On macOS a `--release` program is also linked without a debug map. A debug map names the object files a program was linked from by where they were on the machine that built it (the build cache, neojac's `lib/`), for a debugger on that machine. Without it the program's symbols stay, it names nothing its user does not have, and the same sources build to the same bytes wherever they are built.
+On macOS a `--release` program is also linked without a debug map. A debug map names the object files a program was linked from by where they were on the machine that built it (the build cache, and what neojac wrote out of itself there), for a debugger on that machine. Without it the program's symbols stay, it names nothing its user does not have, and the same sources build to the same bytes wherever they are built.
 
 ## --target: building for another platform
 
@@ -161,7 +160,7 @@ A name that is no platform is an error that lists them:
 neojac: unknown platform 'plan9'; one of macos-aarch64, macos-x86_64, linux-aarch64, linux-x86_64, windows-x86_64, wasm32-wasi
 ```
 
-An installed release carries every target's C headers and runtime. What it carries only for its own platform (the C libraries a program using Python or Node links) it fetches for another platform the first time a build needs it, and says so (`neojac: fetching <what> for <platform>`). What is fetched is kept beside the build cache, in `fetched/`. It comes from the zip of that part of the toolchain its release pins, read by HTTP range requests: the zip's directory first, then the members the build needs, nearby members in one request; each member is checked against its CRC-32 as it is unpacked, and one that does not match is refused.
+A release carries every target's C headers and runtime. What it carries only for its own platform (the C libraries, the CPython and the Node a program using Python or Node links) is inside that platform's neojac, which the first build that needs it fetches from the same release, and says so (`neojac: fetching neojac for <platform>, for its <what>`). The file is checked against the release's SHA-256 and kept beside the build cache, in `cross/<version>/<platform>/`, and neojac reads those parts out of it as it reads its own ([The build cache](cache.md#what-neojac-writes-out-of-itself)). A neojac built from source has no release to fetch from, and builds for another platform only what needs none of them.
 
 Windows programs are built the same way on every platform, and neojac's own Windows release is built on Linux; neither has been tested on Windows yet.
 
@@ -176,10 +175,10 @@ The same program behaves the same on each, but for what the platform decides:
 
 ### wasm32-wasi
 
-A `wasm32-wasi` build is a WASI command module, which any WASI runtime runs. neojac's own Node is one, with the script `node/wasi.mjs` of neojac's runtime directory (`rt/`, beside an installed release's `bin/`). It gives the program the current directory, its arguments, and the environment variables its `--env <name>=<value>` options name:
+A `wasm32-wasi` build is a WASI command module, which any WASI runtime runs. neojac's own Node is one, with the script `node/wasi.mjs` of neojac's runtime (`rt/`), which a build writes out in the cache beside the pages `neojac docs --path` names. It gives the program the current directory, its arguments, and the environment variables its `--env <name>=<value>` options name:
 
 ```sh
-neojac node ~/.neojac/current/rt/node/wasi.mjs hello.wasm
+neojac node "$(dirname "$(neojac docs --path)")/rt/node/wasi.mjs" hello.wasm
 ```
 
 - Its C library is wasi-libc, so functions a program imports `from c` resolve as on any target.
@@ -388,14 +387,15 @@ neojac build main.jac --c-archive -o libadder.a
 
 ## How the runtime is found
 
-Every program is compiled with the runtime: the directory `rt/`, Jac source that holds the builtins, the standard library and `stdjac`.
+Every program is compiled with the runtime: `rt/`, Jac source that holds the builtins, the standard library and `stdjac`. With it go the abstractions and the libraries their plugins are made with, and the rest of the toolchain: Clang's headers, each target's C library and runtime, the C libraries, CPython, Node, Rust's standard library.
 
-- neojac uses the `rt/` beside its own executable's directory, or in the nearest directory above it that has one. For an installed release that is `<prefix>/rt` beside `<prefix>/bin/neojac`.
-- `--rt <dir>` names another. The directory must hold `core.jac`.
+- A release of neojac carries all of it inside its one file, and reads it from there ([What one download contains](../start/index.md#what-one-download-contains)). What something has to open as a file is written out into the cache the first time it is needed ([The build cache](cache.md#what-neojac-writes-out-of-itself)). There is nothing to find and nothing to name.
+- A neojac built from source carries nothing. It reads the directory `NEOJAC_STORE` names, which holds the same things under the same names (`rt/`, `lib/`, `abstractions/`, `libraries/`, `docs/`), where they stand. A checkout's build makes it, `build/store`, a directory of links: `NEOJAC_STORE=build/store build/bin/neojac build main.jac`.
+- Run without one: `this neojac carries no store, and NEOJAC_STORE names none with rt: a neojac built from source runs with NEOJAC_STORE=<its build's store directory>`.
+- `NEOJAC_STORE` set for a release replaces what the directory holds and leaves the rest as the release carries it. stdjac, `rt/stdjac/`, is a part of its own: an `rt/` that holds only `stdjac/` replaces stdjac and not the runtime around it. `abstractions/` and `libraries/` are one tree, since a plugin names the libraries it declares by their place beside it: the directory holds both or neither, else the command stops and says which it has.
 - A runtime made for a different neojac is refused before anything is compiled: `the runtime at <dir> does not match this neojac: ...`, naming the entry points that differ.
-- With no runtime at all: `no runtime found: neojac looks for rt/core.jac beside <dir> and in each directory above it; pass --rt <dir>`.
 
-The rest of the toolchain (Clang's headers, each target's C library and runtime, the C libraries, CPython, Node) is the `lib/` beside neojac's `bin/`. `NEOJAC_LIB_DIR` names another `lib/`. A checkout's `build/bin/neojac` has `build/lib` beside it and needs none; a compiler built anywhere else in a checkout (a stage of the bootstrap, a compiler you build while working on neojac) is run with `NEOJAC_LIB_DIR=build/lib`. It never relocates neojac's own Rust toolchain, which is always the `lib/rust` of the neojac that runs. See [Environment variables](../reference/environment.md).
+See [Environment variables](../reference/environment.md).
 
 ## What goes wrong
 

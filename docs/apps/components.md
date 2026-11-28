@@ -1,6 +1,6 @@
 ---
-description: Components in a browser or hermes space - JSX in Jac, props as keyword arguments, state with has, derived values, effects, refs, hooks, and the rules that keep a component's meaning the same under every UI library.
-keywords: component, components, jsx, JSX, JsxElement, Ref, state, effect, effects, hook, props, children, key, new
+description: Components in a browser or hermes space - JSX in Jac, props as keyword arguments, state with has, derived values, effects, refs, hooks, and the rules that keep a component's meaning the same under every UI library; and JSX in a native space, which is Markup, HTML text.
+keywords: component, components, jsx, JSX, JsxElement, Ref, state, effect, effects, hook, props, children, key, new, Markup
 grammar: jsx_element, jsx_children, jsx_child, jsx_tag_name, jsx_attributes
 ---
 # Components and JSX
@@ -15,8 +15,9 @@ The language says what a component means; a space's **`ui` plugin** says which l
 [UI plugins and bundlers](ui-bindings.md), `neojac docs apps/ui-bindings`). The same component
 means the same under each.
 
-JSX is an expression of a JavaScript host only. In a native program `JsxElement` is not a type
-(E2018).
+In a native space a JSX element is no component's: it is `Markup`, HTML text made as the program
+runs, for a page a server sends ([JSX in a native space](#jsx-in-a-native-space-markup)), and
+`JsxElement` is not a type there (E2018). In a cpython space JSX is refused (E5090).
 
 ## A component
 
@@ -98,11 +99,18 @@ A JSX element is an expression of type `JsxElement`, written wherever an express
 | `{...props}` | Every entry of a dict as an attribute (`{**props}` is the same; `neojac fmt` writes `...`) |
 | `{expr}` as a child | The value: text, a number, an element, a list of elements, or `None` for nothing |
 | `{#* note *#}` as a child | A comment, which shows nothing |
-| Text as a child | JSX's text: a character reference is the character it names (`Tom &amp; Jerry` shows `Tom & Jerry`), and a `>` is text |
+| Text as a child | JSX's text: each line trimmed, the empty ones dropped and the rest joined by one space; a character reference is the character it names (`Tom &amp; Jerry` shows `Tom & Jerry`), and a `>` is text |
 | `{for ... { ... }}` as a child | A block of statements: each element written as a statement in it is a child, in order |
 
-Attribute names are passed to the library as written: under React, `className`, `onClick`,
-`readOnly`.
+The compiler lowers JSX itself, as the space's `ui` plugin says ([UI plugins and
+bundlers](ui-bindings.md#a-projects-own-ui-plugin)): under React and Preact an element is a call
+of the library's `jsx` (`<b key={k}>hi</b>` is `jsx("b", { children: "hi" }, k)`), its text a
+string as the rules above make it, and no bundler or TypeScript step reads JSX. Under Solid, the
+compiler writes JSX for Solid's own compiler, each text as a string. Under `dom`, the compiler
+makes each element with the DOM's own calls, and keeps current only the parts whose code reads
+state ([UI plugins and bundlers](ui-bindings.md#dom)). Attribute names are passed to the library
+as written: under React, `className`, `onClick`, `readOnly`; under `dom`, HTML's, `class`,
+`onClick`, `readonly`, and React's `className`, `htmlFor` and `onDoubleClick` are refused (E5273).
 
 <!-- example: not checked: a component is a module of a browser space, with JSX -->
 ```jac
@@ -365,8 +373,8 @@ reported as an error ([Pages](pages.md#npm-packages-and-style-sheets)). `new(cls
 
 ## Rules a ui plugin adds
 
-A fine-grained library (Solid) runs a component's body once and updates only what changed, so
-under such a `ui` plugin a body must also say outright which locals follow state:
+A fine-grained `ui` plugin (Solid, `dom`) runs a component's body once and updates only what
+changed, so under such a `ui` plugin a body must also say outright which locals follow state:
 
 | Under a fine-grained `ui` plugin | Code |
 |---|---|
@@ -411,6 +419,65 @@ pages/index.jac:4:38: error[E1217]: 'items' is state, and append changes it in p
 | E1225 | An effect reading state its list does not name |
 | E1050, E1052, E1053 | A component's tag missing a prop, with an unknown one, or with one of the wrong type |
 | E2018 | `JsxElement` in a native program |
+
+## JSX in a native space: Markup
+
+In a `native` space, and in a program with no archwire, a JSX element is a `Markup`: HTML text,
+made once, as the element is evaluated. A function that returns one is a page or a part of one,
+and a server sends it as it is ([A path of its own](server.md#a-path-of-its-own-restspec)).
+`Markup` and `unsafe_html` are known there without an import.
+
+```jac
+def Card(title: str, children: Markup | None = None) -> Markup {
+    return <section class="card"><h2>{title}</h2>{children}</section>;
+}
+
+with entry {
+    name = "Tom & <Jerry>";
+    page = <html lang="en">
+        <body><Card title={name}><p>Hi {name}</p><br /></Card>{[<i>{n}</i> for n in [1, 2]]}</body>
+    </html>;
+    print(page);
+}
+```
+
+```output
+<!doctype html><html lang="en"><body><section class="card"><h2>Tom &amp; &lt;Jerry&gt;</h2><p>Hi Tom &amp; &lt;Jerry&gt;</p><br></section><i>1</i><i>2</i></body></html>
+```
+
+| Written | Is written as |
+|---|---|
+| Text as a child | JSX's text, as in a UI space (each line trimmed, the empty ones dropped, the rest joined by a space, character references decoded), with `&`, `<` and `>` escaped |
+| `{s}`, a `str` | `s`, with `&`, `<` and `>` escaped |
+| `{m}`, a `Markup` | `m`, as it is |
+| `{None}`, `{True}`, `{False}` | Nothing |
+| `{n}`, an `int` or a `float` | Its digits |
+| `{items}`, a `list` | Each item, by these rules |
+| `name="text"`, `name={s}` | `name="text"`, with `&`, `<`, `>`, `"` and `'` escaped. A string attribute is a Jac string: a character reference in it is not decoded |
+| `name` alone, `name={True}` | The bare attribute, `name` |
+| `name={False}`, `name={None}` | No attribute |
+| `name={n}`, a number | `name="n"` |
+| `{...d}`, a `dict[str, ...]` | Each entry as an attribute, by these rules. Each name is checked as it is written: an empty one, or one holding whitespace, a control character, `"`, `'`, `<`, `>`, `/` or `=`, raises `ValueError` |
+| `<Card title="x">...</Card>` | The call `Card(title="x", children=...)`, its children one `Markup`; with none, no `children` argument |
+| `<br />`, `<img ...>`: HTML's void elements (`area`, `base`, `br`, `col`, `embed`, `hr`, `img`, `input`, `link`, `meta`, `source`, `track`, `wbr`) | No end tag |
+| Any other element | An end tag, written `<path />` or not: a standalone SVG is well-formed XML |
+| `<script>`, `<style>` | Their children unescaped. One that holds `</script` (`</style`), in any case, raises `ValueError` |
+| `<html>` | `<!doctype html>`, then the element |
+| `<>...</>` | Its children |
+
+`str(m)` is the HTML, as `m.text` is, and an f-string or `print` writes it.
+`unsafe_html(text)` is a `Markup` of HTML already made, written unescaped: the one way to put text
+into markup as it is. Use it only on HTML the program controls.
+
+What a value is decides how it is written, by its type as the program compiles: a child or an
+attribute of a type markup has no form for (a `dict`, a function, an object other than a `Markup`)
+is E1053, and a value typed `any` that turns out to be one raises `TypeError` as it is written.
+
+Markup is text, so what a component of a UI space does as it lives is not in it: an event
+handler (`onClick`), `ref` and `key` are E1644, on an element and on a component; children of a
+void element are E1645; `has` and effects in a function are E5090, as in any native function. A
+tag that is a value (`<@{tag}>`) and a block of statements among the children (`{for ...}`) are
+refused (E5090): a list comprehension makes a list of children.
 
 ## Where it differs from React
 

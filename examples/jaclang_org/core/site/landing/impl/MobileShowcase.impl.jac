@@ -33,8 +33,8 @@ impl MobileShowcase -> JsxElement {
                         </h2>
                     <p className="mt-4 text-balance text-lg text-muted-foreground">
                             Not a video, not a mockup. The React Native app in{" "}<span
-                        className="font-mono"
-                    >mobile/</span>{" "}
+                            className="font-mono"
+                        >mobile/</span>{" "}
                             is imported into the site as a component and runs here, logged into the same graph as everything else. Use it.
                         </p>
                 </div>
@@ -62,11 +62,11 @@ impl MobileShowcase -> JsxElement {
                             </h3>
                         <p className="mt-3 text-base leading-relaxed text-muted-foreground">
                                 The phone UI lives in{" "}<span
-                            className="font-mono"
-                        >core/jacyac/native/</span>
+                                className="font-mono"
+                            >core/jacyac/native/</span>
                                 , shared by two apps: the{" "}<span
-                            className="font-mono"
-                        >mobile</span>{" "}
+                                className="font-mono"
+                            >mobile</span>{" "}
                                 app wraps it for Android and iOS, and this page wraps it in a bezel. The compiler picks the native icon variant for the device build and the web one here, and type-checks both.
                             </p>
                         <ul className="mt-6 flex flex-col gap-4">
@@ -91,10 +91,10 @@ impl MobileShowcase -> JsxElement {
                         >
                                 Open the web version side by side
                                 <HugeiconsIcon
-                            icon={ArrowUpRight01Icon}
-                            strokeWidth={2}
-                            className="size-3.5"
-                        /></Link>
+                                icon={ArrowUpRight01Icon}
+                                strokeWidth={2}
+                                className="size-3.5"
+                            /></Link>
                     </div>
                 </Reveal>
             </div>

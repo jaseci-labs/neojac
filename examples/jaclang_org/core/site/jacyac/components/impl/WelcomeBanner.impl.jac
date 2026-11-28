@@ -12,18 +12,18 @@ impl WelcomeBanner(onDismiss: Callable[[], None]) -> JsxElement {
                 </div>
                 <ul className="mt-2 flex flex-col gap-1 text-sm text-muted-foreground">
                     <li className="flex items-center gap-2"><span
-                        className="size-1.5 rounded-full bg-primary"
-                    />
+                            className="size-1.5 rounded-full bg-primary"
+                        />
                         Post a thought to get started
                     </li>
                     <li className="flex items-center gap-2"><span
-                        className="size-1.5 rounded-full bg-primary"
-                    />
+                            className="size-1.5 rounded-full bg-primary"
+                        />
                         Use #hashtags to join trending topics
                     </li>
                     <li className="flex items-center gap-2"><span
-                        className="size-1.5 rounded-full bg-primary"
-                    />
+                            className="size-1.5 rounded-full bg-primary"
+                        />
                         Explore and follow people in Explore
                     </li>
                 </ul>

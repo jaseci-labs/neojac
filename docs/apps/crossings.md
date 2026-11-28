@@ -88,11 +88,14 @@ one side:
 |---|---|
 | A `def` | A crossing: a call of it is a request. One that gives an iterator is a [stream](#calling-a-stream) |
 | A `walker` | A crossing: `root spawn W(...)` is a request |
-| A `glob`, a class, an enum | Refused (E5090): put it in a module no space holds, which each side compiles in |
+| A class, an enum | The type itself: the module it is wired to has it, and what a crossing sends or gives back is made of it on each side. The module makes an object of the class itself (`Task(title="t")`) when that is its fields alone, each with no default or a constant one; one made by an `init`, a `postinit` or any other default is made by the space that declares it (E2345) |
+| A `glob` | Refused (E5090): a value crosses only as a call's argument or result; put it in a module no space holds, which each side compiles in |
 | A function taken as a value (`f = greet;`) | Refused (E1264): another space's function is called, never held |
 
-The types a crossing's signature names (`Item` in `def lookup(name: str) -> Item | None`) are
-declared in an unplaced module that both spaces wire in, so both sides have the same class:
+The types a crossing's signature names (`Item` in `def lookup(name: str) -> Item | None`) are wired
+to the caller as its functions are. They can stay in the callee's own module, wired with the
+function (`notes ++> client { Summary, count_notes }`), or be declared in an unplaced module that
+both spaces wire in, which suits types several spaces share:
 
 <!-- example: not checked: an archwire is one file of a project -->
 ```jac
@@ -115,9 +118,9 @@ graph import {
 The calling module must name the type it is wired, or the wire is E1146 (`'Summary' is wired into
 'client', which never uses it`). Name it where the result is kept: `s: Summary = count_notes();`.
 Leaving the type's wire to the caller out altogether is E1182, which names the type and the wire
-that is missing: `'Summary', which count_notes()'s signature names, is not wired into 'client':
-wire it in with 'types ++> client { Summary }'`. Without the class, the caller cannot make the
-result.
+that is missing, from the module that declares the type: `'Summary', which count_notes()'s
+signature names, is not wired into 'client': wire it in with 'types ++> client { Summary }'`.
+Without the class, the caller cannot make the result.
 
 A module no space holds may be wired to another space's function too. It is compiled into each
 program that loads it, so its call crosses from that program's space: with `svc ++> shared {
@@ -459,5 +462,6 @@ no URL for space 'api'
 | E1276 | A space in an app calls a space that is in no app |
 | E1278 | A crossing's coroutine made and dropped on a JavaScript host |
 | E1308 | An argument, a result, a stream's item or a walker's field that is not sendable |
+| E2345 | An object of another space's class made where making it needs that space's code: an `init`, a `postinit`, or a default that is not a constant |
 | E1021, E1041 | On a JavaScript host: a stream read with a plain `for`, or awaited |
-| E5090 | A `glob`, class or enum wired across spaces; a spawn of another space's walker on anything but `root` in a JavaScript space |
+| E5090 | A `glob` wired across spaces; a spawn of another space's walker on anything but `root` in a JavaScript space |

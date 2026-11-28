@@ -1,5 +1,5 @@
 ---
-description: neojac launch, an app sent to the hosting platform and looked after there - signing in, launching a project's app from its source, the name it is launched as and its address, what is sent and what is not, its secrets, its logs, its domains, and where the session is kept.
+description: neojac launch, an app sent to the hosting platform and looked after there - signing in, launching a project's app from its source, the release of neojac it is built with, the name it is launched as and its address, what is sent and what is not, its secrets, its logs, its domains, and where the session is kept.
 keywords: neojac launch, deploy, hosting, hosting platform, launch login, launch deploy, launch secrets, launch logs, launch domains, launch.json
 ---
 # launch
@@ -67,8 +67,9 @@ launches nothing: an app is launched from its source, by `neojac launch deploy`.
 `neojac launch deploy <app>`, run in a project, launches the app of that name, one the project's
 `archwire.jac` declares and `neojac build <app>` builds:
 
-- **The project's directory is sent**, packed. The platform builds from source, with its own
-  compiler, so that the app is built for the machines it runs on.
+- **The project's directory is sent**, packed. The platform builds from source, so that the app
+  is built for the machines it runs on, and with the release of neojac that sent it
+  ([below](#the-release-it-is-built-with)).
 - **What a build or an install made is not sent:** `dist/`, `.jac/`, `node_modules/`, `target/`,
   `__pycache__/`, `replaced-by-neojac/`, the packages fetched into `eco/jac/`, `.git/`, and
   symbolic links. The platform installs the project's packages as `jac.toml` and `jac.lock` say,
@@ -93,6 +94,28 @@ neojac launch deploy admin --as shop-admin
 ```
 
 Launching again under the same name replaces the app with a new build of it. What it kept stays.
+
+### The release it is built with
+
+An app is built with the release of neojac that launched it, so the program that runs is the one
+`neojac build` makes here, of a project in the same language. Which releases a platform builds apps
+with is the platform's to say: its latest, and any it keeps beside it.
+
+- **A launch from a release the platform builds apps with is built with that release.** The build
+  runs `neojac version` first, so what `deploy` prints says which.
+- **A neojac built from source is built with the platform's latest release.**
+- **A neojac up to 0.5.3 does not say which release it is,** and is taken for 0.5.3.
+- **A launch from any other release is refused** before anything is built, saying which releases
+  the platform builds apps with and how to install its latest:
+
+```text
+launch: this platform builds apps with neojac 0.6.1 (its latest) and 0.6.0, and this launch was sent by neojac 0.5.4: install 0.6.1 (curl -fsSL https://github.com/jaseci-labs/neojac/releases/latest/download/install.sh | bash -s -- --version 0.6.1), check that `neojac build web` builds the project with it, and launch again
+```
+
+Install that release, as it says. A project written for another release may need changing for
+it: `neojac build <app>` says where, and the launch goes through once the project builds. A launch
+that waits for its build when the platform stops building apps with its release fails, saying
+the same.
 
 ### What changes where an app is launched
 
@@ -243,6 +266,7 @@ from anywhere.
 | `<address> could not be reached` | The platform did not answer |
 | `the name '...' is taken by another account's app` | Launch under another name, with `--as` |
 | `'...' is the project's app '...'` | That name is another app of a project: an app has a name of its own |
+| `this platform builds apps with neojac ...` | The neojac that launched is a release the platform builds no app with: install the one it names ([above](#the-release-it-is-built-with)) |
 | `the package '...' is at ..., outside the project` | A package declared by a path that leaves the project's directory |
 | `launch <n> of <name> failed` | Its build failed, or the app did not start: what was printed above says why |
 | `you have no app called '...'` | No app of that name is this account's |

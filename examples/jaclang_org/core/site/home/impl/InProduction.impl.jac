@@ -98,11 +98,20 @@ impl InProduction -> JsxElement {
         >
             <div
                 className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)] lg:gap-14"
-            ><div><p className="text-6xl font-semibold tracking-tight text-foreground sm:text-7xl">
+            >
+                <div>
+                    <p
+                        className="text-6xl font-semibold tracking-tight text-foreground sm:text-7xl"
+                    >
                             20×
-                        </p><p className="mt-2 text-base font-medium">less code</p><p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                        </p>
+                    <p className="mt-2 text-base font-medium">less code</p>
+                    <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
                             95% fewer lines for the same product.
-                        </p></div><ReductionBars /></div>
+                        </p>
+                </div>
+                <ReductionBars />
+            </div>
             <div
                 className="mt-10 flex flex-col gap-4 border-t border-border/70 pt-6 sm:flex-row sm:items-center sm:justify-between"
             >

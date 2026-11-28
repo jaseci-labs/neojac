@@ -16,7 +16,7 @@ async_element ::= ability | archetype
 
 await_expr ::= "await" pipe_call | pipe_call
 
-concurrent ::= ("flow" | "wait") walrus | walrus
+concurrent ::= ("flow" | "wait") concurrent | walrus
 ```
 
 `async` comes right before `def` (and after `static`, `override` or `class` on a method; see
@@ -358,6 +358,16 @@ A task of a call, `flow f(a, b)`, runs beside the code that made it:
 - **`wait t` on a task no thread has taken yet runs it on the waiting thread.** So tasks that
   wait for tasks never wait for a thread the pool has no room for, and a task waited for at once
   costs little more than a call.
+- **`wait flow f(a)` runs the call on the thread that waits, always.** A `flow` that `wait` is
+  applied to starts no task on the pool: it is the call, made where it is written, whose
+  outcome `wait` delivers.
+- **A task whose call is a foreign function waits without the program's lock.** A C module's
+  function, a crate's, or a method of a Rust value called by `flow` gives the lock up for the
+  call, so tasks that wait in foreign code overlap as tasks that wait in Jac do, and a Jac
+  function the foreign code calls back takes the lock for that call. Called with no `flow`, a
+  foreign function keeps the lock. A loop that must stay on its thread and let the others run
+  is `wait flow app.run()`. What such a task may be given is no more than no other thread can
+  change meanwhile (E1308; [Tasks that wait in Rust](../interop/rust-modules.md#tasks-that-wait-in-rust)).
 - **A task runs as its maker was at the `flow`**: with a copy of its context variables, and in a
   server for the same caller, so `root` in the task is the root of the call that made it.
 - **A program ends once its tasks are done**, whether or not it waited for them.

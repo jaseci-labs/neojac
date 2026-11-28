@@ -52,9 +52,9 @@ impl ClawHeader(model: ClawModel) -> JsxElement {
 impl OutcomeBadge(job: JobView) -> JsxElement {
     if job.status == "working" {
         return <Badge variant="secondary" className="gap-1"><LoaderCircle
-            size={12}
-            className="animate-spin"
-        />
+                size={12}
+                className="animate-spin"
+            />
                 working
             </Badge>;
     }

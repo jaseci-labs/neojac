@@ -92,7 +92,9 @@ The calls a server answers at once work on one graph in memory. It is written:
 
 - **When an endpoint returns, a stream ends or is closed because its client has gone, or a
   scheduled function ends.** What is in memory is compared with what was read, and what changed is written: each node and edge whose fields
-  changed, and each made since that a kept node leads to. The write is of everything in memory, so
+  changed, and each made since that a kept node leads to. The comparison is made at the end of
+  every call, one that changed nothing included: such a call writes nothing, but its time grows
+  with what the app holds in memory, in proportion to it. The write is of everything in memory, so
   it takes with it what a call still running has changed so far. If that call is then run again
   ([below](#several-instances-on-one-store)), what was written of it is in what it starts on, and
   that much of its work is done twice; if it fails instead, that much of it is kept.

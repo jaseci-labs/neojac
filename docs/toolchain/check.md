@@ -1,5 +1,5 @@
 ---
-description: neojac check, what it takes (a program, a project, an app, a space), what it checks, the format of a diagnostic, the order errors are reported in, and checking a project's apps and spaces.
+description: neojac check, what it takes (a program, a project, an app, a space, a plugin or a library), what it checks, the format of a diagnostic, the order errors are reported in, and checking a project's apps and spaces.
 keywords: diagnostic, diagnostics, type-check, error format
 ---
 # check
@@ -52,6 +52,7 @@ neojac check [<app>] --space <space> [<option>...]
 | `main.jac` | The Jac program that main module starts |
 | A directory whose `archwire.jac` declares spaces | The project: every app, and every space no app holds ([below](#checking-a-project)) |
 | A directory with a `jac.toml` | The Jac project's `main.jac` |
+| A directory whose `jac.toml` is a plugin's, a library's, an abstraction's or a contract's | The package: every module of it that no other module of it imports ([below](#checking-a-package)) |
 | Nothing | The directory the command runs in, as above |
 | A name with no extension or path in it, in a project whose `archwire.jac` declares spaces | That app: each program it is |
 
@@ -62,13 +63,12 @@ A program of another language is refused (E5090): its own compiler checks it whe
 | `--target <platform>` | Check the program as a build for that platform would compile it ([build](build.md#--target-building-for-another-platform)) |
 | `--memory <profile>` | The memory profile to check under: `managed`, `rc` or `nogc` (default: `jac.toml`'s `[memory] profile`, else `managed`). See [Memory](../language/memory.md) |
 | `--lib` | Check it as the shared library `build --lib` makes |
-| `--rt <dir>` | The runtime to check against (default: the `rt/` beside neojac) |
 | `--space <space>` | Check one space's program on its host: an app's program of it where an app is named, else the space alone |
 | `--profile <profile>` | Check the apps as the archwire's profile of that name arranges them |
 | `--place <directory>` | Check the program as a build for that place compiles it, with the plugins it provides ([Plugins](../apps/plugins.md#the-place-a-program-is-built-for)) |
 | `--diagnostics <form>` | How diagnostics are written on stderr: `human` (the default), or `json`, one record a line ([Diagnostics as JSON](#diagnostics-as-json)) |
 
-`check` takes one program. It checks that main module and every module it imports; there is no need to name the others, and naming two is an error. `--target`, `--memory`, `--lib` and `--rt` are options of one program's check: a main module's, or a space's named with `--space`.
+`check` takes one program. It checks that main module and every module it imports; there is no need to name the others, and naming two is an error. `--target`, `--memory` and `--lib` are options of one program's check: a main module's, or a space's named with `--space`.
 
 ## What it checks
 
@@ -101,7 +101,8 @@ A project written by hand may take lint rules out, by `human_mode = true` under 
 - **The severity**: `error`, or `warning` for a warning, which is shown and fails nothing.
 - **The code**: one condition, always the same code. Look one up with `neojac docs <code>`; [Diagnostics](../reference/diagnostics/e00-1.md) lists them all. A diagnostic of another tool that neojac ran has that tool's own code after the tool's name: `error[rustc E0308]`.
 - **The source line**, marked with `^` from where the diagnostic's place starts to where it ends; a place that runs on to later lines is marked to the end of its first. A line longer than 120 columns is cut to 120 around the column.
-- **Notes**, indented four spaces: where the code being checked came from, when the compiler made it from other code (a function specialized for compile-time arguments), and what the diagnostic is part of when a build of several programs reports it (`in app 'site'`, `in space 'web'`, `in module 'tests/cart.jac'`).
+- **Notes**, indented four spaces: where the code being checked came from, when the compiler made it from other code (a function specialized for compile-time arguments: `in encode[dict[str, any]], asked for at main.jac:7:11`, each copy back to the line of the program that asked for the first, with `where 'f' is ...` for the pass of a `comptime for` that asked), and what the diagnostic is part of when a build of several programs reports it (`in app 'site'`, `in space 'web'`, `in module 'tests/cart.jac'`).
+- **A traceback**, for an error raised while a `comptime def` ran: the diagnostic's place is the call that ran it (a decorator, a compile-time value), and the traceback lists the lines of the comptime functions it passed through, outermost first.
 - **The count**, after the last diagnostic, when there is an error: `1 error` or `N errors`, then the warnings, `2 errors, 1 warning`.
 - **Where to read more**: a last line naming the command that explains the first error's code, `` `neojac docs E1110` explains an error by its code. `` ([docs and skills](docs.md)).
 
@@ -136,7 +137,7 @@ neojac check wrong.jac --diagnostics json
 {"severity":"ERROR","kind":"DIAGNOSTIC","origin":"jac","code":"E1001","msg":"expected int, found str","args":["int","str"],"span":{"file":"wrong.jac","line":2,"col":18,"end_line":2,"end_col":25,"text":""},"labels":[],"children":[],"fixes":[],"expansion":[],"frames":[],"causes":[],"units":[],"facts":{},"result":null}
 ```
 
-A record holds its `severity` (`ERROR`, `WARNING`, `INTERNAL` for a defect of neojac itself), the `origin` whose diagnostic it is (`jac` for neojac's own, else the tool's name) and its `code`, the message `msg` and the `args` that filled its template, its place `span` with where it ends, and the `units` it is part of (an app, a space, a module). The exit status is the same as without the option. A neojac that another neojac runs sends its records the same way, to the file `NEOJAC_DIAGNOSTICS_TO` names ([Environment](../reference/environment.md)), and the one that ran it shows them as part of what it was building.
+A record holds its `severity` (`ERROR`, `WARNING`, `INTERNAL` for a defect of neojac itself), the `origin` whose diagnostic it is (`jac` for neojac's own, else the tool's name) and its `code`, the message `msg` and the `args` that filled its template, its place `span` with where it ends, the notes as `expansion` (each with its `kind`, its `text` and the `span` it names), a `comptime def`'s lines as `frames` (each with its `function` and `span`), and the `units` it is part of (an app, a space, a module). The exit status is the same as without the option. A neojac that another neojac runs sends its records the same way, to the file `NEOJAC_DIAGNOSTICS_TO` names ([Environment](../reference/environment.md)), and the one that ran it shows them as part of what it was building.
 
 ## The order errors are reported in
 
@@ -202,6 +203,25 @@ svc.jac:2:12: error[E1002]: cannot return int from a function declared to return
 ```
 
 A check that ends without reporting anything says where what it printed is kept. Two checks of one project at once do not meet: each keeps its own files while it runs. See [Building apps](../apps/building.md) for spaces, apps and profiles.
+
+## Checking a package
+
+A package whose `jac.toml` says it is no program (`kind = "plugin"`, `"library"`, `"abstraction"`
+or `"contract"`) is checked by its directory, or with nothing named in it:
+
+```sh
+neojac check                       # in abstractions/store/sqlite: the plugin's modules
+neojac check libraries/sqlfile     # a library, by its directory
+```
+
+Its modules are checked as a project's modules that no space holds are: each module its
+`archwire.jac` governs that no other module of it imports, as a native program of its own, at
+once, each in a process of its own, so that what they import is checked through them. A plugin's
+check holds it to what it may import (E2233), and a module `[check] exclude` names is left out.
+A package with no Jac module to check has its `archwire.jac` judged alone. `--target`, `--memory`,
+`--lib`, `--space`, `--profile` and `--place` are options of a program's check, and a package's
+takes none of them. `neojac build` and `neojac run` refuse such a package (E5184): a program that
+uses it builds it.
 
 ## What goes wrong
 

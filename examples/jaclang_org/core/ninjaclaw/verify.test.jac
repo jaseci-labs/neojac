@@ -76,7 +76,7 @@ test "the linux sandbox shares nothing writable but the work dir and its cache" 
     args = bwrap_args(work, cache);
     assert "--unshare-all" in args and "--die-with-parent" in args;
     binds = [args[i + 1] for i in range(len(args) - 1) if args[i] == "--bind"];
-    assert sorted(binds) == sorted([str(cache), str(work)]), binds;
+    assert sorted(binds) == sorted([str(cache), str(work)]), str(binds);
     assert "/" not in [
         args[i + 1]
         for i in range(len(args) - 1)

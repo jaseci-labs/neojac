@@ -197,12 +197,12 @@ neojac docs E1030 --json
 
 ## Where the pages are
 
-The pages are Markdown files in a directory `docs/`, which neojac finds as it finds its runtime: beside its own executable's directory, or in the nearest directory above it that has one holding a `nav.json`. Links to neojac are followed first, so a neojac installed as `~/.local/bin/neojac` reads its release's pages.
+The pages are Markdown files in a directory `docs/`, which neojac finds as it finds its runtime ([build](build.md#how-the-runtime-is-found)): a release carries them inside its one file, and a neojac built from source reads the `docs/` of the directory `NEOJAC_STORE` names.
 
 | neojac | Its pages |
 |---|---|
-| An installed release, `<prefix>/bin/neojac` | `<prefix>/docs/` |
-| Built in a checkout, `build/bin/neojac` | The checkout's `docs/` |
+| A release | Inside it, and written out as `store/<id>/docs/` in its cache the first time a command reads them ([The build cache](cache.md#what-neojac-writes-out-of-itself)) |
+| Built in a checkout, run with `NEOJAC_STORE=build/store` | The checkout's `docs/` |
 
 `neojac docs --path` prints the directory, for tools that read the files themselves:
 
@@ -213,7 +213,7 @@ grep -rl "flow for" "$(neojac docs --path)"
 A neojac with no `docs/` stops with:
 
 ```text
-neojac: no documentation found: no docs/nav.json in /opt/neojac/bin or a directory above it (a release has docs/ beside bin/)
+neojac: no documentation found: this neojac carries no docs/nav.json
 ```
 
 `nav.json` in that directory gives the sections, their titles and their pages' order. Each page starts with front matter: `description` (the line `neojac docs section` shows for it), `keywords` (the words the page is the definition of) and `grammar` (the grammar's rules it explains). The same files are what the documentation's web reader shows.
@@ -296,5 +296,5 @@ A name that is no skill is an error (`there is no skill '<name>'`), with the nea
 | `--serve opens at a page or a word: the page it serves has the search` | `neojac docs search <text> --serve` |
 | `--listen is where --serve serves the pages` | `--listen` without `--serve` |
 | `cannot serve at <address>: ...; name another with --listen` | The address is taken, or is not this machine's |
-| `the toolchain at <lib> has no page for the viewer` | This neojac's `lib/` has no `viewers/docs/`: it is not a whole install |
+| `this neojac carries no page for the viewer (<bundle>)` | This neojac has no `lib/viewers/docs/`: it was built from source, and the directory `NEOJAC_STORE` names has none |
 | `there is no skill '<name>'` | `neojac skills <name>` or `skills install <name>` with a name no skill has |

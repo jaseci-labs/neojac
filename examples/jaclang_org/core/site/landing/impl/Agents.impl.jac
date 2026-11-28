@@ -53,8 +53,8 @@ impl Agents -> JsxElement {
                                 jac guide
                             </code>{" "}
                             prints agent-loadable skills;{" "}<code
-                        className="rounded bg-muted pl-1.5 pr-1.5 text-foreground"
-                    >
+                            className="rounded bg-muted pl-1.5 pr-1.5 text-foreground"
+                        >
                                 jac mcp
                             </code>{" "}
                             is a full MCP server. A whole app fits in one file that fits in a context window.

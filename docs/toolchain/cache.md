@@ -35,11 +35,26 @@ NEOJAC_CACHE_DIR=/tmp/jaccache neojac build main.jac -o main
 
 `2` is the format of what the cache holds. A neojac that keeps another format keeps it in a directory of that name beside this one, and neither touches the other's: an older neojac's `1/` stays until you delete it.
 
-Beside the format's directory, neojac keeps `fetched/`: what a command downloads the first time it needs it, such as another platform's C libraries for a cross-build ([build](build.md#--target-building-for-another-platform)), a target's Rust standard library, or the browser `neojac browse` drives ([browse](browse.md#the-browser)). It is a cache too: anything in it is fetched again when it is missing. `browse/` beside it holds the directories of the browser sessions that are open.
-
-neojac never writes into its own installation. What it makes for the toolchain's programs (CPython's interpreter, which a program using Python embeds) is kept in the cache too, so a release may be installed read-only.
+Beside the format's directory, neojac keeps `fetched/`: what a command downloads the first time it needs it, such as a target's Rust standard library, or the browser `neojac browse` drives ([browse](browse.md#the-browser)). It is a cache too: anything in it is fetched again when it is missing. `browse/` beside it holds the directories of the browser sessions that are open.
 
 Deleting the cache when no build is running is safe: the next build makes it again, and compiles everything once more.
+
+### What neojac writes out of itself
+
+A release of neojac is one file, which carries its runtime, its toolchain and its documentation inside itself, compressed ([What one download contains](../start/index.md#what-one-download-contains)). neojac reads Clang's headers from there as it compiles. Everything else is opened as a file by something that takes a path (the linker, `rustc`, CPython, Node, an editor that goes to a definition in the runtime), so neojac writes it out the first time it is needed, a part at a time, and reads it there from then on. It never writes beside its own executable, so a release may be installed read-only.
+
+| Beside `2/` | What it is |
+|---|---|
+| `store/<id>/` | The parts written out, laid out as they are named inside neojac: `rt/`, `lib/targets/<target>/`, `lib/cpython/lib/`, `lib/rust/`, `docs/`. `<id>` names everything a neojac carries, so each release has its own, and two installs of one release share it |
+| `linked/<id>/` | CPython and Node as shared libraries, kept by the neojac and the parts they are made of: what neojac loads into its own process to be `neojac python`, `neojac node`, `neojac npm` and `neojac npx`, and to do its own work with packages. neojac links each from the CPython and the Node it carries the first time one is needed, and says so: `building this neojac's CPython`, `building this neojac's Node` |
+| `cross/<version>/<platform>/` | Another platform's neojac of the same release, fetched the first time a build for that platform needs what only that one carries: its C libraries, its CPython, its Node ([build](build.md#--target-building-for-another-platform)). It is checked against the release's checksum, and read as neojac reads itself |
+
+In `2/`, `names/` holds links to neojac under the names other tools start it by (`rustc`, `cargo`, `rustdoc`, each target's C compiler and archiver, which a crate's build script runs, and `python3.15` and `node`, each in a directory of its own, which a virtual environment, an npm script and `process.execPath` name): started by one of those names, neojac is that tool. On Windows each is a small launcher in place of a link.
+
+- A part is written under a name of its own and renamed into place whole, so two commands that need the same part at once both find it complete.
+- Nothing here is ever out of date: a part is named by the neojac that carries it, and a library neojac linked of its parts by the neojac and the parts it was linked of. Delete any of it, or all of it, and the next neojac command that needs a part writes it out again. Until one does, what reads a part by its path without neojac finds it gone: a program a plain build linked with Python, which reads the standard library there ([Python](../interop/python.md#what-a-program-using-python-carries)), and a virtual environment's `python` started by itself.
+- An older release's `store/`, `linked/` and `cross/` directories stay until you delete them. They are not counted in the cache's size ([below](#its-size-and-what-is-deleted)).
+- A neojac built from source carries nothing: it reads the directory [`NEOJAC_STORE`](../reference/environment.md) names, where it stands, and writes no `store/`. Its CPython and Node are linked into `linked/` and its names made in `names/` all the same.
 
 ## What it keeps
 
@@ -92,7 +107,7 @@ neojac: the build cache /tmp/jaccache/2 holds files and no CACHEDIR.TAG: neojac 
 
 A build also records what it read, in the project's `.jac/build/` ([Projects](projects.md)), one record for each output. The next build of that output has nothing to do, and does not touch the output, when all of these are as they were:
 
-- the compiler: the same neojac executable, by whatever name it was run, with the same toolchain (`lib/`, or what `NEOJAC_LIB_DIR` names);
+- the compiler: the same neojac executable, by whatever name it was run, with the same toolchain (what it carries, or what `NEOJAC_STORE` names);
 - the command line: the same arguments, with the paths in it made absolute;
 - the output: as the last build left it;
 - every file the build read: each module, annex, `jac.toml`, C source and header, package declaration;

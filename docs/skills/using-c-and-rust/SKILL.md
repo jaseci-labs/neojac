@@ -161,12 +161,17 @@ pub extern "C" fn add(a: i64, b: i64) -> i64 {
 `import from adder { add }` then `print(add(2, 3))` prints `5` after `neojac build`. Rust's own
 API needs no `extern "C"`: `import from std.collections { HashSet }`, and a crate's ordinary
 `pub` items through its wire, are used natively, generics by their arguments
-(`HashSet[u32].new()`), a generic method by its instance at the call (`o.zip[u32](p)`), a
+(`HashSet[u32].new()`), a generic method or function by its argument where a type parameter is
+the type of one (`e.label("title")` of an `impl Into<String>`) and by its instance at the call
+where none is (`o.zip[u32](p)`), a lambda for a closure, one Rust keeps included
+(`Hook.new(lambda (x: int) -> int { return x + 1; })`), a
 slice of numbers as `Slice[u32]` (`import from rust { Slice }`, `v.as_slice().sub(a, b)`,
 `bytes(s)` of a `Slice[u8]`), a slice's methods on a `Vec` (`v.sort()`, `v.contains(&x)`), an
 iterator stepped by `next()`, a panic as `RustPanic` (`import from rust { RustPanic }`). A value
 whose drop runs code is dropped where an `own` local's scope ends; a local or a field with no
-ownership annotation holds one as a managed place, from which no `own` binding takes it (E1637). `neojac docs Rust module` has what crosses.
+ownership annotation holds one as a managed place, from which no `own` binding takes it (E1637). A call that waits in C or Rust is written as a task, `wait flow gate.pass(ms)` or
+`flow nap(ms)`, so that the program's other threads run meanwhile: called with no `flow`, foreign
+code keeps the program's lock. `neojac docs Rust module` has what crosses.
 
 4. **Call Jac from C.** A wire gives a C module a Jac function by name
    (`jhelp --> shapes.shapes { jhelp_scale }` for the project's own C file), and the C includes
@@ -228,7 +233,9 @@ with entry {
 | E5090 `... as a C type` | A list, dict or Jac object in a declaration | Use the C types (`neojac docs C library`) |
 | E1021 `cannot iterate PtrView` | A view in a `for` | `for i in range(len(v))` |
 | E1145 | The header or crate has no such name | Check spelling; for Rust, `pub` and `#[unsafe(no_mangle)]` |
-| E5138 | A Rust item Jac cannot bind; the message says why (a type that borrows) | Use what it returns instead, or give it a C signature |
+| E5138 | A Rust item or method Jac cannot bind; the message says why (a type that borrows, a type parameter the call must name) | Use what it returns instead, name the type (`c.first_as[u64]()`), or give it a C signature |
+| E1625 | No instance of a generic Rust function or method for these types | Give an argument of a type the bounds hold for (`u32(3)`, not `"three"`) |
+| E1308 | A task of a foreign call is given what another thread could change, or a Rust value that is not `Send` | Give it numbers, a `str`, `bytes` or a `ptr`; or call it with no `flow`, inside a Jac function |
 | E1637 | An `own` binding takes a Rust value whose drop runs code from a managed local or field | Bind it `own` where it is made (`s: own HashSet[u32] = HashSet[u32].new();`), or keep the binding managed |
 | E5134, E5135, E5140 | The headers, a C source, or a crate fail to compile | Read Clang's or rustc's errors printed above |
 | E5149, W5021 | A library name that is no file, or absent on the target | `neojac docs C library` (naming the library) |

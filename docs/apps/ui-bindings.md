@@ -1,6 +1,6 @@
 ---
-description: Which UI library a browser or hermes space's components become, and what bundles the space - the ui and bundler abstractions, the react, preact, solid, react_native and none plugins, the vite and expo plugins, naming a space's plugins in jac.toml, and a project's own ui plugin or bundler.
-keywords: ui plugin, UI plugin, bundler plugin, spaces.ui, spaces.base, spaces.bundler, bundler, @jac/vite, vite, expo, react, preact, solid, react_native, rerender, fine-grained
+description: Which UI library a browser or hermes space's components become, and what bundles the space - the ui and bundler abstractions, the react, preact, solid, dom, react_native and none plugins, the vite and expo plugins, naming a space's plugins in jac.toml, and a project's own ui plugin or bundler.
+keywords: ui plugin, UI plugin, dom, bundler plugin, spaces.ui, spaces.base, spaces.bundler, bundler, @jac/vite, vite, expo, react, preact, solid, react_native, rerender, fine-grained
 ---
 # UI plugins and bundlers
 
@@ -18,13 +18,14 @@ and nothing where the program runs chooses another.
 
 ## The `ui` plugins neojac ships
 
-| Plugin | Library | Model | Hosts | Packages it owns | Its bundler |
-|---|---|---|---|---|---|
-| `react` | React, React Router | rerender | browser, node | `react`, `react-dom`, `react-router-dom` | `vite` |
-| `preact` | Preact | rerender | browser | `preact` | `vite` |
-| `solid` | Solid | fine-grained | browser | `solid-js` | `vite` |
-| `react_native` | React Native | rerender | hermes | `react`, `react-native` | `expo` |
-| `none` | none | none | browser, hermes, node | | |
+| Plugin | Library | Model | JSX | Hosts | Packages it owns | Its bundler |
+|---|---|---|---|---|---|---|
+| `react` | React, React Router | rerender | calls of `react/jsx-runtime` | browser, node | `react`, `react-dom`, `react-router-dom` | `vite` |
+| `preact` | Preact | rerender | calls of `preact/jsx-runtime` | browser | `preact` | `vite` |
+| `solid` | Solid | fine-grained | JSX text, for Solid's compiler | browser | `solid-js` | `vite` |
+| `react_native` | React Native | rerender | calls of `react/jsx-runtime` | hermes | `react`, `react-native` | `expo` |
+| `dom` | none: neojac's own runtime | fine-grained | the DOM's own calls, against its runtime | browser | | none |
+| `none` | none | none | refused (E5178) | browser, hermes, node | | |
 
 The standard plugin, which a space has when `jac.toml` names none, is its host's:
 
@@ -38,7 +39,7 @@ The standard plugin, which a space has when `jac.toml` names none, is its host's
 
 ### What each model does with a component
 
-| Language | `rerender` (React, Preact, React Native) | `fine-grained` (Solid) |
+| Language | `rerender` (React, Preact, React Native) | `fine-grained` (Solid, `dom`) |
 |---|---|---|
 | A component's body | Runs each time the component is shown again | Runs once; what reads state updates itself |
 | `has x: T = v;` | The library's state function (`useState`) | Its signal (`createSignal`) |
@@ -51,15 +52,18 @@ The standard plugin, which a space has when `jac.toml` names none, is its host's
 | An element's `key` | Given to the library, which keeps each row by it | Left out: the keyed list keeps each row by its item, and the element gets no `key` attribute |
 | An element written as a statement in a `{ ... }` block, outside its loops | Keyed by its place among the block's elements (`key="$0"`, `"$1"`, ...), so the element of an `if` is the same element whenever it is there; a `key` the program wrote is kept, and an element a loop makes takes its key from the program | An item of the block's list, with no key |
 
+Under `dom` the functions in the right-hand column are its runtime's own: `signal`, `computed`,
+`effect`, `cleanup`, `untrack` and `each`.
+
 What the language refuses so that both models give the same result is on
 [Components and JSX](components.md#rules-a-ui-plugin-adds).
 
-### Only React has file routes
+### File routes: React and dom
 
 The routes of `pages/` ([Pages](pages.md)) need a `ui` plugin that knows how to start a routed
-app, which `react` does. A space under Preact or Solid has no pages, and one that holds a module below
-`pages/` is refused (E1279, at the space's declaration); its `entry` module renders into the page
-itself, with the library's own function:
+app, which `react` and `dom` do. A space under Preact or Solid has no pages, and one that holds a
+module below `pages/` is refused (E1279, at the space's declaration); its `entry` module renders
+into the page itself, with the library's own function:
 
 <!-- example: not checked: an entry is a module of a browser space, with JSX and an npm import -->
 ```jac
@@ -79,13 +83,70 @@ with entry {
 ```
 
 Under Preact the last line is `render(<Counter step={2} />, document.getElementById("root"));`, with
-`render` imported from `"preact"`.
+`render` imported from `"preact"`. Under `dom` a space with no pages starts the same way, with
+`mount` from `"@jac/runtime"`: `mount(lambda -> any { return <Counter step={2} />; },
+document.getElementById("root"));`.
+
+### dom
+
+`dom` is a `ui` plugin with no library: the compiler makes each element with the DOM's own calls,
+against neojac's runtime (`abstractions/ui/dom/runtime.js`). Its state is fine-grained, as Solid's
+is: a component runs once, and only what reads state follows it. It needs no npm package and no
+bundler, so a `dom` space is served as the compiler writes it
+([Pages](pages.md#a-space-with-no-bundler)), and its pages run under a Content-Security-Policy of
+`script-src 'self'; style-src 'self'`: it evaluates no string and writes no `style` attribute.
+
+<!-- example: not checked: a component is a module of a browser space, with JSX -->
+```jac
+def Counter(step: int = 1) -> JsxElement {
+    has count: int = 0;
+
+    doubled = count * 2;
+
+    return <p class={"odd" if count % 2 else "even"}>
+        <button onClick={lambda { count = count + step; }}>add</button>
+        {count} doubled {doubled}
+        <input spellcheck="false" disabled={count > 9} />
+    </p>;
+}
+```
+
+- **Static JSX is plain DOM.** An element is made once, with `document.createElement` (and in its
+  namespace for SVG and MathML: `<svg>` and what is inside it, and a tag only SVG has, such as
+  `<circle>`). A child, an attribute, a spread or a component's prop is kept current only when its
+  own code reads state, a derived value, a hook's result or a prop: `{count}` and `class={...}`
+  above, not the button's `onClick`, whose value is a function.
+- **Attribute names are HTML's**: `class`, `for`, `aria-label`, `data-id`, `spellcheck`. React's
+  `className` and `htmlFor` on an element, and its `onDoubleClick`, are refused (E5273): the first
+  two would set attributes no browser reads, and the third would listen for an event no browser
+  sends. HTML's are `class`, `for` and `onDblClick`.
+- **`True` writes the attribute bare, and `False` and `None` remove it.** An enumerated attribute
+  whose value is the word `false` is written as a string: `spellcheck="false"`,
+  `contenteditable="false"`, not `spellcheck={False}`, which removes it.
+- **`value`, `checked` and `selected` are set as properties**, so a field shows what the program
+  says; a `<select>`'s `value` is set after its options.
+- **`on` and a capital letter is a listener** for the rest in lower case: `onClick` is `click`,
+  `onKeyDown` `keydown`. It is removed with the element's part of the page.
+- **`style`** is a string, the element's whole declaration, or a dict of CSS properties by their
+  CSS names (`{"font-size": "12px"}`); either is set through the CSSOM, never as an attribute.
+- **`ref={r}`** sets `r.current` to the element as it is made.
+- **A list comprehension of elements** (`[<li>{x}</li> for x in items]`) is a keyed list: each row
+  is kept with its item, moved where the item moves, and disposed when it leaves. A `key` is not
+  needed and not given to the element.
+- **A component** runs once; a prop that reads state is read where the component reads it, and
+  `children` is made where it is shown. A `**rest` parameter follows its props.
+- **`@jac/runtime`** has, beside the session functions every plugin's has, `Link`, `navigate`,
+  `Navigate`, `Outlet` and `unsafe_html` ([Pages](pages.md#jacruntime)), and `mount(fn, element)`,
+  which shows what `fn` makes in `element` in place of what it held and gives a function that
+  removes it.
 
 ### none
 
-Under `none`, `has` and effects in a function are E1218, JSX is passed through to the bundler as
-it is written, and the library's functions are ordinary imports. Any JSX library that no shipped
-`ui` plugin owns can be used this way, with no change to the compiler.
+`none` means no UI and no JSX. Under `none`, `has` and effects in a function are E1218, JSX is
+E5178, and a library's functions are ordinary imports. A JSX library that no shipped `ui` plugin owns is used through a plugin of
+the project's own ([below](#a-projects-own-ui-plugin)) whose `[ui.jsx]` says `form = "calls"` and
+the package whose `jsx-runtime` makes its elements, or `form = "text"` to leave the JSX to the
+library's own compiler, with no change to the compiler.
 
 ## Choosing a space's plugins
 
@@ -130,6 +191,7 @@ config = "demos/solid.vite.config.ts"
 | A table of a plugin the space is not built with, or a setting its bundler does not have | E5158 |
 | A module imports a package another `ui` plugin owns (`solid-js` in a React space) | E1219 |
 | The space holds a page, and its `ui` plugin has no file routes (`pages.*` in a Solid space) | E1279 |
+| A space with no bundler imports an npm package | E5272 |
 
 A package owned by a `ui` plugin is that plugin's alone, under `none` too: `react` in a `none`
 space is E1219.
@@ -176,6 +238,7 @@ owns = ["solid-js"]            # packages only this plugin's spaces may import
 bundler = "vite"               # the bundler of a space that names none
 
 [ui.jsx]
+form = "text"                  # what the compiler makes of JSX: calls, dom or text
 lowercase_tags = true          # whether <div> exists (E1221 when not)
 no_text_in = []                # tags that show no bare text (E1220)
 keys = false                   # whether the library reads an element's `key`; default: true
@@ -207,11 +270,23 @@ tag = "For"
 prop = "each"
 ```
 
-A plugin whose `hosts` holds `node` names in `[ui.jsx]` the package whose `jsx-runtime` makes a
-node space's elements, `source = "react"`: a node space's JSX is a call of its `jsx`. A plugin
-that names none refuses JSX in a node space (E5178). `react` runs on a node space so: a node
-space whose `[spaces.<space>.ui] plugin` is `react` makes React's elements, which
-`react-dom/server` renders as React does, its components and hooks React's own.
+`[ui.jsx]` `form` says what the compiler makes of JSX. A plugin with no `[ui.jsx]` table refuses
+JSX on every host (E5178):
+
+| `form` | The compiler makes | Shipped plugins |
+|---|---|---|
+| `calls` | Calls of `jsx`, `jsxs` and `Fragment` of `<source>/jsx-runtime`, the automatic runtime React and Preact share; `source` names the package (`source = "react"`) | `react`, `preact`, `react_native` |
+| `dom` | The DOM's own calls, against the plugin's `runtime` | `dom` |
+| `text` | JSX, written to a `.jsx` file for the library's own JSX compiler, which the space's bundler runs | `solid` |
+
+A `form` other than these, `calls` with no `source`, and `dom` with no `[ui] runtime` are each
+E5158, at the plugin's `form`. `[ui.each]` names a component (`tag`, `prop`) under `form =
+"text"`, and a function (`name`) under `form = "dom"`.
+
+The compiler writes the calls itself, on every host, so a node space needs no bundler for its JSX.
+`react` runs on a node space so: a node space whose `[spaces.<space>.ui] plugin` is `react` makes
+React's elements, which `react-dom/server` renders as React does, its components and hooks React's
+own.
 
 A rerender plugin names `[ui.ref]` (`useRef`) where a fine-grained one names `[ui.computed]`,
 `[ui.cleanup]`, `[ui.untrack]` and `[ui.each]`. Two more keys of `[ui]` are for a plugin that
@@ -421,3 +496,4 @@ bundler with no `serve` bundles under `neojac dev` as it does in a build.
 | E1220, E1221 | Text or a lowercase tag that React Native does not show |
 | E1222, E1223, E1224 | Code whose meaning would depend on the model, under a fine-grained `ui` plugin |
 | E1279 | A page in a space whose `ui` plugin has no file routes |
+| E5273 | React's `className`, `htmlFor` or `onDoubleClick` on an element under `dom` |

@@ -246,9 +246,11 @@ frameworks = ["CoreFoundation"]    # macOS frameworks its code calls
 - `frameworks` names the macOS frameworks the module's code calls, so it belongs in
   `[target.darwin]`. At the top level it
   is refused (E5132, `macOS's go in [target.darwin]`) in a build for another operating system.
-- `{lib}` in a path is the toolchain's `lib/` directory, and `{platform}` the program's platform
-  (`linux-x86_64`, `macos-aarch64`, `windows-x86_64`, ...). So a module builds on the C libraries
-  the toolchain ships for each platform:
+- `{lib}` in a path is the toolchain's `lib/`, which neojac carries inside itself and writes out
+  into its cache as a build needs it, and `{platform}` the program's platform (`linux-x86_64`,
+  `macos-aarch64`, `windows-x86_64`, ...). So a module builds on the C libraries the toolchain
+  has for each platform, another platform's fetched with that platform's neojac the first time
+  ([build](../toolchain/build.md#--target-building-for-another-platform)):
 
   ```toml
   include = ["{lib}/clibs/{platform}/include"]
@@ -265,7 +267,8 @@ frameworks = ["CoreFoundation"]    # macOS frameworks its code calls
   it names the library, by a path from the archive's directory (`libfoo.a.shared` holding
   `libfoo.so`). On Linux a plain build then links the library, not the archive, and the program
   finds it where it was at the build; a `--release` build links the archive in
-  ([build](../toolchain/build.md#--release)). neojac's own `lib/` says this of LLVM's archives.
+  ([build](../toolchain/build.md#--release)). The LLVM a build of neojac itself links says this
+  of its archives.
 - `crates` names Rust crates the module's code links, by their directories, each holding a
   `Cargo.toml`: each is built in the program's one Rust link, against its one standard library,
   and wired whole into the C module, as `crate ++> cmod` does. It is for a crate the project's

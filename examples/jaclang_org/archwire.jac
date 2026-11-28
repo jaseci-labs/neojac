@@ -4,7 +4,6 @@ graph layers {
     layer demos { demos.*; }
     layer mobile { mobile.*; }
     layer pages { pages.*; }
-    """What no wire joins to the rest."""
     layer apart { web; }
 }
 

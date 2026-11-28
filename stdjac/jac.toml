@@ -1,0 +1,30 @@
+# stdjac: what a program's source says of the language's abstractions (`root`,
+# `by llm()`, `:prot`, `@job`), and what connects that to the plugin a
+# project binds for each. The abstractions, the contract a plugin of each
+# implements and the plugins neojac ships are the public repository's, in
+# `abstractions/`: this imports the contracts, and nothing of a plugin.
+[project]
+name = "stdjac"
+kind = "library"
+
+[check]
+# jsx is what a JS space's program says of JSX. neojac loads it into one, and
+# it is no program of its own: an app's check is its check.
+exclude = ["jsx.jac"]
+
+[spaces.signing]
+base = "/__jac/auth/"
+
+[spaces.signing.ui]
+plugin = "dom"
+
+[spaces.signing.document]
+title = "Signing in"
+lang = "en"
+noscript = "Signing in needs JavaScript."
+
+[spaces.signing.headers]
+Content-Security-Policy = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+X-Frame-Options = "DENY"
+Referrer-Policy = "no-referrer"
+Cache-Control = "no-store"

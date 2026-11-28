@@ -1,6 +1,6 @@
 ---
 description: A browser space's pages - routes from the files under pages/, a page's parameters, the layout and the entry's app, the HTML shell, @jac/runtime, calling the server and reading its streams, signing in, a desktop app's arrangement and local users, npm packages and style sheets.
-keywords: page, pages, route, routes, layout, JsxPage, JsxLayout, @jac/runtime, Link, Outlet, navigate, sign_in, sign_out, signed_in, signed_in_as, signed_in_name, jacArrangement, jacUseArrangement, unsafe_html, browser space
+keywords: page, pages, route, routes, layout, JsxPage, JsxLayout, @jac/runtime, Link, Outlet, navigate, sign_in, sign_out, signed_in, signed_in_as, signed_in_name, signed_in_account, sign_in_asks, sign_in_with, finish_sign_in, forgot_password, mail_check, check_address, reset_password, device_sign_in, jacArrangement, jacUseArrangement, unsafe_html, browser space
 ---
 # Pages
 
@@ -10,8 +10,8 @@ modules under `pages/`: each one is a URL, and its `page` function is what that 
 
 This page covers what makes a page and how the pages fit together. What a page returns, JSX,
 state and effects, is on [Components and JSX](components.md) (`neojac docs component`). File
-routes need the `react` plugin, the standard `ui` plugin of a browser space: a page in a space
-built with another is E1279 ([UI plugins and bundlers](ui-bindings.md)).
+routes need the `react` plugin, the standard `ui` plugin of a browser space, or `dom`: a page in a
+space built with another is E1279 ([UI plugins and bundlers](ui-bindings.md)).
 
 ## The shortest site
 
@@ -198,12 +198,49 @@ one script, `/@jac/entry`, which is the space's compiled routes and entry:
 ```
 
 The app serves the bundle. A request for a path that is not a file of the bundle, `/user/amy`,
-gets `index.html`, even with a dot in it (`/user/a.b`, `/docs/v0.39`), and the router picks the
-page in the browser. A path that names a missing file of a kind it serves (`/x.js`, `/logo.png`)
-is 404, and one that leads out of the bundle's directory, by `..` or a symbolic link, is 403. Only
+gets `index.html`, even with a dot in it (`/user/a.b`, `/docs/v0.39`), when it matches one of
+the space's routes, and the router picks the page in the browser. One that matches none (`/nope`)
+is 404, with `index.html` as its body, so the page can still say what is not there. A space with
+no file routes, whose routes the compiler does not know, answers every such path with
+`index.html`. A path that names a missing file of a kind it serves (`/x.js`, `/logo.png`) is 404,
+and one that leads out of the bundle's directory, by `..` or a symbolic link, is 403. Only
 the files under the bundle's own `assets/` are served as cached for a year, since the bundler
-names them by their content. `static_file`, from `stdjac`, is this, for a program that serves
-files itself ([The server's words](stdjac-server.md#static_file)).
+names them by their content; `index.html` is sent with `Cache-Control: no-cache`, so a browser
+asks for the document of a new build. Every file is sent with `X-Content-Type-Options: nosniff`,
+and with the headers `jac.toml` gives the space, `[spaces.<space>.headers]`: its
+Content-Security-Policy, frame denial and referrer policy
+([jac.toml](../reference/jac-toml.md#a-spaces-headers)). `static_file`, from `stdjac`, is this, for
+a program that serves files itself ([The server's words](stdjac-server.md#static_file)).
+
+### A space with no bundler
+
+A browser space whose `ui` plugin names no bundler (`dom`, `none`), and whose `jac.toml` names
+none, is served as the compiler writes it. Its modules are ES modules whose specifiers are relative
+(`./@jac/core.js`, `./pages/index.mjs`), so a browser loads them as they are, and the app writes
+its document itself: `index.html`, with `#root`, a `<link rel="stylesheet">` for each style sheet
+a module imports (`import "./site.css";`, copied beside the modules at its place in the project)
+and one `<script type="module">` for the space's entry. Its URLs are absolute from the space's
+`base`, since the one document answers every route. The document holds no inline script or style,
+so the space's headers may say `script-src 'self'; style-src 'self'`. Such a space imports no npm
+package (E5272), and `@jac/bundle.json`, which the build reads, is not served.
+
+The document's title is the space's name, unless `[spaces.<space>.document]` gives one, with its
+`lang` and a `noscript` text for a reader without script
+([jac.toml](../reference/jac-toml.md#a-spaces-document)). A `dom` space served so keeps to the
+strictest policy, its pages making their elements and styles through the DOM:
+
+```toml
+[spaces.site.document]
+title = "Notes"
+lang = "en"
+noscript = "Notes needs JavaScript."
+
+[spaces.site.ui]
+plugin = "dom"
+
+[spaces.site.headers]
+Content-Security-Policy = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+```
 
 ## @jac/runtime
 
@@ -219,14 +256,19 @@ names from it as from any npm package: `import from "@jac/runtime" { Link, navig
 | `Outlet` | Where a layout puts the page |
 | `useLocation`, `useNavigate`, `useParams`, `useSearchParams` | React Router's hooks |
 | `useState`, `useEffect`, `useRef`, `useMemo`, `useCallback`, `useContext`, `createContext` | React's, for code that calls the library directly ([Components](components.md) says when) |
-| `unsafe_html(html)` | An element showing `html` as HTML, unescaped. Use only on HTML the project controls. |
-| `sign_in`, `sign_out`, `signed_in`, `signed_in_as`, `signed_in_name` | Signing in, below |
+| `unsafe_html(html)` | An element showing `html` as HTML, unescaped. Use only on HTML the project controls. In a native space the same word, known without an import, is a [`Markup`](components.md#jsx-in-a-native-space-markup) |
+| `sign_in`, `sign_out`, `signed_in`, `signed_in_as`, `signed_in_name`, `signed_in_account` | Signing in, below |
+| `sign_in_asks`, `sign_in_with`, `finish_sign_in`, `forgot_password`, `mail_check`, `check_address`, `reset_password`, `device_sign_in` | A page that draws its own sign-in form or answers a mailed link, [below](#a-pages-own-sign-in) |
 | `jacArrangement`, `jacUseArrangement` | Which arrangement of its app the page is in, and choosing another, [below](#the-apps-arrangement) |
 | `RemoteError` and its subclasses | What a failed crossing raises ([Crossings](crossings.md)) |
 | `__getLocalStorage`, `__setLocalStorage`, `__removeLocalStorage` | `localStorage`, or an in-memory store where there is none |
 
-Under any other `ui` plugin neojac ships, `@jac/runtime` has the sign-in and arrangement
-functions, the storage functions and the `RemoteError` classes, and none of the routing names.
+Under `dom` it has `Link`, `navigate`, `Navigate`, `Outlet` and `unsafe_html` as above (a page's
+route parameters are its `page` function's parameters, and React's hooks are not there), `mount`
+([UI plugins and bundlers](ui-bindings.md#dom)), and the sign-in, arrangement and storage
+functions and the `RemoteError` classes. Under any other `ui` plugin neojac ships, `@jac/runtime`
+has the sign-in and arrangement functions, the storage functions and the `RemoteError` classes,
+and none of the routing names.
 A name it does not have under the space's `ui` plugin is E1145, as a package's is.
 
 ## Calling the server
@@ -262,6 +304,10 @@ and the functions of `@jac/runtime` carry it out. Each is awaited:
 | `await signed_in()` | Whether the caller is signed in |
 | `await signed_in_as()` | Who the caller is signed in as, or `""` |
 | `await signed_in_name()` | What the caller is called: the name the plugin gave as they signed in, where it has one (their login at the service they signed in through), else who they are; `""` for no one |
+| `await signed_in_account()` | `{user, name, checked, mails}` for the signed-in caller, `None` for no one: who they are, what they are called (as `signed_in_name()`), whether the app mails a link that checks an account's address (`mails`) and whether theirs is checked (`checked`) |
+
+A token the plugin no longer takes (the session ended or ran out) is forgotten as any of these
+asks who the caller is, so the page is signed in to no one.
 
 <!-- example: not checked: a page is a module of a browser space, with JSX and crossings -->
 ```jac
@@ -321,7 +367,8 @@ page works under every auth plugin. Its parts carry classes a project's style sh
 `jac-sign-in-input`, `jac-sign-in-error`, `jac-sign-in-told` (what it says in that place when
 nothing was refused), `jac-sign-in-actions`, `jac-sign-in-action`, `jac-sign-in-cancel` and
 `jac-sign-in-forgot`. Its own rules are written with `:where()`, so any rule of the project's
-wins over them.
+wins over them, and are a style sheet the document adopts, so the form is styled under a
+Content-Security-Policy of `style-src 'self'` too ([jac.toml](../reference/jac-toml.md#a-spaces-headers)).
 
 The session's token is kept in the browser's `localStorage` (under `jac_token`) and sent with
 every crossing; the name the plugin gave with it is kept beside it (under `jac_name`).
@@ -332,6 +379,73 @@ for each way of signing in that answers in place, `Forgot your password?` where 
 such links (the link is opened in a browser), and Cancel. A way of signing in that leaves for
 a page (GitHub, Google) is not offered there: a page has no way back into the app. Where the plugin offers
 only such ways, `sign_in()` raises `RemoteRejected`.
+
+### A page's own sign-in
+
+A page that draws a sign-in form of its own (one that makes accounts first, say), or that a link
+the app mailed opens, does it with these functions of `@jac/runtime`. None hands the page a token:
+the session each makes is kept where `sign_in()` keeps it, and each refusal raises `RemoteRejected`
+with the plugin's reason (`RemoteUnavailable` where the app cannot be reached).
+
+| Function | Does |
+|---|---|
+| `await sign_in_asks()` | What signing in asks for: `{fields, actions, redirect, forgot}`. Each field has `name`, `label`, `secret` and `choices`; each action (a way of signing in) `name`, `label`, the fields it `needs`, and, for a way done at another service, its `redirect`; `redirect` is where to sign in for a plugin that asks nothing here; `forgot` names the field that names an account for `forgot_password`, `""` where the plugin mails no links. `None` when the plugin signs the caller in at once, without asking (a desktop app's own window), the session kept |
+| `await sign_in_with(action, given)` | Signs the caller in by `action`, one of `sign_in_asks()`'s, with `given`, a dict of each field it needs to what the caller wrote. An action done at another service leaves for it, and nothing after the call runs: the caller comes back signed in, to the page they left |
+| `await finish_sign_in()` | On the page another service sends the caller back to (the app's `/__jac/auth/<way>`): signs them in by what the service sent, in the address's query, with what the way kept as they left, and goes back to the page they left, a path of the page's own origin and no other. Nothing after it runs once it succeeds |
+| `await forgot_password(name)` | Asks for a link that sets a new password, mailed to the account `name` (a username or an address) names. Whether there is one is not said |
+| `await mail_check(address)` | Mails the signed-in caller a link that checks their account's address: to the one it has, or to `address` for an account with none (`""` otherwise) |
+| `await check_address(token)` | Checks an address by the token of the link mailed to it |
+| `await reset_password(token, password)` | Sets the password by the token of the mailed link: the account's other sessions end, and the caller is signed in to it |
+| `await device_sign_in(code, allow)` | Signs in the program showing `code` (`neojac launch login`) as the signed-in caller where `allow` is `True`, else turns it away |
+
+A mailed link carries its token in its fragment, `/__jac/auth/check#<token>`, which a browser sends
+to no server, so no log holds it; the page reads it from `location.hash` and passes it on.
+stdjac's own pages at `/__jac/auth/`, which every serving app carries, are written in Jac with
+these functions and nothing else ([The sign-in pages](server.md#the-sign-in-pages)).
+
+<!-- example: not checked: a page is a module of a browser space, with JSX -->
+```jac
+import from "@jac/runtime" { RemoteError, sign_in_asks, sign_in_with, signed_in_account }
+
+def:pub page -> JsxPage {
+    has who: str = "";
+    has said: str = "";
+    has asks: any = None;
+    has given: dict[str, str] = {};
+
+    async def load {
+        me = await signed_in_account();
+        if me is not None {
+            who = me.name;
+        } else {
+            asks = await sign_in_asks();
+        }
+    }
+
+    async def make_account {
+        try {
+            await sign_in_with([a for a in asks.actions if a.name == "register"][0], given);
+            await load();
+        } except RemoteError as e {
+            said = e.detail;
+        }
+    }
+
+    async can with entry {
+        await load();
+    }
+
+    if who != "" {
+        return <p>Signed in as {who}.</p>;
+    }
+    return <section>
+        <input onChange={lambda (e: any) { given["username"] = e.target.value; }} />
+        <input type="password" onChange={lambda (e: any) { given["password"] = e.target.value; }} />
+        <button onClick={make_account}>Make an account</button>
+        <p>{said}</p>
+    </section>;
+}
+```
 
 ## The app's arrangement
 
@@ -395,7 +509,9 @@ A browser space imports from npm with a string module name and names in braces:
 
 - `import from "solid-js/web" { render }` binds a package's exports.
 - `import "./styles/site.css";` imports a file for its effect, as the bundler takes it: a style
-  sheet goes into the bundle's CSS. A cpython space cannot import a file by path (E5090).
+  sheet goes into the bundle's CSS. In a space with no bundler a style sheet is a `<link>` of the
+  document ([above](#a-space-with-no-bundler)). A cpython space cannot import a file by path
+  (E5090).
 
 The packages are those of the space's npm tree, `[npm."<directory>"]` in `jac.toml`, installed with
 `neojac install` (by the npm of neojac's own Node) into the tree's directory
@@ -424,7 +540,7 @@ installed after a build that failed for want of it is seen by the next build.
 |---|---|
 | E1227 | A module under `pages/` with no `page` function, or `pages/layout.jac` with no `layout` |
 | E1228 | A `page` parameter that is not `name: str` or `*name: str` |
-| E1279 | A page in a space whose `ui` plugin has no file routes (any but `react`) |
+| E1279 | A page in a space whose `ui` plugin has no file routes (any but `react` and `dom`) |
 | E1210 | A page calls a function or walker of another space that is not `:pub` or `:prot` |
 | E1540 | An import of a stdjac name that is native code's (`RemoteError`, from `stdjac`): the classes are `"@jac/runtime"`'s here |
 | E1219 | An import of a package another `ui` plugin owns |

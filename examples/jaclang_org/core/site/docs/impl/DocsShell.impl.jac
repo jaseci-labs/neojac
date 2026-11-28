@@ -88,11 +88,14 @@ impl DocsShell -> JsxElement {
                     <span className="pulse-ring absolute inset-0 rounded-full bg-primary/10"></span>
                     <img src="/static/assets/jac-logo.svg" alt="" className="size-14" />
                 </div>
-                <div><p className="text-balance text-xl font-semibold tracking-tight sm:text-2xl">
+                <div>
+                    <p className="text-balance text-xl font-semibold tracking-tight sm:text-2xl">
                             The docs graph is still growing.
-                        </p><p className="mt-2 text-balance text-sm text-muted-foreground">
+                        </p>
+                    <p className="mt-2 text-balance text-sm text-muted-foreground">
                             The server is ingesting neojac's docs — this page takes over the moment they land.
-                        </p></div>
+                        </p>
+                </div>
                 <p className="font-mono text-[11px] text-muted-foreground/70">
                     {"root.shared ++> DocsHub ++> DocVersion ++> DocSection ++> DocPage"}
                 </p>

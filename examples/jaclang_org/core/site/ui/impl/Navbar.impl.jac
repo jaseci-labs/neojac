@@ -28,10 +28,10 @@ impl Navbar -> JsxElement {
                         >
                                 Explore
                                 <HugeiconsIcon
-                            icon={ArrowDown01Icon}
-                            strokeWidth={2}
-                            className="size-3.5"
-                        /></button>
+                                icon={ArrowDown01Icon}
+                                strokeWidth={2}
+                                className="size-3.5"
+                            /></button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-64">
                         {

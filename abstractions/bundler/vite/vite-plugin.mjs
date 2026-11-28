@@ -11,7 +11,7 @@ export function prepare(jobPath) {
     // Vite and its plugins are the packages of the space's npm tree (jac.toml's
     // [npm."<directory>"], installed in that directory), where Vite runs and its configuration is.
     if (!job.tree) {
-        console.error("space " + job.name + " has no npm tree to take its bundler from: jac.toml declares none ([npm."<directory>"])");
+        console.error(`space ${job.name} has no npm tree to take its bundler from: jac.toml declares none ([npm."<directory>"])`);
         process.exit(1);
     }
     const plugin = path.join(job.tree, "node_modules", "@jac", "vite");

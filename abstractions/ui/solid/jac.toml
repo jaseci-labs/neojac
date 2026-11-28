@@ -14,6 +14,7 @@ owns = ["solid-js"]
 bundler = "vite"
 
 [ui.jsx]
+form = "text"
 lowercase_tags = true
 keys = false
 

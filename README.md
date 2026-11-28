@@ -176,7 +176,8 @@ database = "notes"
 ```
 
 `neojac install` fetches it and pins it, and `neojac build` compiles it into the program.
-`neojac check` in the plugin's own directory holds it to its contract while you write it.
+`neojac check` of the plugin's module, in its own directory (`neojac check store.jac`), holds it to
+its contract while you write it.
 [Plugins](docs/apps/plugins.md) is the whole of it, and the standard plugins in
 [`abstractions/`](abstractions/) are working examples of each.
 
@@ -184,8 +185,8 @@ A prompt:
 
 > Using neojac, write a `store` plugin that keeps a space's graph in Postgres. Read the
 > `writing-a-plugin` skill and `neojac docs store.contract` first. Check it with
-> `neojac check` in its own directory, then bind it in a small app and show the app's data
-> surviving a restart.
+> `neojac check` of its module in its own directory, then bind it in a small app and show the
+> app's data surviving a restart.
 
 ## Learn more
 
@@ -203,14 +204,15 @@ A prompt:
 | | |
 |---|---|
 | [`abstractions/`](abstractions/) | The language's abstractions, a directory each: its manifest, the contract a plugin of it implements, and its standard plugins |
+| [`stdjac/`](stdjac/) | What a program says of the abstractions, and what connects it to their plugins: stdjac, which a release ships as the runtime's `rt/stdjac/` |
 | [`libraries/`](libraries/) | Libraries the standard plugins use |
 | [`docs/`](docs/) | The documentation `neojac docs` prints, and the skills `neojac skills` installs |
 | [`examples/`](examples/) | Programs written in Jac |
 | [Releases](https://github.com/jaseci-labs/neojac/releases) | Every release of neojac. Each is tagged on the commit of this repository it ships |
 
 - **The compiler's own source is not in this repository.** What a program meets of neojac is:
-  the contracts, the plugins and the libraries here are compiled into the programs it builds,
-  and a release ships them, and `docs/`, as they are here.
+  stdjac, the contracts, the plugins and the libraries here are compiled into the programs it
+  builds, and a release ships them, and `docs/`, as they are here.
 - **Everything here is under the [MIT license](LICENSE),** and so are the released binaries.
 - **neojac is not the open-source `jac`** of [jaseci-labs/jac](https://github.com/jaseci-labs/jac),
   the language's reference design. They are separate compilers with separate releases, both can

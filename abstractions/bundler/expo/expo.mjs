@@ -36,13 +36,12 @@ if (android.sdk) {
         run(["node", "node_modules/expo/bin/cli", "prebuild", "--platform", "android", "--no-install"], quiet);
         writeFileSync(madeFor, want);
     }
-    // Gradle runs `node` for the bundle it puts in the app: neojac's, by that name.
-    const lib = process.env.NEOJAC_LIB_DIR || path.join(path.dirname(process.env.NEOJAC), "..", "lib");
+    // Gradle runs `node` for the bundle it puts in the app: the Node running this, by that name.
     const env = {
         ...quiet,
         ANDROID_HOME: android.sdk,
         ANDROID_SDK_ROOT: android.sdk,
-        PATH: path.join(lib, "node", "bin") + path.delimiter + process.env.PATH,
+        PATH: path.dirname(process.execPath) + path.delimiter + process.env.PATH,
         NODE_ENV: "production",
     };
     if (android.java) env.JAVA_HOME = android.java;

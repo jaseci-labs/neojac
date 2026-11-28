@@ -43,11 +43,11 @@ element ::=
     | decorated
     | async_element
 
-graph_import ::= "graph" "import" wire_module_path? "{" (STRING import_rule | import_rule | import_wire)* "}"
+graph_import ::= "graph" "import" wire_module_path? "{" (import_rule | import_wire)* "}"
 
-graph_spaces ::= "graph" "spaces" NAME? "{" (STRING (space_decl | app_decl | package_decl) | space_decl | app_decl | package_decl)* "}"
+graph_spaces ::= "graph" "spaces" NAME? "{" (space_decl | app_decl | package_decl)* "}"
 
-graph_layers ::= "graph" "layers" "{" (STRING layer_decl | layer_decl)* "}"
+graph_layers ::= "graph" "layers" "{" layer_decl* "}"
 
 type_alias ::= "type" access_tag (KEYWORD | NAME) ("[" type_params "]")? (":=" | "=") pipe ";"
 
@@ -96,7 +96,7 @@ app_decl ::= "app" NAME "{" (NAME "has" NAME ("." NAME)* ("," NAME ("." NAME)*)*
 
 package_decl ::= "package" NAME "{" ("ship" name_list)* "}"
 
-layer_decl ::= "layer" NAME "{" (STRING layer_decl | layer_decl | module_pattern ("|" module_pattern)* ";")* "}"
+layer_decl ::= "layer" NAME "{" (layer_decl | module_pattern ("|" module_pattern)* ";")* "}"
 
 access_tag ::= (":" ("prot" | "pub" | "priv"))?
 
@@ -258,7 +258,7 @@ func_params ::= (("*" | "/" | param) ("," ("*" | "/" | param))* ","?)?
 
 lambda_expr ::= "lambda" ("(" func_params ")")? ("->" expression)? ("{" expression "}" | block)
 
-concurrent ::= ("flow" | "wait") walrus | walrus
+concurrent ::= ("flow" | "wait") concurrent | walrus
 
 ownership_prefix ::= ("own" | "lin" | "imm" | "&" "mut"?)?
 

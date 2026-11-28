@@ -1,0 +1,3 @@
+graph layers {
+    layer binding { *; }
+}

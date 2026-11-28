@@ -175,8 +175,8 @@ which conforms to `transport.contract`'s `Transport`. It carries a `Request` and
   than a caller waits: `seconds` is how long an app may be silent, never how long a call may
   run.
 - **A transport that carries calls alone says so,** with `serves_paths`. A program that serves a
-  function at a path of its own, or a page, does not start with it: it ends with status 1,
-  saying what it serves.
+  function at a path of its own, or a page of the project's own, does not start with it: it ends
+  with status 1, saying what it serves. A library's pages do not count.
 
 | Type | Fields |
 |---|---|

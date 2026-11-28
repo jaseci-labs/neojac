@@ -1,6 +1,6 @@
 ---
 name: pages-and-components
-description: Use when adding web pages, a UI or a front end to a neojac app - a browser space with pages/ routes, components in JSX, state and effects, calling the server from a page, npm packages for the page, choosing React, Preact or Solid, and building and looking at the result.
+description: Use when adding web pages, a UI or a front end to a neojac app - a browser space with pages/ routes, components in JSX, state and effects, calling the server from a page, npm packages for the page, choosing React, Preact, Solid or dom (no npm package, no bundler), and building and looking at the result.
 ---
 # Pages and components
 
@@ -20,13 +20,27 @@ Use it to give an app a browser front end: a `browser` space, its `pages/`, comp
 neojac docs apps/pages          # routes, layout, entry, the HTML shell, @jac/runtime, signing in
 neojac docs component           # JSX, props, state, effects, refs, hooks
 neojac docs form                # forms, event handlers, onSubmit and preventDefault
-neojac docs apps/ui-bindings    # React (default), Preact, Solid, none
+neojac docs apps/ui-bindings    # React (default), Preact, Solid, dom, none
 ```
 
-File routes need the `react` plugin, the standard `ui` plugin of a browser space. Under `preact` or
-`solid` a space has no `pages/`; avoid pages under those plugins for now (the bundle fails), and
-render from the entry instead, as `neojac docs apps/ui-bindings` shows. A space's `ui` plugin is
-named in `jac.toml`: `[spaces.<space>.ui]` `plugin = "solid"`.
+File routes need the `react` plugin, the standard `ui` plugin of a browser space, or `dom`. Under
+`preact` or `solid` a space has no `pages/` (E1279): render from the entry instead, as
+`neojac docs apps/ui-bindings` shows. A space's `ui` plugin is named in `jac.toml`:
+`[spaces.<space>.ui]` `plugin = "dom"`.
+
+`dom` needs no npm package and no bundler: skip step 2 below, and the build writes the page's
+document itself, with what `[spaces.<space>.document]` says (`title`, `lang`, `noscript`). Its
+pages run under `[spaces.<space>.headers]` `Content-Security-Policy` of `script-src 'self';
+style-src 'self'`. Write attributes by HTML's names (`class`, `for`, `onDblClick`): React's
+`className`, `htmlFor` and `onDoubleClick` are refused (E5273). `False` removes an attribute, so
+an enumerated one is a string (`spellcheck="false"`). Import style sheets from the entry
+(`import "./site.css";`). `neojac docs apps/ui-bindings` (section "dom") has the rest.
+
+Pages a library ships with it (a sign-in or settings page every app that uses the library gets)
+are a browser space of the library's own `archwire.jac`, served at the `base` its `jac.toml`
+gives it, with a `ui` plugin neojac ships. An app that loads the library serves them without
+naming them, and its program carries them: `neojac docs apps/archwire` (section "A package's
+browser spaces").
 
 ## Steps
 
@@ -226,7 +240,7 @@ Close the browser session and stop the server before you finish.
 | E1219 | A package another `ui` plugin owns (`solid-js` under React) | Use the packages of the space's own `ui` plugin |
 | W1100 `cannot find module` | npm package not among the tree's | `neojac install --npm <pkg>` |
 | E5160 | The tree is not installed as `jac.toml` says | `neojac install` |
-| E2018 `unknown type 'JsxElement'` | JSX in a native module | Put components in the browser space's modules |
+| E2018 `unknown type 'JsxElement'` | A component in a native module, where JSX is `Markup`, HTML text | Put components in the browser space's modules |
 | E1050, E1052, E1053 on a tag | Props checked as keyword arguments | Match the component's parameters |
 
 ## Where to look things up

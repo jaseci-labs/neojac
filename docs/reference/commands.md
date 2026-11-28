@@ -114,7 +114,6 @@ neojac build <directory>/package.json
 | `--memory <profile>` | The memory profile: managed, rc or nogc (default: jac.toml's [memory] profile, else managed) |
 | `--emit-ir <file>` | Also write the program's LLVM IR |
 | `--verify-reuse` | Compile every module, and check each one an earlier build made against what its sources make now |
-| `--rt <dir>` | The runtime to build against (default: the rt/ beside neojac) |
 | `--profile <profile>` | Build the apps as the archwire's profile of that name arranges them |
 | `--place <directory>` | The place the program is for: the directory whose jac.toml provides the plugin of each abstraction the project leaves open (default: this machine, each abstraction's standard plugin) |
 | `--diagnostics <form>` | How diagnostics are written on stderr: human (the default), or json, one record a line |
@@ -163,7 +162,6 @@ neojac run <app> [<option>...] [-- <argument>...]
 | `--gui` | Build a Windows program of the GUI subsystem, which starts without a console |
 | `--monitor` | Have a program using Python fire sys.monitoring's events, for profilers and coverage |
 | `--memory <profile>` | The memory profile: managed, rc or nogc (default: jac.toml's [memory] profile, else managed) |
-| `--rt <dir>` | The runtime to build against (default: the rt/ beside neojac) |
 | `--fresh` | Start the app with no data: what it kept in .jac/data/<app> is set aside, in a directory beside it named for the moment |
 | `--profile <profile>` | Build the app as the archwire's profile of that name arranges it |
 | `--place <directory>` | The place the program is for: the directory whose jac.toml provides the plugin of each abstraction the project leaves open (default: this machine, each abstraction's standard plugin) |
@@ -229,7 +227,6 @@ neojac check [<app>] --space <space> [<option>...]
 | `--target <platform>` | Build for another platform: macos-aarch64, macos-x86_64, linux-aarch64, linux-x86_64, windows-x86_64, wasm32-wasi |
 | `--memory <profile>` | The memory profile: managed, rc or nogc (default: jac.toml's [memory] profile, else managed) |
 | `--lib` | Check it as the shared library `build --lib` makes |
-| `--rt <dir>` | The runtime to build against (default: the rt/ beside neojac) |
 | `--space <space>` | Check one space's program on its host: an app's program of it where an app is named, else the space alone, as emit-js and emit-py load it |
 | `--profile <profile>` | Check the apps as the archwire's profile of that name arranges them |
 | `--place <directory>` | The place the program is for: the directory whose jac.toml provides the plugin of each abstraction the project leaves open (default: this machine, each abstraction's standard plugin) |
@@ -241,7 +238,7 @@ A project's modules are held to the rules every project keeps: no comment, no do
 
 It takes what `neojac build` takes. A program is a Jac program's main module, or a directory, known by the first of these manifests it holds: an archwire.jac that declares spaces (a project's apps), jac.toml (a Jac project, whose program is its main.jac). With none named, it is the directory you are in.
 
-In a project whose archwire.jac declares spaces, a name with no extension or path in it is an app's. The apps named, or every app and every space no app holds, are each checked as their build makes them: every program an app is, on its host, all at once. --space checks one of them. --target, --memory, --lib and --rt are options of one program's check: a main module's, or a space's.
+In a project whose archwire.jac declares spaces, a name with no extension or path in it is an app's. The apps named, or every app and every space no app holds, are each checked as their build makes them: every program an app is, on its host, all at once. --space checks one of them. --target, --memory and --lib are options of one program's check: a main module's, or a space's.
 
 | Example | What it does |
 |---|---|
@@ -265,14 +262,13 @@ neojac test <file.jac> -o <runner> [<option>...]
 | Option | What it does |
 |---|---|
 | `-k <text>` | Run only the tests whose names contain <text>; a module with none isn't built |
-| `-j <jobs>` | Build and run this many modules at once, each told it has this many processors (default: one for each core) |
+| `-j <jobs>` | Run on this many processors, which the runners' builds, the tests and the builds a test starts share (default: one for each core) |
 | `-o <runner>` | Build the one module's test runner, and don't run it |
 | `--target <platform>` | Build for another platform: macos-aarch64, macos-x86_64, linux-aarch64, linux-x86_64, windows-x86_64, wasm32-wasi |
-| `--rt <dir>` | The runtime to build against (default: the rt/ beside neojac) |
 | `--place <directory>` | The place the program is for: the directory whose jac.toml provides the plugin of each abstraction the project leaves open (default: this machine, each abstraction's standard plugin) |
 | `--diagnostics <form>` | How diagnostics are written on stderr: human (the default), or json, one record a line |
 
-Runs the tests of every module under the paths given, or under jac.toml's [test] directories. Each module's tests are built into one runner, in the project's .jac/test/, and the runners are built and run in parallel.
+Runs the tests of every module under the paths given, or under jac.toml's [test] directories. Each module's tests are built into one runner, in the project's .jac/test/, and each test is a run of that runner by itself, in a directory of its own that NEOJAC_TEST_DIR names: the runners are built and the tests run in parallel.
 
 The suites of the project's own trees that jac.toml names are run after them, each in its tree's directory: a Python project's by the command [test.pypi."<directory>"] gives, with the project's .jac/venv first on PATH and what `neojac build` makes of the project first on Python's path; an npm tree's by the script [test.npm."<directory>"] names; a crate's by `neojac cargo test`, with the arguments of [test.cargo."<directory>"]. A path that is a tree's manifest runs that suite alone, and -k runs none.
 
@@ -327,7 +323,6 @@ neojac port --mapping <language>
 | `--json` | With --check, print what would port and the plan as data |
 | `-o <out>` | Where to write, for sources outside a project: a .jac file for one source, else a directory (default: beside each source) |
 | `--mapping <language>` | Print what port makes of each construct of a language: c, c++, rust, python or javascript |
-| `--rt <dir>` | The runtime to build against (default: the rt/ beside neojac) |
 | `--diagnostics <form>` | How diagnostics are written on stderr: human (the default), or json, one record a line |
 
 Translates each source file into a Jac module that behaves as the file does, or refuses it and says why. A file is known by its extension, and a directory means every source under it that port translates. Each language is read by its own compiler, and the Jac is written in neojac's one layout, with the source's comments outside a project; in a project its rules hold, and the comments go as `neojac fmt --fix` has them go.
@@ -757,6 +752,9 @@ Draw a project's architecture from its archwire.jac.
 neojac arch [<layer> | <module>] [--mermaid | --json | --text]
 neojac arch [<layer> | <module>] --svg <file> | --png <file>
 neojac arch --view spaces [--profile <profile>] [<output>]
+neojac arch [<layer> | <module>] --diff [--base <revision>] [<output>]
+neojac arch [<layer> | <module>] --at <revision> [--diff] [<output>]
+neojac arch --steps [--json]
 ```
 
 | Option | What it does |
@@ -768,12 +766,16 @@ neojac arch --view spaces [--profile <profile>] [<output>]
 | `--text` | Print the picture on the terminal |
 | `--svg <file>` | Write the picture as an SVG |
 | `--png <file>` | Write the picture as a PNG, drawn by the browser `neojac browse` drives |
+| `--diff` | Mark what has changed since the branch this one follows: the modules whose files changed, the arrows that are new, gone or carry other names, and what takes from what changed |
+| `--base <revision>` | --diff against this git revision, in place of where the branch left its upstream (or origin's main branch) |
+| `--at <revision>` | The project's architecture as it stood at this git revision, in place of as it stands; with --diff, what changed from the base up to it |
+| `--steps` | Print the steps of the project's history the viewer's slider goes through: where the branch began, each commit since, each turn of an agent, and the project as it stands when that is different |
 | `--listen <address>` | Where the viewer is served (default: 127.0.0.1:8090) |
 | `--diagnostics <form>` | How diagnostics are written on stderr: human (the default), or json, one record a line |
 
 Run from inside a project. The picture is drawn from archwire.jac and from nothing else: its layers are the boxes, its wires the arrows, each labelled with the edge rule that admits it.
 
-With no output option, the picture is served as a page that follows the project as it is edited: its address is printed, a click on a layer, a module or an arrow opens it, and a module opened shows its code beside the picture. An output option prints one picture and exits, and refuses a project whose wiring has errors: it prints them and writes nothing.
+With no output option, the picture is served as a page that follows the project as it is edited: its address is printed, a click on a layer or a module opens it, a click on an arrow lists the names it carries, and a module opened shows its code beside the picture. An output option prints one picture and exits, and refuses a project whose wiring has errors: it prints them and writes nothing.
 
 Every module archwire.jac names is read, whether or not a program loads it, and every target's wires are checked, so what is drawn holds for the whole project.
 
@@ -784,7 +786,87 @@ Every module archwire.jac names is read, whether or not a program loads it, and 
 | `neojac arch backends --text` | One layer, opened |
 | `neojac arch compiler.gen --json` | One module: what it takes and gives |
 | `neojac arch --mermaid` | A flowchart for a README or a pull request |
+| `neojac arch --diff --mermaid` | What a branch changes, for its pull request |
 | `neojac arch --view spaces --svg spaces.svg` | The spaces, as a file |
+
+Its guide: [toolchain/arch](../toolchain/arch.md) (`neojac docs toolchain/arch`).
+
+### `neojac turns`
+
+Serve a client a session of work with an agent, over JSON-RPC.
+
+```sh
+neojac turns [--project <directory>] [--base <revision>]
+neojac turns --schema
+```
+
+| Option | What it does |
+|---|---|
+| `--project <directory>` | The project the session is in (default: the directory it is started in) |
+| `--base <revision>` | What the project's steps and changes are counted from, in place of where the branch left its upstream |
+| `--schema` | Print the protocol as JSON: its version, each method with its parameters, and each event with its fields |
+
+A client starts it in a project and speaks JSON-RPC 2.0 to it, one message a line, on its standard input and output. It is what `neojac arch` is made on: the client asks for a turn of an agent, answers what the agent asks to do, stops or undoes a turn, plans a change and builds it, and is sent each thing that happens as a `session/event`. The same methods answer about the project: its picture, what changed between two revisions, and the steps of its history.
+
+The protocol has a version, and --schema prints it. The session's log, in the project's `.jac/arch/`, is its events as they were sent.
+
+| Example | What it does |
+|---|---|
+| `neojac turns` | What a client is configured to run, in a project |
+| `neojac turns --schema` | The methods and the events |
+
+Its guide: [toolchain/turns](../toolchain/turns.md) (`neojac docs toolchain/turns`).
+
+### `neojac mcp`
+
+Serve an agent the project as tools, over the Model Context Protocol.
+
+```sh
+neojac mcp [--project <directory>]
+```
+
+| Option | What it does |
+|---|---|
+| `--project <directory>` | The project the tools answer about (default: the directory it is started in) |
+
+An agent starts it and speaks the Model Context Protocol to it, on its standard input and output. Its tools answer about the project: `architecture` is the picture `neojac arch` draws, as its boxes and its arrows with the names each wire carries; `find` says where a layer, a module or a wired name is; `changes` says what has changed since a revision; `check` checks the project; `symbols` lists what a file declares; `docs` prints the documentation.
+
+`neojac arch` gives it to the agent it works with. Any other agent or editor that takes an MCP server is given the command `neojac mcp`.
+
+| Example | What it does |
+|---|---|
+| `neojac mcp` | What an agent is configured to run, in a project |
+
+Its guide: [toolchain/arch](../toolchain/arch.md) (`neojac docs toolchain/arch`).
+
+### `neojac agent`
+
+Add the coding agents `neojac arch` works with, or list them.
+
+```sh
+neojac agent [--json]
+neojac agent add <name> [--env <NAME>[=<value>]]... [-- <command>...]
+neojac agent use <name>
+neojac agent remove <name>
+neojac agent registry [<word>] [--json]
+```
+
+| Option | What it does |
+|---|---|
+| `--env <NAME>[=<value>]` | A variable of the agent's environment, such as its API key; without a value, the one this environment has |
+| `--json` | Print the agents added, or what the registry has, as JSON; a variable is listed by its name, never with its value |
+| `-- <command>...` | The agent is this command, which speaks the Agent Client Protocol on its standard input and output, in place of one the ACP registry names |
+
+An agent is a program that speaks the Agent Client Protocol: `neojac arch` starts it in the project, sends it what is asked for in the viewer, and shows what it does on the picture. add takes one the ACP registry lists by its name there, fetched and checked against the digest the registry pins, or a command of your own after `--`. With no command, agent lists the ones that are added, the one in use marked.
+
+An agent signs in by itself and keeps its own credentials. One that takes a key from its environment is given it with --env; the agents and their variables are kept in a file only you can read, in neojac's configuration directory, never in the project.
+
+| Example | What it does |
+|---|---|
+| `neojac agent registry claude` | What the registry has by that word |
+| `neojac agent add claude-acp --env ANTHROPIC_API_KEY` | Add one from the registry, with the key this shell has |
+| `neojac agent add mine -- ./my-agent --acp` | Add a command of your own |
+| `neojac agent use mine` | Work with that one |
 
 Its guide: [toolchain/arch](../toolchain/arch.md) (`neojac docs toolchain/arch`).
 
@@ -836,6 +918,7 @@ neojac emit-py <space> -o <dir> [--app <app> [<option>...]]
 | `--profile <profile>` | The app under that profile |
 | `--place <directory>` | The app for the place in that directory |
 | `--laid` | emit-js: each source map names its Jac source at the source's project path under <dir>, where a laid npm tree links it, not in the project itself |
+| `--package <directory>` | emit-js: a browser space of the package in that directory, by its own archwire and jac.toml, as an app of this project that loads the package builds it |
 | `--diagnostics <form>` | How diagnostics are written on stderr: human (the default), or json, one record a line |
 
 Run from a project's root: the modules of one space of its archwire, checked and written as an app's build would write them. emit-js is for a space on a JavaScript host (browser, node, hermes), emit-py for one on cpython.
@@ -868,6 +951,29 @@ neojac version
 ```
 
 Prints the release's version, the platform it runs on and the commit it was built from; `neojac --version` and `neojac -V` do the same. A neojac built from source says so.
+
+### `neojac update`
+
+Replace neojac with a newer release of itself.
+
+```sh
+neojac update
+neojac update <version>
+neojac update on
+neojac update off
+```
+
+Alone, fetches the newest release where it is newer than this neojac; with a version, that release, older or newer, which neojac then stays at. The release is checked against its digest, then builds and runs a program before it is kept. It takes this neojac's place whole, by one rename, when no other command of this neojac is running: at once, or else when the next command starts with none running, which says so and runs as the new release. A release that fails any of that changes nothing.
+
+A neojac that follows the releases does this by itself: a build, a test run, an install or `neojac dev` asks for the newest release at most once a day, and fetches a newer one alongside its work, waiting for nothing. The installer's neojac follows them unless it was installed with --version. `on` makes this neojac the one that follows, and `off` leaves it as it is until `neojac update` is run. NEOJAC_UPDATE=off keeps a run from asking and from being replaced, and so does CI. A neojac built from source has no release, and none of this.
+
+| Example | What it does |
+|---|---|
+| `neojac update` | Take the newest release |
+| `neojac update 0.5.3` | Take that release, and stay at it |
+| `neojac update off` | Stay at this release until asked |
+
+Its guide: [toolchain/update](../toolchain/update.md) (`neojac docs toolchain/update`).
 
 ### `neojac telemetry`
 

@@ -18,7 +18,7 @@ which and what each wire carries: see [Wiring modules](../language/modules-wirin
 ## Syntax
 
 ```ebnf
-graph_spaces ::= "graph" "spaces" NAME? "{" (STRING (space_decl | app_decl | package_decl) | space_decl | app_decl | package_decl)* "}"
+graph_spaces ::= "graph" "spaces" NAME? "{" (space_decl | app_decl | package_decl)* "}"
 
 space_decl ::= "space" NAME ":" (KEYWORD | NAME) "{" (("entry" wire_module_path | STRING | module_pattern ("|" module_pattern)*) ";")* "}"
 
@@ -56,20 +56,6 @@ graph spaces {
 ```
 
 `neojac fmt archwire.jac` lays a space or an app that fits on one line out on one line.
-
-A space and an app may each have a docstring before it, one line of at most 120 characters
-(E2209): it is what [`neojac arch`](../toolchain/arch.md) writes in that box of the spaces view.
-
-<!-- example: not checked: a graph spaces block is valid only in a file named archwire.jac, beside the modules it places -->
-```jac
-graph spaces {
-    """The site's pages."""
-    space site: browser { entry web; pages.*; }
-
-    """Everything the public site is."""
-    app web { serve site; }
-}
-```
 
 ## Spaces
 
@@ -365,6 +351,67 @@ dist/spamlib-0.14.0-cp315-cp315-macosx_14_0_arm64.whl
 | E2236 | A space's quoted item is neither a tree of `jac.toml` (`[pypi."<directory>"]`, `[npm."<directory>"]`) nor a module |
 | E2237 | A Python project in a space whose host is not `cpython`, or an npm tree in one that is neither `node` nor `browser` |
 | E2238 | A package that ships nothing |
+
+## A package's browser spaces
+
+A library's own `archwire.jac` may declare browser spaces: pages the library holds, which every
+app whose program loads one of the library's modules builds and serves, with no word of the
+app's. stdjac's sign-in pages are such a space, and a library of any project's is written the same
+way.
+
+<!-- example: not checked: an archwire is one file of a library, beside its jac.toml -->
+```jac
+graph layers {
+    layer tools { greet; }
+    layer pages { look_main | pages.*; }
+}
+
+graph spaces {
+    space look: browser { entry look_main; pages.*; }
+}
+```
+
+The library's `jac.toml` says where each is served, with the same keys a project writes
+([jac.toml](../reference/jac-toml.md#spacesspace)):
+
+```toml
+[project]
+name = "pagelib"
+kind = "library"
+
+[spaces.look]
+base = "/lib/"
+
+[spaces.look.ui]
+plugin = "dom"
+
+[spaces.look.headers]
+Content-Security-Policy = "default-src 'none'; script-src 'self'; style-src 'self'"
+```
+
+- **An app gets the spaces of every library its program loads.** A project whose `api` space
+  imports `pagelib.greet` serves `pagelib`'s `look` at `/lib/`, its document answering each of its
+  page routes, with the headers the library gave it, as a project's own space is served
+  ([Pages](pages.md)). An app with no browser space of its own serves them too.
+- **They are built into the depending project, and travel inside its program.** The space is
+  compiled to JavaScript under the project's `.jac/build/<app>/@held/<library>.<space>/`, never
+  in the library's directory (stdjac is in a read-only install), and its files are compiled into
+  the program that loads the library: an app that was one file stays one file
+  ([Building an app](building.md#what-the-artifact-holds)).
+- **The library names its space's `ui` plugin**, one neojac ships, by `[spaces.<space>.ui]
+  plugin`; any other binding in a library's `jac.toml` is still E2221. A library's space has no
+  bundler and imports no npm package (E5272): what it imports is its own modules and the runtime.
+- **The library's other modules are no space's.** They are loaded by the program that imports
+  them, and `:pub` on one of them is E1211 as in any project with spaces.
+- **A library declares no app**, and every space it declares is a browser space with a `base`.
+
+| Code | Cause |
+|---|---|
+| E2340 | A library's archwire declares an app |
+| E2341 | A library's space with no `base` in its `jac.toml` |
+| E2342 | A library's space served at the base of another served space, or with one under it |
+| E2343 | A library's space on a host other than `browser` |
+| E2344 | A module of a library's space loaded by another program |
 
 ## Profiles
 

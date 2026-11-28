@@ -1,0 +1,81 @@
+# What a program says of the language's abstractions, and the module of stdjac
+# that holds each name. A program never names one of those modules: where a
+# name lives is stdjac's to change.
+
+# The abstractions' own words. A program says them without importing them, as
+# it says `root` and `print`, and a name of its own with the same spelling is
+# the one it means.
+[builtin]
+llm = "llm"
+job = "jobs"
+Job = "jobs"
+JobNote = "jobs"
+schedule = "schedule"
+limit = "limits"
+restspec = "routes"
+HTTPMethod = "routes"
+File = "files"
+accepts = "files"
+
+# The module that holds a name in a space of a JS host (a browser, hermes,
+# node), where that is not the one above: what a page is to a file is not
+# what the program that keeps it is.
+[js]
+File = "page_files"
+
+# The hosts a name is not built for yet: a module of a space of one that says
+# it is refused (E5090).
+[unbuilt]
+File = ["node", "wasm"]
+accepts = ["node", "wasm"]
+
+# What a program that wants more of an abstraction than its words imports, from
+# `stdjac` itself: `import from stdjac { grant, AccessLevel }`.
+[imported]
+jobj = "graph"
+remove = "graph"
+allroots = "graph"
+grant = "graph"
+AccessLevel = "graph"
+commit = "graph"
+sweep = "graph"
+StoreConflict = "graph"
+DataError = "graph"
+JobFailed = "jobs"
+consume_limit = "limits"
+address_checked = "auth"
+static_file = "static_files"
+FileError = "files"
+RemoteError = "remote"
+RemoteUnavailable = "remote"
+RemoteTimeout = "remote"
+RemoteRejected = "remote"
+RemoteDecodeError = "remote"
+RemoteFailed = "remote"
+Request = "remote"
+encode = "codec"
+decode = "codec"
+CodecError = "codec"
+plan = "plan"
+keep_arrangement = "plan"
+remote_url = "plan"
+env_name = "plan"
+data_dir = "plan"
+By = "by"
+ByCall = "by"
+ByChoice = "by"
+ByChooser = "by"
+ByStreams = "by"
+ByTool = "by"
+ByEnd = "by"
+ByError = "by"
+ByEvent = "by"
+ByEventKind = "by"
+ByUsage = "by"
+LLM = "llm"
+Effort = "llm"
+Message = "llm"
+IterationAction = "llm"
+IterationContext = "llm"
+on_usage = "llm"
+latest_turns = "llm"

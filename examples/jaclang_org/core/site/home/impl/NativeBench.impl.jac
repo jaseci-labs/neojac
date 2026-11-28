@@ -41,8 +41,14 @@ impl FpsBars -> JsxElement {
                                     <div
                                         role="tooltip"
                                         className="absolute top-full left-0 z-10 mt-2 rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md"
-                                    ><span className="font-semibold tabular-nums">{r["shown"]} FPS
-                                    </span>{" "}{"average, " + r["frames"] + " frames in 8 s"}</div>
+                                    >
+                                        <span
+                                            className="font-semibold tabular-nums"
+                                        >{r["shown"]} FPS
+                                    </span>
+                                        {" "}
+                                        {"average, " + r["frames"] + " frames in 8 s"}
+                                    </div>
                                 }
                             }
                         </div>
@@ -89,9 +95,9 @@ impl NativeBench -> JsxElement {
         <SectionHead num="" kicker="Benchmark" title="Rust-level performance, measured.">
             <p className="mt-6 max-w-2xl text-pretty text-lg leading-8 text-muted-foreground">
                     The benchmark is a raylib cube shooter written line for line in Jac, Zig, Rust and Python. To play a Jac game compiled to WebAssembly in your browser,{" "}<Link
-                to="/tech_demo"
-                className="font-medium text-primary underline-offset-4 hover:underline"
-            >
+                    to="/tech_demo"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                >
                         try the arena in the tech demo →
                     </Link></p>
         </SectionHead>
@@ -101,13 +107,22 @@ impl NativeBench -> JsxElement {
         >
             <div
                 className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)] lg:gap-14"
-            ><div><p className="text-6xl font-semibold tracking-tight text-foreground sm:text-7xl">
+            >
+                <div>
+                    <p
+                        className="text-6xl font-semibold tracking-tight text-foreground sm:text-7xl"
+                    >
                             0.4%
-                        </p><p className="mt-2 text-base font-medium">
+                        </p>
+                    <p className="mt-2 text-base font-medium">
                             between Jac, Zig and Rust
-                        </p><p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                        </p>
+                    <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
                             Jac averaged 3,225.9 FPS, between Zig and Rust and twice Python's 1,588.4.
-                        </p></div><FpsBars /></div>
+                        </p>
+                </div>
+                <FpsBars />
+            </div>
         </Figure>
         <Reveal delay={150}>
             <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3">

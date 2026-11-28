@@ -15,6 +15,9 @@ model's API, its components compiled for another UI library.
 - **Write a library** when code should call it: a function, a class, a client of some service that
   a module imports and uses by name. A library is declared in `[packages]`,
   as a plugin is (`neojac docs toolchain/packages`). A package is one or the other, never both.
+  A library may also hold pages, a browser space its own archwire declares, whose `ui` plugin is
+  one neojac ships: the one binding a library makes (`neojac docs apps/archwire`, section "A
+  package's browser spaces").
 - **Neither** adds an abstraction. Those are the language's and stdjac's (E2217).
 
 Load `writing-jac` first. Using the plugins neojac ships, in an app: `building-an-app`.
@@ -45,7 +48,7 @@ contract the one module of neojac's the plugin imports it from.
 | `ui` | A `[ui]` table | As a space is built | `abstractions/ui/solid` |
 | `bundler` | A `[bundler]` table | As a space is built | `abstractions/bundler/vite` |
 
-Each abstraction is a directory of neojac's `abstractions/`, beside `rt/` in a release: its
+Each abstraction is a directory of neojac's `abstractions/`, which a release carries with `rt/`: its
 `jac.toml` declares it, its `contract.jac` is the contract, and the plugins neojac ships for it are
 the directories beside those, each a worked example.
 

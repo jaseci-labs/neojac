@@ -52,8 +52,8 @@ impl BookSection -> JsxElement {
                             className="text-balance text-2xl font-semibold leading-snug tracking-tight sm:text-3xl"
                         >
                                 Anything derivable from the meaning of a program{" "}<span
-                            className="text-gradient"
-                        >
+                                className="text-gradient"
+                            >
                                     should be derived
                                 </span>{" "}
                                 — by the compiler and runtime, not the developer.
@@ -94,10 +94,10 @@ impl BookSection -> JsxElement {
                             >
                                     Read the book — latest version
                                     <HugeiconsIcon
-                                icon={ArrowUpRight01Icon}
-                                strokeWidth={2}
-                                className="size-4"
-                            /></a>
+                                    icon={ArrowUpRight01Icon}
+                                    strokeWidth={2}
+                                    className="size-4"
+                                /></a>
                             <a
                                 href="https://github.com/jaseci-labs/jac"
                                 target="_blank"

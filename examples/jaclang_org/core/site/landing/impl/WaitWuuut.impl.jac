@@ -51,8 +51,8 @@ impl LexiconSection -> JsxElement {
                 <div className="mx-auto max-w-2xl text-center">
                     <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">
                             Jac's contribution is{" "}<span
-                        className="text-gradient"
-                    >fundamental</span></h2>
+                            className="text-gradient"
+                        >fundamental</span></h2>
                     <p className="mt-3 text-balance text-muted-foreground">
                             Jac is not a language that recombines familiar features, it introduces concepts programming languages have not had before. The working lexicon, in one place:
                         </p>

@@ -230,7 +230,7 @@ Durations read as `0.35s` under ten seconds, `12.4s` under a minute, `2m 05s` un
 **Anywhere else** (a pipe, a file, CI), there is no status line and no outcome. A build or check that succeeds prints nothing at all, and one that fails prints its diagnostics alone, uncolored. neojac still says, on a line of its own, when it fetches something or waits for another build:
 
 ```text
-neojac: fetching <what> for linux-x86_64
+neojac: fetching neojac for linux-x86_64, for its clibs
 neojac: waiting for the crates another build is compiling
 ```
 

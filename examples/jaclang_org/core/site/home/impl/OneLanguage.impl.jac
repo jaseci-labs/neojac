@@ -264,9 +264,14 @@ impl CompareRow(
         </div>
         <div
             className="min-w-0 rounded-xl border border-primary/40 bg-primary/[0.05] p-4 lg:mt-4 lg:mb-8 lg:p-5"
-        ><p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-primary lg:hidden">
+        >
+            <p
+                className="mb-3 font-mono text-[10px] uppercase tracking-widest text-primary lg:hidden"
+            >
                     With Jac
-                </p>{right}</div>
+                </p>
+            {right}
+        </div>
     </>;
 }
 
@@ -295,11 +300,14 @@ impl StackCompare -> JsxElement {
     </div>;
     stack_right = <div className="flex items-start gap-3">
         <img src="/static/assets/jac-logo.svg" alt="" className="size-8 shrink-0" />
-        <div><p className="text-sm font-semibold tracking-tight">
+        <div>
+            <p className="text-sm font-semibold tracking-tight">
                 The Jac compiler and runtime
-            </p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 One binary that is also the package manager, test runner, formatter and deploy tool.
-            </p></div>
+            </p>
+        </div>
     </div>;
     people_left = <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {
@@ -326,9 +334,12 @@ impl StackCompare -> JsxElement {
         }
     </div>;
     people_right = <div className="flex flex-col gap-2">
-        <div><p className="text-xs font-semibold tracking-tight">
+        <div>
+            <p className="text-xs font-semibold tracking-tight">
                 One engineer, or one agent
-            </p><p className="font-mono text-[10px] text-muted-foreground">Jac</p></div>
+            </p>
+            <p className="font-mono text-[10px] text-muted-foreground">Jac</p>
+        </div>
         <FileGlyph name="main.jac" segs={_JAC_FILE} />
         <p className="text-xs leading-relaxed text-muted-foreground">
             Frontend, backend, data and deployment in one file, with no glue.

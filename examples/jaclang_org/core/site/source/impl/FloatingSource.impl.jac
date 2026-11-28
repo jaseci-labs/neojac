@@ -248,9 +248,11 @@ impl FloatingSource(
             if is_float and not always_float {
                 <div
                     className="flex h-[540px] items-center justify-center rounded-xl border border-dashed border-border/60 bg-card/10"
-                ><p className="font-mono text-xs text-muted-foreground/60">
+                >
+                    <p className="font-mono text-xs text-muted-foreground/60">
                         source browser floating ↘
-                    </p></div>
+                    </p>
+                </div>
             }
         }
         <div

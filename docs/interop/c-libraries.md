@@ -237,7 +237,7 @@ imported variadic function, with the same promotions (E1157). In its body `args`
 
 - `args.next[T]()` reads the next argument as `T`, as C's `va_arg` does. `T` is what C's `...`
   carries after its promotions: `i32`, `u32`, `i64`, `u64`, `int` (C's word), `float` (a
-  `double`) or a `ptr`; another type is refused (E1644).
+  `double`) or a `ptr`; another type is refused (E1646).
 - `args.copy()` is a list at the same place, which reads on apart from `args` (C's `va_copy`).
 - `args` given to a parameter typed `VaList`, of a C function or of a Jac one, is C's `va_list`
   passed on, as C's ABI passes it: the giver's own list on x86-64's System V (Linux, macOS), where

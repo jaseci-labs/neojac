@@ -224,6 +224,8 @@ kill $API_PID
 
 8. **Deploy** the artifact in `dist/`; it needs nothing installed. Set per machine
    `JAC_<APP>_LISTEN`, `JAC_<APP>_DATA`, `JAC_REMOTE_<SPACE>` (names uppercased), `JAC_DEPLOY_KEY`.
+   An app of native spaces alone is one file: the sign-in pages at `/__jac/auth/` (a program's
+   sign-in, mailed links), and any library's pages, are inside the program.
 
 ## What a correct result looks like
 

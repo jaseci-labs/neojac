@@ -20,7 +20,7 @@ of no project, and one of a project of fixtures that no `archwire.jac` governs, 
 ## Syntax
 
 ```ebnf
-graph_import ::= "graph" "import" wire_module_path? "{" (STRING import_rule | import_rule | import_wire)* "}"
+graph_import ::= "graph" "import" wire_module_path? "{" (import_rule | import_wire)* "}"
 
 import_wire ::= "comptime"? ("include" | "type")? wire_module_path ("++>" | "-->") ("[" (wire_target ("," wire_target)* ","?)? "]" | wire_target ";"?)
 
@@ -36,8 +36,7 @@ module_pattern ::= "*" | wire_module_path ("." "*")?
 ```
 
 A `graph import` block is valid only in a file named `archwire.jac` (E2088), and that file holds
-`graph` blocks and nothing else: no statement, no declaration, no comment (E2089). Its one kind of
-prose is a [docstring](#docstrings) on an edge rule, a layer, a space or an app.
+`graph` blocks and nothing else: no statement, no declaration, no comment and no docstring (E2089).
 
 ## What an archwire.jac governs
 
@@ -315,23 +314,6 @@ Every import of a standard-library module, a package, or a C or Rust library the
 rule that admits it into the module that writes it (E2211), and the message gives the rule. The
 default is `"open"`: an import from outside needs a rule only once some rule names its package.
 
-## Docstrings
-
-An edge rule, a layer, a space and an app may each have a docstring before it. It is what
-[`neojac arch`](../toolchain/arch.md) writes in that box, or shows for that arrow.
-
-<!-- example: not checked: a graph import block is valid only in a file named archwire.jac, beside the modules it wires -->
-```jac
-graph import {
-    """The screen is drawn from the platform."""
-    edge Core: platform --> screen;
-}
-```
-
-- **A docstring is one line of at most 120 characters** (E2209). It is the one thing in
-  `archwire.jac` that nothing checks, so there is little of it.
-- It describes what follows it. Before anything else, a wire for one, it is E0166.
-
 ## Example
 
 A project laid out as:
@@ -448,7 +430,6 @@ neojac build main.jac -o main && ./main
 | E2092 | A rule named twice |
 | E2205, E2206, E2207 | A rule nothing uses; a pattern of one nothing matches; a payload name nothing carries |
 | E2208 | A flow two rules admit |
-| E2209, E0166 | A docstring of more than one line or 120 characters; one that describes nothing |
 | E0086 | A wire not written `provider ++> consumer` or `provider --> consumer` |
 | E0087, E0089, E0090, E0044, E0095, E0096 | Malformed wires and payloads |
 

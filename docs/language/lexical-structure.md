@@ -409,7 +409,7 @@ stmt ::=
 | `visit`, `report`, `skip`, `disengage`, `-> T { ... }` | Walkers: `neojac docs visit` |
 | `comptime` statements | `neojac docs comptime` |
 | `in region { ... }` | `neojac docs region` |
-| `has` in a function, JSX elements | Components of a UI space: `neojac docs jsx` |
+| `has` in a function, JSX elements | Components of a UI space, and `Markup` in a native space: `neojac docs jsx` |
 
 Some statements the grammar takes are refused in a function body today, with E5090: `import`,
 `glob`, and an archetype declaration.

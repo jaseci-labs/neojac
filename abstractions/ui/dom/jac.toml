@@ -1,0 +1,48 @@
+# A `ui` plugin with no library: neojac's own runtime, which the compiler makes
+# each element against with the DOM's own calls. State is fine-grained: a
+# component runs once, and what reads state updates itself. It needs no npm
+# package and no bundler, and its pages run under `script-src 'self';
+# style-src 'self'`.
+[project]
+name = "dom"
+kind = "plugin"
+
+[plugin]
+fills = "ui"
+interface_ver = 1
+
+[ui]
+model = "fine-grained"
+hosts = ["browser"]
+runtime = "runtime.js"
+boot = "@jac/runtime"
+
+[ui.jsx]
+form = "dom"
+lowercase_tags = true
+keys = false
+
+[ui.state]
+from = "@jac/runtime"
+name = "signal"
+shape = "pair"
+
+[ui.computed]
+from = "@jac/runtime"
+name = "computed"
+
+[ui.effect]
+from = "@jac/runtime"
+name = "effect"
+
+[ui.cleanup]
+from = "@jac/runtime"
+name = "cleanup"
+
+[ui.untrack]
+from = "@jac/runtime"
+name = "untrack"
+
+[ui.each]
+from = "@jac/runtime"
+name = "each"

@@ -308,13 +308,13 @@ Who a caller is, and how one signs in, is the project's `auth` plugin's to say
 | `POST /__jac/auth/<action>`, a JSON object of what the action needs | `{"user": ..., "token": ..., "name": ...}`: the caller is signed in. `name` is what they are called where that is not who they are, as the name another service knows them by, and `""` otherwise |
 | `GET /__jac/auth/me` | `{"user": ..., "checked": ..., "mails": ...}`, or 401 for a caller no one knows: whether the plugin checked their address, and whether it checks addresses at all ([below](#checked-addresses-and-new-passwords)) |
 | `POST /__jac/auth/logout` | `null`; the caller's session is ended |
-| `GET /__jac/auth/<action>?...` | Not JSON: the page a caller comes back to from the place an action sent them, below |
+| `GET /__jac/auth/<action>?...` | Not JSON: the page a caller comes back to from the place an action sent them, below ([The sign-in pages](#the-sign-in-pages)) |
 | `POST /__jac/auth/device`, `{}` | A program that shows no page begins to be signed in: the `code` it shows, the `secret` it collects with, the `page` to send the person to, and `lasts` and `every`, in seconds ([below](#a-program-that-shows-no-page)) |
-| `GET /__jac/auth/device` | Not JSON: the page at which someone signs such a program in |
+| `GET /__jac/auth/device` | Not JSON: the page at which someone signs such a program in ([The sign-in pages](#the-sign-in-pages)) |
 | `POST /__jac/auth/device/allow`, `POST /__jac/auth/device/refuse`, `{"code": ...}` from a signed-in caller | `null`; the program showing the code is the caller's, or is turned away |
 | `POST /__jac/auth/device/session`, `{"secret": ...}` | The program's session, once; `null` while no one has answered |
 | `POST /__jac/auth/check/mail`, `{}` or `{"address": ...}` from a signed-in caller | `null`; a link that checks their address is mailed to it ([below](#checked-addresses-and-new-passwords)) |
-| `GET /__jac/auth/check`, `GET /__jac/auth/reset` | Not JSON: the page a mailed link opens |
+| `GET /__jac/auth/check`, `GET /__jac/auth/reset` | Not JSON: the page a mailed link opens ([The sign-in pages](#the-sign-in-pages)) |
 | `POST /__jac/auth/check`, `{"token": ...}` | `null`; the address the link was mailed to is checked |
 | `POST /__jac/auth/forgot`, `{"name": ...}` | `null`; a link that sets a new password is mailed to the address of the account the name names |
 | `POST /__jac/auth/reset`, `{"token": ..., "password": ...}` | `{"user": ..., "token": ..., "name": ...}`: the password is set, and the caller signed in |
@@ -359,9 +359,8 @@ page's. The secret never leaves the program, and the code alone signs no one in:
 program to a caller who is signed in already. So the page says what the answer means, and a
 person sent to it by someone else turns the program away.
 
-The page is sent with headers that keep it out of another site's frame
-(`Content-Security-Policy: frame-ancestors 'none'`, `X-Frame-Options: DENY`), and it loads
-nothing from anywhere but the app.
+The page is sent with headers that keep it out of another site's frame and load nothing but the
+app's own script and style ([The sign-in pages](#the-sign-in-pages)).
 
 A plugin that signs no such program in refuses each step (`rejected`, with its reason).
 
@@ -406,10 +405,39 @@ opens is the app's, the same for every plugin:
 - **At `/__jac/auth/reset`** it asks for a new password and sets it. The person is then signed in
   there, and every other session of the account has ended.
 - **Both are sent with the device page's headers**: never in another site's frame, loading
-  nothing but from the app.
+  nothing but the app's own script and style, and kept by no cache
+  ([The sign-in pages](#the-sign-in-pages)).
 
 **An account with no address** (one made before the app mailed) gives itself one with
 `POST /__jac/auth/check/mail` and `{"address": ...}`, which is mailed a link like any other.
+
+### The sign-in pages
+
+The pages at `/__jac/auth/` (the device page, the two a mailed link opens, and the one a caller
+comes back to from another service) are stdjac's browser space `signing`, written in Jac on the
+`dom` `ui` plugin ([A package's browser spaces](archwire.md#a-packages-browser-spaces)). Every
+app whose program serves builds it and carries it inside its program, and serves it at
+`/__jac/auth/` as it serves a space of its own: the auth routes above answer first, and a `GET` of
+any other path under `/__jac/auth/` is the space's, its document for each of its routes
+(`/device`, `/check`, `/reset`, and `/<action>`, the way back) and 404 for any other path. The
+pages sign in by the runtime's session functions ([Pages](pages.md#signing-in)), as any page
+may; none holds a token itself.
+
+Each file of the space is sent with:
+
+| Header | Value |
+|---|---|
+| `Content-Security-Policy` | `default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'` |
+| `X-Frame-Options` | `DENY` |
+| `Referrer-Policy` | `no-referrer` |
+| `Cache-Control` | `no-store` |
+| `X-Content-Type-Options` | `nosniff` |
+
+No script or style is written into the pages' markup, so the policy allows only the app's own
+files; none is ever in another site's frame; the address of the way back, which carries another
+service's `code` and `state`, is sent to no other site and kept by no cache; and a mailed link's
+token, in the address's fragment, is read by the page alone and reaches no server. After signing in
+the page goes back only to a path of the app's own origin.
 
 ### The accounts plugin
 
@@ -654,33 +682,32 @@ curl http://127.0.0.1:8000/robots.txt    # User-agent: *
 curl http://127.0.0.1:8000/status        # {"ok": true, "data": {"up": 1}}
 ```
 
-A page is such a function, of a server that has no browser space: its result is the HTML, and
-`headers` keeps it out of another site's frame.
+A page is such a function, of a server that has no browser space, that returns
+[`Markup`](components.md#jsx-in-a-native-space-markup): its result is the HTML, sent as
+`text/html; charset=utf-8` with no envelope, and `headers` keeps it out of another site's frame.
 
 <!-- example: not checked: it is one function of a served app -->
 ```jac
 @restspec(
     method=HTTPMethod.GET,
     path="/about",
-    produces="text/html; charset=utf-8",
-    envelope=False,
     headers={"Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'"}
 )
-def:pub about -> str {
-    return "<!doctype html><title>About</title><p>A page of this app.</p>";
+def:pub about -> Markup {
+    return <html><head><title>About</title></head><body><p>A page of this app.</p></body></html>;
 }
 ```
 
-`@restspec(method, path, produces="text/plain", envelope=True, headers=None)` is a
+`@restspec(method, path, produces=None, envelope=None, headers=None)` is a
 [decorator](../language/decorators.md): it records the route on the function as the program
 compiles, and nothing is registered as the module starts.
 
 | Argument | Meaning |
 |---|---|
-| `method` | `HTTPMethod.GET` or `HTTPMethod.POST`. A request with another method is 404. |
+| `method` | `HTTPMethod.GET` or `HTTPMethod.POST`, its two members: another is E1030. A request with another method is 404. |
 | `path` | Absolute: one that does not start with `/` does not compile |
-| `envelope` | `True`: the reply is the JSON envelope. `False`: the body is the function's result, which must be a `str`. |
-| `produces` | The `Content-Type` of an unenveloped body |
+| `envelope` | `True`: the reply is the JSON envelope. `False`: the body is the function's result, which must be a `str` or a `Markup`. Left out, `False` for a function declared to return `Markup` and `True` for any other |
+| `produces` | The `Content-Type` of an unenveloped body. Left out, `text/html; charset=utf-8` for a function declared to return `Markup` and `text/plain` for any other |
 | `headers` | Headers an unenveloped body is sent with, a dict written at the decorator: what a page says of where it may be shown and what it may load (`Content-Security-Policy`, `X-Frame-Options`, `Cache-Control`). A refusal and a failure are the JSON envelope, sent with none of them |
 
 The function takes no parameters. Its access tag guards the route as it guards its endpoint:
@@ -689,15 +716,20 @@ the deployment's key (403 otherwise).
 
 Its arguments are checked as the program compiles: a missing `method` is E1050, an `envelope`
 that is not a `bool` is E1053, an unknown keyword is E1052, and a function with parameters or a
-path that does not start with `/` is E0109.
+path that does not start with `/` is E0109. It decorates a function: on a walker or a class it
+is E1247. Each is reported at the `@restspec` that is wrong, with the line of stdjac that
+refused it as the report's frame.
 
 A path is served by a transport that serves paths, as the standard one, `http`, does. Under one
 that carries calls between apps and nothing else, a program with a `@restspec` function (or a
-page) does not start:
+page of the project's) does not start:
 
 ```text
 api can't start with the transport it was given: it serves `svc.robots` at /robots.txt, and that transport carries calls and serves no paths. Bind one that serves them in jac.toml's [transport], or pick it where the program runs with JAC_TRANSPORT.
 ```
+
+The pages a library brings, stdjac's sign-in pages among them, are not the project's to ask for,
+and do not stop it: under such a transport they are not reached, as the auth's own routes are not.
 
 ## Scheduled functions: @schedule
 

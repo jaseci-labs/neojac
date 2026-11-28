@@ -120,9 +120,9 @@ executable are not:
   compile, a C file's compile, a crate's rustc), and `neojac test` and `neojac npm` run programs
   that may run it. Each of those is part of the run that started it, and records nothing of its
   own: neojac sets `NEOJAC_TELEMETRY=off` for everything it runs.
-- **neojac under another name.** The `python` of a project's `.jac/venv` and the links in neojac's
-  `lib/` that build systems run as their compiler, linker or `rustc` are neojac's tools, not the
-  `neojac` command, and record nothing.
+- **neojac under another name.** The `python` of a project's `.jac/venv` and the links to neojac
+  in its cache that build systems run as their compiler, linker or `rustc` are neojac's tools, not
+  the `neojac` command, and record nothing.
 - **`neojac telemetry` itself**, which shows and manages the records and adds none.
 
 A run that ends by becoming another program (`neojac run`, which starts the program in its place)
@@ -143,8 +143,7 @@ the notice again nor forgets that recording was turned off:
 Recording a run is one write of one line to the end of the week's file: no lock, and nothing read
 of what was recorded before, so it costs a run nothing it would notice, and many runs ending at
 once (`make -j` running `neojac cc`) each add their line. `install.sh --uninstall` removes
-`~/.neojac` where it is the installer's `NEOJAC_HOME`, as it is unless that names another
-directory, and these with it.
+`~/.neojac`, and these with it.
 
 ## Turning it off
 

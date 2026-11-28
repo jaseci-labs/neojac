@@ -11,7 +11,7 @@ name would shadow them.
 
 | Module | What it is | Page |
 |---|---|---|
-| `jaclang.comptime` | Functions the compiler evaluates itself: reflection on types and functions (`fields`, `params`, `kind`, `type_args`, `members`, `args_type`), fields by a name known at compile time (`get_field`, `set_field`, `restore`, `apply`), facts of the build (`target`, `bits`, `signed`, `sizeof`, `sendable`), and what decorators record (`inline`, `noinline`, `cold`, `align`, `packed`, `fast_math`) | [Reflection](../language/reflection.md) (`neojac docs reflection`), [Compile-time values](../language/compile-time-values.md) (`neojac docs target`), [Decorators](../language/decorators.md) (`neojac docs decorator`) |
+| `jaclang.comptime` | Functions the compiler evaluates itself: reflection on types and functions (`fields`, `params`, `returns`, `kind`, `type_args`, `members`, `args_type`), fields by a name known at compile time (`get_field`, `set_field`, `restore`, `apply`), facts of the build (`target`, `bits`, `signed`, `sizeof`, `sendable`), and what decorators record (`inline`, `noinline`, `cold`, `align`, `packed`, `fast_math`) | [Reflection](../language/reflection.md) (`neojac docs reflection`), [Compile-time values](../language/compile-time-values.md) (`neojac docs target`), [Decorators](../language/decorators.md) (`neojac docs decorator`) |
 | `atomics` | `Atomic[T]`, an integer that threads change in one step | [Atomics](../language/numbers-atomics.md) (`neojac docs atomics`) |
 | `dl` | C libraries opened as the program runs | [dl](../interop/dl.md) (`neojac docs dl`) |
 | `accel` | Devices, tensors and kernels | [accel](../accel/index.md) (`neojac docs accel`) |

@@ -1,10 +1,10 @@
 ---
-description: neojac test, how it finds test modules, the [test] table of jac.toml, -k, -j and -o, the runners it builds in .jac/test, its output and exit statuses, and running tests as WebAssembly.
-keywords: test runner, runner, deselected
+description: neojac test, how it finds test modules, the [test] table of jac.toml, -k, -j and -o, the runners it builds in .jac/test, each test as a run of its own with a directory of its own, its output, the slowest tests and exit statuses, and running tests as WebAssembly.
+keywords: test runner, runner, deselected, slowest tests
 ---
 # test
 
-`neojac test` builds and runs the `test` blocks of a project. Each module that has tests is built into one program, its test runner, and the runners are built and run in parallel: a module's tests start when its own runner is built, while others are still building.
+`neojac test` builds and runs the `test` blocks of a project. Each module that has tests is built into one program, its test runner, and each test is a run of that runner by itself. Runners are built and tests are run in parallel: a module's tests start when its own runner is built, while others are still building, and tests of one module run at the same time.
 
 This page is the command. The `test` block itself is in [Tests](../language/tests.md) (`neojac docs language/tests`).
 
@@ -58,10 +58,9 @@ neojac test <file.jac> -o <runner> [<option>...]
 | Option | What it does |
 |---|---|
 | `-k <text>` | Run only the tests whose names contain `<text>`; a module with none is not built |
-| `-j <jobs>` | Build and run this many modules at once, each told it has this many processors (default: one for each core). A build or a runner sizes what it runs at once by its processors, so a test that runs commands of its own runs no more than `<jobs>` of them at once ([`PYTHON_CPU_COUNT`](../reference/environment.md#set-by-neojac-for-what-it-runs)) |
+| `-j <jobs>` | Run on this many processors, which the runners' builds, the tests and the builds a test starts share (default: one for each core). No more than `<jobs>` builds and tests run at once, and a build a test starts compiles on the processors nothing else is using ([the processors a run shares](#the-processors-a-run-shares)). A test is also told it has `<jobs>` processors ([`PYTHON_CPU_COUNT`](../reference/environment.md#set-by-neojac-for-what-it-runs)) |
 | `-o <runner>` | Build the one module's test runner, and do not run it |
 | `--target <platform>` | Build the runners for another platform ([build](build.md#--target-building-for-another-platform)) |
-| `--rt <dir>` | The runtime to build against (default: the `rt/` beside neojac) |
 | `--place <directory>` | The place the runners are built for, which provides a plugin for each abstraction the project leaves open ([Plugins](../apps/plugins.md#the-place-a-program-is-built-for)) |
 | `--diagnostics <form>` | How diagnostics and test results are written on stderr: `human` (the default), or `json`, one record a line ([check](check.md#diagnostics-as-json)) |
 
@@ -109,10 +108,10 @@ test "a cart counts each name" {
 
 1. Finds the modules, and with `-k` keeps those with a matching test.
 2. Builds each module's runner into `.jac/test/<platform>/` under the project's root, at the module's path: `src/cart.jac` becomes `.jac/test/macos-aarch64/src/cart`. A runner is rebuilt only when something its last build read has changed; the header line says how many are built this time.
-3. Runs every runner that built, from the project's root, with the environment variable `NEOJAC` set to the neojac that is running, whatever `NEOJAC` held before: `NEOJAC=<another> neojac test` still tests with the neojac that runs the tests, so to test another compiler, run its own `neojac test`. A test that builds programs of its own runs that compiler.
+3. Runs every test of each runner that built, each as a run of the runner by itself (`<runner> --test <name>`), from the project's root. The tests that took longest the last time they ran start first, and a test that has not run before starts ahead of them. Each run has the environment variable `NEOJAC_TEST_DIR` set to [a directory of the test's own](#a-tests-own-directory), and `NEOJAC` set to the neojac that is running, whatever `NEOJAC` held before: `NEOJAC=<another> neojac test` still tests with the neojac that runs the tests, so to test another compiler, run its own `neojac test`. A test that builds programs of its own runs that compiler.
 4. Shows each module's result, in the order the modules were found, then the summary.
 
-Inside a runner, the module's own code (its globals and plain `with entry` blocks, its test annexes' included) runs first, then each test in source order. Everything a test prints is captured; it is shown only for a test that fails, under the failure. What the module's code prints is not shown.
+Each test's run starts the module afresh: the module's own code (its globals and plain `with entry` blocks, its test annexes' included) runs first, then the one test. So no test sees what another did to a global or to anything else the program holds, and no test waits for another. Everything a test prints is captured; it is shown only for a test that fails, under the failure. What the module's code prints is not shown.
 
 `with entry:__main__` does not run in a runner, so a module that is a program keeps its main code there: what it does when it is run, as opposed to the setup its tests rely on.
 
@@ -136,7 +135,55 @@ hello, world
 
 `neojac build` makes the program, which prints its greeting; `neojac test` runs only the test. See [Tests](../language/tests.md#a-programs-main-code-and-its-tests) for which entry blocks run when.
 
-Beside each runner are two logs: `<runner>.build.log`, what its build printed, and `<runner>.log`, what its last run printed.
+Beside each runner are `<runner>.build.log`, what its build printed; `<runner>.tests/`, which holds `<n>.log`, what the last run of the module's n-th test printed, and each test's own directory; and `<runner>.times`, how long each test took the last time it ran, which is what the next run orders them by.
+
+### A test's own directory
+
+Tests of one module run at the same time, so a test that writes files writes them where no other test does: in the directory `NEOJAC_TEST_DIR` names. It is there when the test starts, it is the test's alone, and it is the same directory each run, under `<runner>.tests/` and named by the test's name, so what a test leaves there (a project it built, with that project's own build cache) is there the next time. `neojac test` empties nothing in it: a test that needs a directory empty makes it so. The directory of a test that is renamed or removed is deleted.
+
+```jac
+import os;
+
+test "a report is written" {
+    out = os.path.join(os.environ["NEOJAC_TEST_DIR"], "report.txt");
+    with open(out, "w") as f {
+        f.write("done\n");
+    }
+    assert os.path.getsize(out) == 5;
+}
+```
+
+A runner run by hand has no such directory unless it is given one: `NEOJAC_TEST_DIR=<directory> ./prices-tests`.
+
+What tests share outside their directories they take turns on. A file of the project that only one program may change at a time, a port, a device: each test that uses it holds a lock while it does, and the others wait.
+
+```jac
+import fcntl;
+import subprocess;
+
+def migrated(args: list[str]) -> int {
+    with open("schema.lock", "a") as turn {
+        fcntl.flock(turn.fileno(), fcntl.LOCK_EX);
+        return subprocess.run(["./migrate"] + args).returncode;
+    }
+}
+```
+
+## The processors a run shares
+
+`neojac test` runs on a fixed number of processors: one for each core, or the number `-j` gives. The tests are not the only things running. A test builds programs, and a build compiles C files, Rust crates and its own code on several threads. If every test's builds each took every core, a run of many tests would ask the machine for many times what it has.
+
+So the run keeps its processors as slots, and everything in it draws on the same ones:
+
+- Each build of a runner and each test that is running holds one slot.
+- A neojac that a test starts (a build, a check, another `neojac test`) runs on its test's slot. For each further thing it runs at once (a C file or a crate compiling, a thread of code generation, a test of its own) it takes a free slot, and gives it back when that ends.
+- When no slot is free it goes on with the one it has. Nothing waits for a slot it cannot do without.
+
+Early in a run, when the tests outnumber the processors, each test's builds compile one thing at a time. As the tests end, the builds still running take the slots they leave.
+
+The slots are bytes in a named pipe, one for each processor not in use, and `NEOJAC_SLOTS` names the pipe to everything the run starts. It is the pipe GNU make's jobserver keeps, so rustc and a crate's build script, which are handed it as `CARGO_MAKEFLAGS=--jobserver-auth=fifo:<pipe>`, share the same slots. A test that runs programs of its own at once can too: read a byte from the pipe, without blocking, before starting each one after the first, and write it back when that one ends.
+
+A `neojac test` started where `NEOJAC_SLOTS` is set draws on that pipe and makes none of its own, so a test that runs `neojac test` adds no processors to the run. On Windows there is no such pipe, and each build sizes itself by the machine.
 
 ## Reading the output
 
@@ -169,31 +216,46 @@ FAILED tests/prices.jac::cents of nothing
 - A runner that does not build is shown with its diagnostics, each noted `in module '<module>'`, then `<module>: the test runner failed to build`. It counts as a failed module.
 - Each module that ran has one line, `<module>: N passed`, with `, N failed` when any did.
 - Each failure is shown above its module's line as a diagnostic ([check](check.md#the-format-of-a-diagnostic)) at the line the test stopped at: `FAILED[rt <exception>]` for an assertion that failed and `ERRORED[rt <exception>]` for any other exception, then the test's name and the exception's message. Under it are the source line, the module, the traceback, and after `output:` what the test printed.
-- The last lines: the tests' totals (`N passed`, with `, N failed` and `, N deselected` when there are any), how many modules passed, how long the run took, and each failure by name: `FAILED <module>::<test name>` for a test, `FAILED <module> (did not build)` for a runner that did not build, `FAILED <module> (its runner failed)` for one that stopped before its tests were done ([below](#a-runner-that-dies)), and `FAILED <module> (its runner reported no test)` for one that ended with status 0 and sent no result of the module's tests, so nothing says they passed.
+- The last lines: the tests' totals (`N passed`, with `, N failed` and `, N deselected` when there are any), how many modules passed, how long the run took, [the slowest tests](#the-slowest-tests) when any took a second or more, and each failure by name: `FAILED <module>::<test name>` for a test, `FAILED <module> (did not build)` for a runner that did not build, `FAILED <module>::<test name> (its runner failed)` for a test whose run stopped before the test was done ([below](#a-runner-that-dies)), and `FAILED <module>::<test name> (its runner reported no test)` for one whose run ended with status 0 and sent no result, so nothing says the test passed.
 
 With `--diagnostics json` each test's result, passed or failed, is a record a line on stderr instead, with the test's name and outcome in its `result`; the modules' lines and the last lines are still printed.
 
+### The slowest tests
+
+When a test took a second or more, the tests that took longest are listed under the totals, the
+longest first and ten at most, each with how long it took:
+
+```text
+14 passed; 3 of 3 modules passed in 9.41s
+slowest tests:
+  6.02s  tests/shop.jac::an order is priced with its shipping
+  1.37s  tests/prices.jac::every price rounds to a cent
+```
+
+Every test's time is in its record, as `seconds` in its `result`, with `--diagnostics json`.
+
 ### A runner that dies
 
-A runner that stops before its tests are done, killed by a signal or ended by a crash, reports no
-failure of a test. Its module's line counts the tests that finished; then comes the status the
-runner ended with, minus a signal's number when a signal killed it, and what the runner had
-printed, a mark for each test that finished. The summary counts the module as failed:
+A test whose run stops before the test is done, killed by a signal or ended by a crash, reports
+no failure. Its module's line counts the tests that finished; then comes the test's name with the
+status its run ended with, minus a signal's number when a signal killed it, and what the run had
+printed. The module's other tests are runs of their own, so they are run and counted all the
+same. The summary counts the module as failed:
 
 ```text
 neojac test: 1 module with tests, 1 to build, on macos-aarch64
-dies.jac: 1 passed
+dies.jac: 2 passed
 
-dies.jac: its runner exited with status -6
-.
+dies.jac::aborts: its runner exited with status -6
 
-1 passed; 0 of 1 module passed in 1.22s
-FAILED dies.jac (its runner failed)
+2 passed; 0 of 1 module passed in 1.22s
+FAILED dies.jac::aborts (its runner failed)
 ```
 
-Here the second of three tests raised `SIGABRT` (`signal.raise_signal(signal.SIGABRT)`), signal 6. An
-exception, `SystemExit` from `sys.exit` among them, is not this case: it fails its test with an
-`E` mark and the run goes on.
+Here the second of three tests, `aborts`, raised `SIGABRT` (`signal.raise_signal(signal.SIGABRT)`),
+signal 6. An exception, `SystemExit` from `sys.exit` among them, is not this case: it fails its
+test and the run goes on. When several tests of a module end the same way with the same output,
+as they all do when the module's own code is what stops, the output is shown under the first.
 
 To find out why the runner stopped, build it with `-o` and run it by hand, where its exit status
 shows:
@@ -209,9 +271,9 @@ neojac test dies.jac -o dies-tests
 
 In the shell, a status above 128 is a signal, numbered the status minus 128: 134 is signal 6, `SIGABRT`, and 139
 is signal 11, `SIGSEGV`, a crash. Run the runner under a debugger (`lldb ./dies-tests` on macOS,
-`gdb ./dies-tests` on Linux) to see where it stopped; `./dies-tests -k <text>` runs one test alone.
-What the runner printed before it stopped, as `neojac test` ran it, is in its log, `<runner>.log`
-beside the runner in `.jac/test/`.
+`gdb ./dies-tests` on Linux) to see where it stopped; `./dies-tests --test <name>` runs one test alone.
+What the test's run printed before it stopped, as `neojac test` ran it, is in its log, `<n>.log`
+in `<runner>.tests/` beside the runner in `.jac/test/`.
 
 ## -k: some of the tests
 
@@ -236,9 +298,10 @@ The last line counts the tests left out across the whole project.
 neojac test tests/prices.jac -o prices-tests
 ./prices-tests
 ./prices-tests -k rounds
+./prices-tests --test "cents of nothing"
 ```
 
-`-o` builds one module's runner to the file named and does not run it. The runner is an ordinary program: it runs the module's tests, prints a mark for each (`.` passed, `F` an assertion failed, `E` any other exception was raised), then the failures and the totals, and exits with status 1 when a test failed. Its only option is `-k <text>`. Run it from the project's root when its tests open files by relative path.
+`-o` builds one module's runner to the file named and does not run it. The runner is an ordinary program: it runs the module's tests, prints a mark for each (`.` passed, `F` an assertion failed, `E` any other exception was raised), then the failures and the totals, and exits with status 1 when a test failed. Run with no option it runs every test of the module, one after another in source order, in the one process. Its options are `-k <text>`, the tests whose names contain the text, and `--test <name>`, the one test of exactly that name, which is how `neojac test` runs each. Run it from the project's root when its tests open files by relative path.
 
 ```text
 .F.                                                                      [100%]
@@ -266,7 +329,7 @@ neojac test: no test's name contains 'multiplies'
 
 ## --target wasm32-wasi
 
-Runners for another platform cannot run here, with one exception. `neojac test --target wasm32-wasi` builds each runner as a WebAssembly module and runs it on neojac's own Node, which is a WASI runtime (`rt/node/wasi.mjs`), as `neojac node <rt>/node/wasi.mjs --env NEOJAC_DIAGNOSTICS_TO=<file> <runner>.wasm` from the project's root (`<rt>` is neojac's runtime directory). The project's files are therefore the runner's, and the file its tests' results are sent to is named to it: a program run that way has only the environment it is told to be given.
+Runners for another platform cannot run here, with one exception. `neojac test --target wasm32-wasi` builds each runner as a WebAssembly module and runs it on neojac's own Node, which is a WASI runtime (`rt/node/wasi.mjs`), each test as `neojac node <rt>/node/wasi.mjs --env NEOJAC_DIAGNOSTICS_TO=<file> --env NEOJAC_TEST_DIR=<directory> <runner>.wasm --test <name>` from the project's root (`<rt>` is neojac's runtime directory). The project's files are therefore the runner's, and the file a test's result is sent to and the test's own directory are named to it: a program run that way has only the environment it is told to be given.
 
 Nothing else needs installing. neojac has no Node for Windows yet, so there it stops:
 

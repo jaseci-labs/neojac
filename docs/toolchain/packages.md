@@ -105,7 +105,14 @@ numpy = ">=2"
   its module, so two copies would be two types.
 - **A library depends on no plugin.** Its `[packages]` declares none and its `jac.toml` binds no
   abstraction (E2221), and none of its modules imports one (E2218). It uses the language's
-  abstractions (`root`, `by llm()`), and the project that uses it says what carries them out.
+  abstractions (`root`, `by llm()`), and the project that uses it says what carries them out. The
+  one binding it makes is of its own browser space's `ui`, to a plugin neojac ships.
+- **A library may hold pages: browser spaces its own `archwire.jac` declares**, each served at the
+  `base` its `jac.toml` gives it. Every app whose program loads a module of the library builds
+  them into the project's `.jac/build/` and carries them inside its program, as it carries the
+  library's code, and serves them; no app names them
+  ([A package's browser spaces](../apps/archwire.md#a-packages-browser-spaces)). stdjac's sign-in
+  pages are such a space.
 - **A library's name is its own.** A directory or a module of the project named as a declared
   library is E2222: an import would name either.
 - **A plugin declares libraries the same way,** in its own `[packages]`, and no plugin: only a

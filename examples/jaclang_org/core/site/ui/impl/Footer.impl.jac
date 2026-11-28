@@ -51,9 +51,12 @@ impl Footer -> JsxElement {
             </div>
             <div
                 className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border/60 pt-8 sm:flex-row"
-            ><p className="text-xs text-muted-foreground">
+            >
+                <p className="text-xs text-muted-foreground">
                         © 2026 Jaseci Labs. MIT licensed. A member of the NVIDIA Inception Program.
-                    </p><p className="font-mono text-xs text-muted-foreground">{"root ++> you;"}</p></div>
+                    </p>
+                <p className="font-mono text-xs text-muted-foreground">{"root ++> you;"}</p>
+            </div>
         </div>
     </footer>;
 }

@@ -37,7 +37,7 @@ build for macOS from any machine links.
 
 ## Another target's standard library
 
-The toolchain carries the standard library of its own machine's target. Another target's is
+neojac carries the standard library of its own machine's target. Another target's is
 compiled from source the first time a build names it, by neojac's own rustc, in under a minute on
 a large machine:
 
@@ -46,17 +46,17 @@ neojac: compiling Rust's standard library for x86_64-unknown-linux-musl
 ```
 
 neojac fetches the source and keeps it and what it compiled beside the build cache, in a directory
-`fetched/`; an installed toolchain is never written. Only that first build needs the network.
+`fetched/`; nothing is written beside neojac. Only that first build needs the network.
 What it compiled is kept by what it was made from: the library's source, the rustc that compiled
 it, and the arguments each of its crates was compiled with. A neojac that compiles the library the
 same way takes what is there, and one that compiles it another way compiles its own.
 `neojac rustc --print sysroot --target <target>` prints where a target's standard library is: the
-toolchain's own for its machine, the fetched one for any other.
+one neojac carries for its machine, written out in its cache, the fetched one for any other.
 
 ## C and C++ in a crate's build
 
-Every target's C and C++ compiler is `neojac cc` and `neojac c++`. cargo runs them through links in
-the toolchain's `lib/bin/` (`x86_64-linux-musl-cc`, `ar`, ...), each of which runs the tool its name
+Every target's C and C++ compiler is `neojac cc` and `neojac c++`. cargo runs them through links to
+neojac in its cache (`x86_64-linux-musl-cc`, `ar`, ...), each of which runs the tool its name
 says, and sets the `cc` crate's `CC_<target>`, `CXX_<target>` and `AR_<target>` to them. So a crate
 whose build script compiles C (with the `cc` crate) builds for any target, from any machine.
 
@@ -84,10 +84,11 @@ neojac build: a crate's build takes -o and --release, and '--target' is an optio
 
 ## How the tools are installed
 
-- On Linux and macOS the tools are part of neojac: the toolchain's `lib/rust/bin/rustc`,
-  `rustdoc` and `cargo` are links to neojac, which runs as the tool it is named. On Windows they
-  are programs of their own, and `neojac` puts the directory of the LLVM library they load on
-  their `PATH`.
+- The tools are part of neojac, on every platform: `neojac rustc`, `neojac rustdoc` and
+  `neojac cargo` run them, and what starts one by its name (cargo starting `rustc`, a build script
+  starting `cargo`) starts a link to neojac in its cache, which runs as the tool it is named
+  ([The build cache](../toolchain/cache.md#what-neojac-writes-out-of-itself)). On Windows a name is
+  a small launcher in place of a link.
 - `neojac rustc -vV` prints rustc's version, and two lines of 64 hex digits each, which are how
   cargo tells one build of the toolchain from another. `neojac-build:` names the build of rustc.
   `neojac-std:` names the standard libraries that rustc compiles against, as they are installed

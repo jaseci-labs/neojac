@@ -54,8 +54,8 @@ impl WasmGame -> JsxElement {
                         </h2>
                     <p className="mt-4 text-balance text-lg text-muted-foreground">
                             Frontend (codegen to JS in your browser), Backend (codegen to Python on the server), and this game (same codegen backend Rust, Zig, C &amp; C++ use). Jac is{" "}<span
-                        className="text-gradient font-medium"
-                    >synechic</span>
+                            className="text-gradient font-medium"
+                        >synechic</span>
                             .
                         </p>
                 </div>
@@ -93,13 +93,13 @@ impl WasmGame -> JsxElement {
                             >
                                     hp{" "}<b ref={hpRef} className="text-primary">100</b>{" · "}
                                     kills{" "}<b
-                                ref={scoreRef}
-                                className="text-primary"
-                            >0</b>{" · "}
+                                    ref={scoreRef}
+                                    className="text-primary"
+                                >0</b>{" · "}
                                     deaths{" "}<b
-                                ref={deathsRef}
-                                className="text-primary"
-                            >0</b>{" · "}<b ref={fpsRef} className="text-primary">0</b>{" "}
+                                    ref={deathsRef}
+                                    className="text-primary"
+                                >0</b>{" · "}<b ref={fpsRef} className="text-primary">0</b>{" "}
                                     fps
                                 </div>
                             {
@@ -122,16 +122,16 @@ impl WasmGame -> JsxElement {
                                             </p>
                                             <p className="mt-1 text-sm text-white/50">
                                                 The drones shoot back. Borrow-checked Jac with zero garbage collection, compiled to WebAssembly from{" "}<span
-                                                className="font-mono"
-                                            >
+                                                    className="font-mono"
+                                                >
                                                     game/arena.jac
                                                 </span></p>
                                         </div>
                                         <Button size="lg" onClick={launch}><HugeiconsIcon
-                                            icon={PlayIcon}
-                                            strokeWidth={2}
-                                            className="size-4"
-                                        />
+                                                icon={PlayIcon}
+                                                strokeWidth={2}
+                                                className="size-4"
+                                            />
                                             Launch
                                         </Button>
                                     </div>
@@ -141,11 +141,11 @@ impl WasmGame -> JsxElement {
                     </div>
                     <p className="mt-4 text-center text-sm text-muted-foreground">
                             Click the canvas to play and capture the mouse ·{" "}<b
-                        className="text-foreground"
-                    >WASD</b>{" "}
+                            className="text-foreground"
+                        >WASD</b>{" "}
                             move · mouse / arrows aim ·{" "}<b
-                        className="text-foreground"
-                    >Space</b>{" "}
+                            className="text-foreground"
+                        >Space</b>{" "}
                             jump · left click fire ·{" "}<b className="text-foreground">Tab</b>{" "}
                             /{" "}<b className="text-foreground">Esc</b>{" "}
                             release

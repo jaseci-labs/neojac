@@ -149,7 +149,6 @@ with entry {
 <!-- example: not checked: a graph layers block is valid only in a file named archwire.jac, beside the modules it groups -->
 ```jac
 graph layers {
-    """The shelf, and the program that fills it."""
     layer shelf { main | store; }
 }
 

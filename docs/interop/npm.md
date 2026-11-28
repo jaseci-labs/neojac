@@ -748,23 +748,31 @@ neojac npm ls
 neojac npx tsc --version
 ```
 
-- Node is built into neojac and runs in neojac's own process, with its own C++ and libuv compiled
-  by neojac, V8, ICU with every locale's data, and the OpenSSL, zlib, Zstandard, SQLite and libffi
-  the toolchain also gives CPython. Its built-in modules are all there, `node:worker_threads`,
+- Node is built from source by neojac, and neojac carries it once, as the libraries a Jac program
+  that imports from npm links: its own C++ and libuv compiled by neojac, V8, ICU with every
+  locale's data, and the OpenSSL, zlib, Zstandard, SQLite and libffi the toolchain also gives
+  CPython. neojac runs it as a part of itself, in its own process: the first time Node is needed,
+  it links those libraries into a shared library in its cache, says `building this neojac's Node`,
+  and loads it ([The build cache](../toolchain/cache.md#what-neojac-writes-out-of-itself)). Its
+  built-in modules are all there, `node:worker_threads`,
   `node:zlib`'s Brotli and `node:sqlite`'s sessions among them, and so is `Temporal` (dates,
   durations, time zones' rules and other calendars).
-- `lib/node/bin/node` in the toolchain is a link to neojac, which started by that name is that
-  Node; it is the path `process.execPath` names, by which npm and `child_process` start Node again.
-  `neojac node`, `npm` and `npx` put its directory first on `PATH`, so a script npm runs finds
-  `node` there.
-- npm is the one Node ships, in the toolchain's `lib/node/npm/`. In a Jac project, `neojac npm`
+- `node` is a name in the cache that links back to neojac (`2/names/<id>/node/node`, alone in its directory), which started
+  by that name is that Node; it is the path `process.execPath` names, by which npm and
+  `child_process` start Node again. `neojac node`, `npm` and `npx` put its directory
+  first on `PATH`, so a script npm runs finds `node` there.
+- npm is the one Node ships, which neojac carries (`lib/node/npm/`) and writes out in its cache the
+  first time it is run. In a Jac project, `neojac npm`
   and `neojac npx` run in an npm tree of `jac.toml`, in its directory, and `jac.toml` and `jac.lock`
   take what they wrote there ([Packages](../toolchain/packages.md#running-npm)). Where there is no
   `jac.toml`, they are npm as it is anywhere.
 - Node exports Node-API, Node's C++ API, V8's and libuv's (what their headers mark for export), as
   Node's own Windows build does. So the native addons packages ship load as they do on Node:
-  Node-API addons, and V8 addons built against the same C++ library, libc++. Their headers are in
-  `lib/node/include/node/`; build one with [`neojac cc`](c-and-cpp.md) (`-shared -fPIC` on Linux,
+  Node-API addons, and V8 addons built against the same C++ library, libc++. Their headers are
+  neojac's `lib/node/include/node/`, which a C module's table names `{lib}/node/include/node` and
+  which neojac's own compilers read in its cache, beside the pages `neojac docs --path` names,
+  whether or not they have been written out there; build one with
+  [`neojac cc`](c-and-cpp.md) (`-shared -fPIC` on Linux,
   `-bundle -undefined dynamic_lookup` on macOS). An addon of Node's C++ API and V8's (`node.h`,
   `v8.h`) builds with `neojac c++` as node-gyp builds one: in C++20, with the module's name
   defined.
@@ -794,14 +802,14 @@ neojac npx tsc --version
 
 ```sh
 neojac c++ -std=c++20 -DNODE_GYP_MODULE_NAME=hello -bundle -undefined dynamic_lookup \
-    -I <toolchain>/lib/node/include/node hello.cc -o hello.node
+    -I "$(dirname "$(neojac docs --path)")/lib/node/include/node" hello.cc -o hello.node
 neojac node -e 'console.log(require("./hello.node").hello(14))'
 ```
 
 ## Platforms and size
 
-Node is in the toolchain for Linux (x86_64 and arm64) and macOS on Apple silicon. On Windows,
-`neojac node` says the toolchain has no Node. A program can import JavaScript only when it is built
+neojac carries Node for Linux (x86_64 and arm64) and macOS on Apple silicon. On Windows,
+`neojac node` says that neojac carries no Node. A program can import JavaScript only when it is built
 for the platform neojac runs on, with that platform's Node; a build for another platform refuses
 each such import (E5090).
 

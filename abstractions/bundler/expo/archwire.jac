@@ -1,5 +1,4 @@
 graph layers {
-    """What Expo is run with, and the project it is given."""
     layer bundler { *; }
 }
 

@@ -62,28 +62,33 @@ Run `neojac help` for the commands.
 
 ## What one download contains
 
-A release is one archive, `neojac-<version>-<platform>.tar.gz` (`.zip` for Windows). It needs no system compiler, SDK, Python, Node or Rust.
+A release is one file, `neojac` (`neojac.exe` for Windows), downloaded as `neojac-<version>-<platform>.gz` (`.exe.gz` for Windows). It needs no system compiler, SDK, Python, Node or Rust, and nothing is installed beside it.
 
-| In the archive | What it is |
+The file is the executable, and inside it, compressed, everything the executable reads and everything it links into the programs it builds:
+
+| Inside neojac | What it is |
 |---|---|
-| `bin/neojac` | The one executable: the Jac compiler, and the tools below under their own command lines |
+| The executable's own code | The Jac compiler, with Clang, LLD, `rustc` and `cargo`: the tools below under their own command lines |
 | `rt/` | The runtime, as Jac source: the builtins, the standard library, `stdjac`. Every program is compiled with it |
+| `abstractions/`, `libraries/` | The abstractions a program speaks of, their standard plugins, and the libraries those are made with |
 | `docs/` | This documentation and the skills, which `neojac docs` and `neojac skills` print |
 | `lib/clang`, `lib/libc`, `lib/libcxx`, `lib/libunwind`, `lib/targets` | Clang's headers, and the C library headers and the C and C++ runtimes of every platform neojac builds for |
-| `lib/clibs` | The C libraries CPython's standard library and Node are built on, for this platform (another platform's are fetched the first time a build needs them) |
-| `lib/cpython` | CPython 3.15: its standard library, and `bin/python3.15`, which is `bin/neojac` under its Python name |
-| `lib/node` | Node (`bin/node`, which is neojac), npm, and what a program embedding Node links |
-| `lib/rust` | The Rust toolchain: `rustc`, `rustdoc` and `cargo` (links to `bin/neojac`) and the standard library |
-| `lib/bin` | The names Rust's tools run neojac's C compiler by, for every target |
-| `VERSION` | The release's version and the commit it was built from |
-| `README.md` | The repository's README, as of the release |
+| `lib/clibs` | The C libraries CPython's standard library and Node are built on, for this platform |
+| `lib/cpython` | CPython 3.15, to link into a program: its libraries for this platform, its standard library, its headers |
+| `lib/node` | Node, to link into a program: its libraries for this platform, its headers, and npm |
+| `lib/rust` | Rust's standard library, for the `rustc` that is neojac |
+| `VERSION` | The release's version, the commit it was built from, and where its release is fetched from |
+
+Each of them is in the file once. neojac reads Clang's headers out of itself as it compiles; the rest it writes out, a part at a time, into its cache the first time something has to open that part as a file, and reads there from then on ([The build cache](../toolchain/cache.md#what-neojac-writes-out-of-itself)). The cache can be deleted at any time: the next command writes out again what it needs.
+
+What is for another platform (its C libraries, its CPython, its Node) is inside that platform's neojac. The first build for another platform fetches that file from the same release, checks it against the release's checksum, and reads those parts out of it.
 
 The tools are neojac itself, not separate installs:
 
 | Command | Runs |
 |---|---|
-| `neojac python` | CPython 3.15, with its own command line |
-| `neojac node`, `neojac npm`, `neojac npx` | Node, and the npm it ships |
+| `neojac python` | CPython 3.15, with its own command line, in neojac's own process: a part of it, loaded from a library it builds of the CPython it carries the first time |
+| `neojac node`, `neojac npm`, `neojac npx` | Node, and the npm it ships: a part of neojac the same way |
 | `neojac cc`, `neojac c++`, `neojac ar`, `neojac ld.lld`, ... | Clang and LLD, compiling C and C++ for any platform neojac builds for |
 | `neojac cargo`, `neojac rustc`, `neojac rustdoc` | The Rust toolchain, built against the same LLVM |
 
@@ -96,7 +101,7 @@ Releases run on:
 | `linux-x86_64` | |
 | `linux-aarch64` | |
 | `macos-aarch64` | Apple Silicon. There is no Intel macOS release |
-| `windows-x86_64` | A zip, built on Linux and not yet tested on Windows. The installer does not install it |
+| `windows-x86_64` | `neojac.exe`, built on Linux and not yet tested on Windows. The installer does not install it |
 
 A neojac on any of them builds programs for all of these, and for `macos-x86_64` and `wasm32-wasi` (WebAssembly), with `--target`. See [build](../toolchain/build.md).
 

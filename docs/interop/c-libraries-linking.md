@@ -109,7 +109,7 @@ that module instead, even when a library file of the name exists too.
 - Every program links its target's C library, which is how the runtime reaches the system. It
   links the way `neojac cc` links a C program: the C library's startup code calls the program's
   `main` (`wmain` on Windows, whose arguments are UTF-16), with the start files, compiler runtime
-  and C library stubs the toolchain carries in `lib/`.
+  and C library stubs neojac carries.
 - On Linux the C library is glibc. The program links against versioned stubs of glibc 2.29's
   interface, the newest the runtime calls, and runs on any glibc that has the symbol versions it
   references.

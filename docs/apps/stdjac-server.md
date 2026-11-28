@@ -40,7 +40,7 @@ one of the four imported from a module of stdjac, is E2234.
 
 | Name | Signature | Does |
 |---|---|---|
-| `restspec` | `@restspec(method: HTTPMethod, path: str, produces: str = "text/plain", envelope: bool = True)` | Serves the function, one of no parameters, at `path` |
+| `restspec` | `@restspec(method: HTTPMethod, path: str, produces: str \| None = None, envelope: bool \| None = None, headers: dict[str, str] \| None = None)` | Serves the function, one of no parameters, at `path`: a `Markup` as HTML, anything else in the JSON envelope, unless `produces` and `envelope` say otherwise ([A path of its own](server.md#a-path-of-its-own-restspec)) |
 | `HTTPMethod` | `GET`, `POST` | A `@restspec` route's method |
 | `schedule` | `@schedule(interval: float)` | A server runs the function, one of no parameters, every `interval` seconds, the first time as it starts |
 | `limit` | `@limit(uses: int, per: float)` | A caller may call the endpoint `uses` times in each `per` seconds |
@@ -118,9 +118,12 @@ token, or `""`.
 
 ## static_file
 
-`static_file(top: str, path: str) -> Response` answers a request for `path` from the directory
-`top`, as an app serves a bundle ([Pages](pages.md)). The `Response` has `status`, `ctype`,
-`body` (bytes) and `headers`:
+`static_file(top: str, path: str, headers: dict[str, str] = {}, routes: list[str] = []) -> Response`
+answers a request for `path` from the directory `top`, as an app serves a bundle
+([Pages](pages.md)), sent with `headers` (an app passes its space's,
+[`[spaces.<space>.headers]`](../reference/jac-toml.md#a-spaces-headers)) and, when the space's
+pages are files under `pages/`, their `routes` (`"/user/:id"`, `"/docs/*"`).
+The `Response` has `status`, `ctype`, `body` (bytes) and `headers`:
 
 ```jac
 import os;
@@ -137,25 +140,38 @@ with entry {
         f.write("code");
     }
     for path in ["/", "/docs/v0.39", "/x.js", "/assets/app.js", "/../secret.txt"] {
-        r = static_file(site, path);
-        print(path, r.status, r.body.decode("utf-8"), r.headers.get("Cache-Control", "-"));
+        r = static_file(site, path, {"X-Frame-Options": "DENY"});
+        print(
+            path,
+            r.status,
+            r.body.decode("utf-8"),
+            r.headers.get("Cache-Control", "-"),
+            r.headers["X-Content-Type-Options"],
+            r.headers["X-Frame-Options"],
+        );
     }
 }
 ```
 
 ```output
-/ 200 the page -
-/docs/v0.39 200 the page -
-/x.js 404 not found -
-/assets/app.js 200 code public, max-age=31536000, immutable
-/../secret.txt 403 forbidden -
+/ 200 the page no-cache nosniff DENY
+/docs/v0.39 200 the page no-cache nosniff DENY
+/x.js 404 not found - nosniff DENY
+/assets/app.js 200 code public, max-age=31536000, immutable nosniff DENY
+/../secret.txt 403 forbidden - nosniff DENY
 ```
 
 - A path that is no file under `top` is a page's route and gets `index.html`, a dot in it or not
   (`/docs/v0.39`). A missing file of a kind the server serves (`.js`, `.css`, `.png`, ...) is 404.
+- Given `routes`, a path that is no file gets `index.html` with 200 only when it matches one of
+  them, as the page's router matches it: a fixed segment in any case, `:name` one segment, `*` the
+  rest. Any other path is 404, with `index.html` as its body, so the page can draw its own
+  not-found. With no `routes`, every such path is a route.
 - A path that leads out of `top`, by `..` or by a symbolic link, is 403 `forbidden`.
+- Every answer is sent with `headers` and `X-Content-Type-Options: nosniff`.
 - A file under `top`'s own `assets/` is marked to be cached for a year
-  (`Cache-Control: public, max-age=31536000, immutable`); nothing else is.
+  (`Cache-Control: public, max-age=31536000, immutable`), whatever `headers` says. Any other file
+  is sent with `headers`' `Cache-Control`, and an HTML file it gives none with `no-cache`.
 - `static_file("", path)` raises `ValueError: static_file needs the directory it serves`.
 
 ## What else stdjac holds of them
@@ -166,3 +182,12 @@ own: `stdjac.auth`, `stdjac.jobs`, `stdjac.schedule`, `stdjac.limits` and `stdja
 none of them ([stdjac](stdjac.md#what-a-program-imports)). The rest of what they hold
 (`auth_route`, `route_of`, `scheduled`, and the functions an app's start calls) is what
 `stdjac.app` serves a program with. A program does not import it.
+
+stdjac also declares a browser space, `signing`: the sign-in pages at `/__jac/auth/` (a program's
+sign-in, a mailed link, the way back from another service), written in Jac on the `dom` `ui`
+plugin with its style in a `.css` file. stdjac's archwire and `jac.toml` declare it as any
+library declares a space of its own, and every app whose program serves carries it inside its
+program ([A package's browser spaces](archwire.md#a-packages-browser-spaces),
+[The sign-in pages](server.md#the-sign-in-pages)). `auth_route` answers the auth's own routes and
+leaves every other `GET` under `/__jac/auth/` to the app's page serving, which answers it from
+that space.

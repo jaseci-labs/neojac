@@ -218,41 +218,47 @@ is that environment's Python: `sys.prefix` is the project's `.jac/venv`, and the
 import. The project is the one the current directory is in. Anywhere else it is the toolchain's
 Python.
 
-CPython is built from source by neojac and linked into neojac itself, so it runs in neojac's own
-process. It is laid out as a CPython install, in the toolchain's `lib/cpython/`:
+CPython is built from source by neojac, and neojac carries it once, as the library a Jac program
+using Python links. neojac runs it as a part of itself, in its own process: the first time Python
+is needed (`neojac python`, an install, a build that reads a package), it links that library into
+a shared library in its cache, says `building this neojac's CPython`, and loads it
+([The build cache](../toolchain/cache.md#what-neojac-writes-out-of-itself)). `python3.15` is a name
+in the cache, a small program that becomes neojac, which started through it is that Python.
 
-| Path | What it is |
+| In the cache | What it is |
 |---|---|
-| `bin/python3.15` | The interpreter: neojac's own file under its Python name (not a link to it), which run by that name, or as a virtual environment's `python`, is that Python. On Windows, the programs `python.exe` and `pythonw.exe` |
-| `lib/python3.15/` | The standard library |
-| `include/python3.15/` (`Include/` on Windows) | The headers a C extension builds against |
-| `typeshed/` | typeshed's stubs of the standard library, which checking reads |
-| `<platform>/` | The interpreter as a library, which a Jac program using Python links (`python315.dll` on Windows) |
+| `2/names/<id>/python/python3.15` | A small program that becomes neojac, which started through it, or through a virtual environment's `python`, is that Python. It is a file of its own, so the real path of `sys.executable` is still a Python. On Windows, a launcher that runs it |
+| `linked/<id>/` | CPython as the shared library neojac loads into its own process, built of the library below |
+| `store/<id>/lib/cpython/lib/python3.15/` | The standard library, written out of neojac |
+| `store/<id>/lib/cpython/include/python3.15/` (`Include/` on Windows) | The headers a C extension builds against |
+| `store/<id>/lib/cpython/typeshed/` | typeshed's stubs of the standard library, which checking reads |
+| `store/<id>/lib/cpython/<platform>/` | The interpreter as a library, which a Jac program using Python links (`python315.dll` on Windows) |
 
 The interpreter is told by its file, as CPython's own program is. Run by its path, as
 `neojac python`, as a virtual environment's `python`, as `python3` found on `PATH`, or through a
 link of any name, its `sys.executable` is the path it was run by, its `sys.prefix` (the same as
-`sys.exec_prefix`) is its virtual environment or else `lib/cpython`, and its `sys.base_prefix` is
-`lib/cpython`. A file `<name>._pth` beside it, named for the name it is run by
+`sys.exec_prefix`) is its virtual environment or else that `lib/cpython`, and its `sys.base_prefix`
+is that `lib/cpython`. A file `<name>._pth` beside it, named for the name it is run by
 (`python3.15._pth` beside `python3.15`), is the whole of `sys.path`, as in CPython.
 
 A virtual environment made with it (`neojac python -m venv`, or the project's `.jac/venv`) is a
 standard one: its `bin/python` (`Scripts\python.exe` on Windows) runs that environment, and
-`bin/pip` installs into it. One made with `--copies` holds a copy of the interpreter with no
-toolchain beside it, and is that environment's Python all the same: its `pyvenv.cfg`'s `home`
-names the toolchain's interpreter, whose standard library it reads.
+`bin/pip` installs into it. One made with `--copies` holds a copy of neojac under that name, and is that environment's Python all
+the same: its `pyvenv.cfg`'s `home` names the name's directory in the cache. When the cache has been
+deleted, the next neojac command in the project that needs Python makes the name again, where it
+was.
 
 In a virtual environment, `sysconfig`'s compilers are the toolchain's own: `CC`, `LDSHARED`,
-`BLDSHARED` and `LINKCC` are `<toolchain>/bin/neojac cc`, `CXX` and `LDCXXSHARED` are
-`neojac c++`, and `AR` is `neojac ar`. So pip builds a package's C extensions from source with
-neojac's Clang, whatever `neojac` comes first on `PATH`, and needs no compiler on the machine.
-Where `NEOJAC_EXE` names a neojac, which one that starts Python sets to itself, the tools are
-that one's ([Environment variables](../reference/environment.md)).
+`BLDSHARED` and `LINKCC` are `neojac cc`, `CXX` and `LDCXXSHARED` are `neojac c++`, and `AR` is
+`neojac ar`. So pip builds a package's C extensions from source with neojac's Clang, and needs no
+compiler on the machine. The `neojac` is the one `NEOJAC_EXE` names, which a neojac that starts
+Python sets to itself; with it unset, the one `PATH` finds
+([Environment variables](../reference/environment.md)).
 
 The interpreter exports CPython's C API and none of the C libraries compiled into it (OpenSSL,
 zlib, SQLite, libffi, ...). So C extension modules, wheels' among them, load as they do on
 CPython's own builds, and a wheel that bundles its own copy of such a library binds its own. To
-build one by hand, compile against `include/python3.15` with [`neojac cc`](c-and-cpp.md), link it
+build one by hand, compile against the headers `sysconfig` names with [`neojac cc`](c-and-cpp.md), link it
 as CPython's `LDSHARED` does, and name it with the interpreter's tag
 (`sysconfig.get_config_var("SOABI")`):
 
@@ -263,8 +269,8 @@ as CPython's `LDSHARED` does, and name it with the interpreter's tag
 | Windows | `-shared -L <the interpreter's directory> -lpython315` | `spam.cp315-win_amd64.pyd`, a DLL importing the C API from `python315.dll` through the import library beside the interpreter |
 
 ```sh
-neojac cc -bundle -undefined dynamic_lookup -I <toolchain>/lib/cpython/include/python3.15 \
-    spam.c -o spam.cpython-315-darwin.so
+include="$(neojac python -c 'import sysconfig; print(sysconfig.get_path("include"))')"
+neojac cc -bundle -undefined dynamic_lookup -I "$include" spam.c -o spam.cpython-315-darwin.so
 neojac python -c 'import sys; sys.path.insert(0, "."); import spam; print(spam.twice(21))'
 ```
 
@@ -273,16 +279,19 @@ With `-target`, `neojac cc` builds another platform's extension from any machine
 ### What a program using Python carries
 
 - The interpreter is linked into the program. A program built with `neojac build main.jac`
-  reads the standard library from the toolchain's `lib/cpython`, and packages from the project's
-  `.jac/venv`, at the paths they had when it was built.
+  reads the standard library where neojac wrote it out in its cache, and packages from the
+  project's `.jac/venv`, at the paths they had when it was built. With the cache deleted it finds
+  no standard library until a neojac command that needs Python has written it out again; an app's
+  build carries its own (next).
 - An app whose native space imports CPython's standard library ships it: `neojac build` writes the
   program with a `lib/` of its own beside it (`dist/<app>-<platform>/`), and the directory runs
   wherever it is moved, with no toolchain. See [Apps](../apps/index.md) (`neojac docs apps`).
 - The interpreter reads CPython's environment variables as `python3` does: with
   `PYTHONMALLOC=debug` the program's Python runs under CPython's debug allocator.
 - A build for Windows writes `python315.dll` beside the program.
-- A build for another platform links that platform's interpreter and C libraries. The toolchain
-  holds its own platform's C libraries, and fetches another's the first time a build names it.
+- A build for another platform links that platform's interpreter and C libraries. neojac carries
+  its own platform's, and reads another's out of that platform's neojac, which it fetches from the
+  same release the first time a build names the platform.
 - `wasm32-wasi` takes no Python (E5090).
 
 ## Profilers and coverage: `sys.monitoring`

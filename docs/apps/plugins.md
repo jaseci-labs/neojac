@@ -41,7 +41,7 @@ The abstractions are the language's: a project chooses a plugin for one, and doe
 one (E2217).
 
 **Each abstraction declares itself,** in a directory of its own in neojac's `abstractions/`, which a
-release holds beside `rt/`:
+release carries with `rt/`:
 
 ```text
 abstractions/
@@ -303,7 +303,8 @@ Giving one a value in `jac.toml` is E1053.
 | `sqlite` | `store`: a space's graph, as rows in a SQLite file, which the programs of one machine may keep together | `path`, the file: `graph.db` in the app's data directory |
 | `accounts` | `auth`: accounts of a username and a password, and their sessions, in a SQLite file; signing in through GitHub and through Google, where the program runs with an OAuth client's ID and secret; and addresses checked and passwords set again by mailed links, where the app sends mail | `path` and `rounds`, beside `auth`'s own ([Serving a space](server.md#the-accounts-plugin)) |
 | `http` | `transport`: requests over HTTP, a call's reply as JSON and a stream's events as they are made, and the server that answers them | `client_header`, the header a gateway in front of it writes each request's client address into ([Serving a space](server.md#the-address-a-caller-calls-from)) |
-| `anthropic` | `llm`: a model behind Anthropic's Messages API | `model`, `address`, `timeout`, `retries`, `rates`, and the secret `key` ([By and sem](../language/by-and-sem.md#the-anthropic-plugin)) |
+| `anthropic` | `llm`: a model behind Anthropic's Messages API | `model`, `address`, `timeout`, `retries`, `rates`, and the secret `key` ([By and sem](../language/by-and-sem.md#the-model-plugins)) |
+| `openai` | `llm`: a model behind an OpenAI-compatible Chat Completions API: OpenAI's, or another provider's or a local server's that speaks it | `model`, `address`, `timeout`, `retries`, `rates`, and the secret `key` ([By and sem](../language/by-and-sem.md#the-model-plugins)) |
 | `process_jobs` | `jobs`: each job in a copy of the program | `dir`, where a job's input and what it says are kept while it runs: `jobs` in the app's data directory |
 | `loop_schedule` | `schedule`: each scheduled function run by the thread that listens, when it is due | `tick`, how often its clock looks for one that is due, in seconds: `0.25` |
 | `memory_limits` | `limits`: uses counted in the program's memory | `sweep_at`, how many actors' uses are kept before those whose window has passed are let go: `1024` |
@@ -425,8 +426,8 @@ library that plugins of two abstractions declare imports neither's contract. A p
 through nothing.
 
 The built-in words of the abstractions (`@job`, `llm` and the rest) are stdjac's too, and a
-plugin says none of them. `neojac check` in the plugin's own directory holds it to all of this, with
-no app around it.
+plugin says none of them. `neojac check` in the plugin's own directory holds each of its modules
+to all of this, with no app around it ([check](../toolchain/check.md#checking-a-package)).
 
 **What a plugin needs of the program that runs it, the program gives it.** `open` is handed the
 program as a host, an interface the contract declares and the program implements:

@@ -90,7 +90,7 @@ test "only well-asked, aged, verified tutorials without a PR are eligible" {
 }
 
 test "nav gains one tutorials section entry, idempotently" {
-    nav = {"nav": [{"title": "Reference", "items": []}]};
+    nav: dict[str, any] = {"nav": [{"title": "Reference", "items": []}]};
     once = nav_with_page(nav, "tutorials/jacyac/x.md", "X");
     twice = nav_with_page(once, "tutorials/jacyac/x.md", "X");
     assert once == twice;

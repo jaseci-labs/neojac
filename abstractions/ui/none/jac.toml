@@ -1,4 +1,4 @@
-# The standard `ui` plugin of a node space: no UI library. `has` and effects in a
+# The standard `ui` plugin of a node space: no UI library. `has`, effects and JSX in a
 # function are errors, and a library's functions, if any, are ordinary imports.
 [project]
 name = "none"

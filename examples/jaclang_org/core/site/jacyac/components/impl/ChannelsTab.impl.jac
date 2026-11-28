@@ -56,9 +56,12 @@ impl ChannelsTab(
                     onOpenChange={lambda (v: bool) { showCreateChannel = v; }}
                 >
                     <DialogContent>
-                        <DialogHeader><DialogTitle>Create a channel</DialogTitle><DialogDescription>
+                        <DialogHeader>
+                            <DialogTitle>Create a channel</DialogTitle>
+                            <DialogDescription>
                             Start a space for people to gather around a topic.
-                        </DialogDescription></DialogHeader>
+                        </DialogDescription>
+                        </DialogHeader>
                         <div className="flex flex-col gap-4">
                             <Field>
                                 <FieldLabel htmlFor="lx-ch-name">Name</FieldLabel>

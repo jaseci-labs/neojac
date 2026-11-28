@@ -5,9 +5,9 @@ keywords: neojac cc, C toolchain, C compiler, C++ compiler, clang, libc++, glibc
 # C and C++
 
 `neojac cc` and `neojac c++` compile and link C and C++ for any of neojac's targets, from any
-machine neojac runs on, with nothing else installed. Clang and LLD are inside neojac, and the
-toolchain's `lib/` holds each target's C library headers and a prebuilt C and C++ runtime. The
-command line is Clang's.
+machine neojac runs on, with nothing else installed. Clang and LLD are inside neojac, and so
+are each target's C library headers and a prebuilt C and C++ runtime (the toolchain's `lib/`,
+which the one file carries). The command line is Clang's.
 
 ```sh
 neojac cc hello.c -o hello                                  # this machine
@@ -52,7 +52,7 @@ and its link. A program built with them is an ordinary native program for its ta
 
 ## What links
 
-- A program links its target's C library, start files and compiler runtime from `lib/`, and libc++
+- A program links its target's C library, start files and compiler runtime, which neojac carries, and libc++
   and its ABI library for C++ (with libunwind, except on macOS).
 - `-l` naming a part of that runtime (`-lc`, `-lm`, `-lpthread`, `-lgcc`, `-lgcc_s`, `-lunwind`,
   `-lSystem`, `-lmingw32`, `-lmsvcrt`, ...) links the toolchain's piece of it, so a link with
@@ -91,8 +91,9 @@ neojac ar t libcounter.a
 neojac cc -target aarch64-linux-gnu main.c -L. -lcounter -o main
 ```
 
-The headers and runtimes come from the `lib/` beside neojac's `bin/`, or from the directory
-`NEOJAC_LIB_DIR` names; see [Building programs](../toolchain/build.md#how-the-runtime-is-found)
+The headers and runtimes come from inside neojac: Clang reads the headers out of it as it
+compiles, and the linker reads a target's runtime where neojac wrote it out in its cache the first
+time that target was linked. See [Building programs](../toolchain/build.md#how-the-runtime-is-found)
 (`neojac docs build`).
 
 ## Recording what a build ran

@@ -64,7 +64,7 @@ test "text that is no number" {
 }
 ```
 
-- A test is checked like the rest of the module. The module's own code (globals and plain `with entry` blocks) runs first, then the tests in source order, in one process: a global one test changes stays changed for the next.
+- A test is checked like the rest of the module. Each test runs in a process of its own: the module's own code (globals and plain `with entry` blocks) runs first, then the one test, so a global one test changes is unchanged for every other, and a module's tests run at the same time. A test that writes files writes them under `os.environ["NEOJAC_TEST_DIR"]`, a directory `neojac test` gives each test.
 - **A program's main code goes in `with entry:__main__`**, as above: it runs when the module is built and run as the program, and not under `neojac test` or when the module is imported. Keep a plain `with entry` for setup the tests rely on.
 - To test that something raises, catch it: `try { cents("x"); assert False, "no error"; } except ValueError {}`.
 - A walker is tested by building a small graph in the test, spawning, and asserting on the walker's fields (`modelling-with-graphs`).

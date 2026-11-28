@@ -82,8 +82,8 @@ impl ExplorerFinale -> JsxElement {
                 <div className="mx-auto mt-10 max-w-xl text-center">
                     <p className="text-balance text-muted-foreground">
                             This isn&apos;t a site you can only look at — everything above runs on{" "}<span
-                        className="font-medium text-foreground"
-                    >
+                            className="font-medium text-foreground"
+                        >
                                 your machine
                             </span>
                             , right now, in three commands:

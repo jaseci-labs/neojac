@@ -168,12 +168,21 @@ impl RightSidebar(
             }
         }
         <Card className="bg-muted/30">
-            <CardHeader><CardTitle className="font-display text-base text-primary">
+            <CardHeader>
+                <CardTitle className="font-display text-base text-primary">
                     JacYac
-                </CardTitle></CardHeader>
-            <CardContent className="-mt-3"><p className="text-sm text-muted-foreground">
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="-mt-3">
+                <p className="text-sm text-muted-foreground">
                     A decentralized social platform built with Jac. Share thoughts, follow people, join conversations.
-                </p><div className="mt-3 flex flex-wrap gap-1.5"><Badge variant="secondary">#jacdev</Badge><Badge variant="secondary">#jaseci</Badge><Badge variant="secondary">#open-source</Badge></div></CardContent>
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                    <Badge variant="secondary">#jacdev</Badge>
+                    <Badge variant="secondary">#jaseci</Badge>
+                    <Badge variant="secondary">#open-source</Badge>
+                </div>
+            </CardContent>
         </Card>
     </aside>;
 }

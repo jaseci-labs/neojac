@@ -48,10 +48,11 @@ test "doubling zero" {
   `neojac build`, which leaves tests out of the program, does not check them.
 - A docstring may precede a test, as it may any declaration.
 
-When `neojac test` runs a module's tests, the module's code (its globals and plain `with entry`
-blocks, not `with entry:__main__`) runs first, then each test in the order it is written, in one
-process. A global one test changes is changed for the tests after it. Output a test prints is
-shown only when it fails.
+`neojac test` runs each test in a process of its own: the module's code (its globals and plain
+`with entry` blocks, not `with entry:__main__`) runs first, then the one test. A global one test
+changes is as the module's code left it for every other test, so a test depends on no test before
+it, and the tests of a module run at the same time. Output a test prints is shown only when it
+fails.
 
 ```jac
 glob calls: int = 0;
@@ -63,12 +64,13 @@ def double(n: int) -> int {
 
 test {
     assert double(0) == 0;
+    assert calls == 1, f"calls is {calls}";
 }
 
-test "earlier tests' calls are counted" {
+test "another test's calls are not counted" {
     x = double(5);
     assert x == 10;
-    assert calls == 2, f"calls is {calls}";
+    assert calls == 1, f"calls is {calls}";
 }
 ```
 

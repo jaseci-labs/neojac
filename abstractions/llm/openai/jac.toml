@@ -1,0 +1,9 @@
+# An `llm` plugin: a model behind an OpenAI-compatible Chat Completions API.
+[project]
+name = "openai"
+kind = "plugin"
+
+[plugin]
+fills = "llm"
+interface_ver = 1
+class = "openai.model.OpenAI"

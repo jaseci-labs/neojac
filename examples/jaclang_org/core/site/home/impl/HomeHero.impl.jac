@@ -17,8 +17,8 @@ impl HomeHero -> JsxElement {
                 className="anim-fade-up anim-d1 mt-6 max-w-4xl text-balance text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl"
             >
                     The ultimate language for agents to build{" "}<span
-                className="text-primary"
-            >everything</span>
+                    className="text-primary"
+                >everything</span>
                     .
                 </h1>
             <div className="anim-fade-up anim-d2 mt-10 max-w-xl">

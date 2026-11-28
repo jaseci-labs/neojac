@@ -14,35 +14,27 @@ Layers are also what [`neojac arch`](../toolchain/arch.md) draws: each is a box,
 between them are the arrows.
 
 ```ebnf
-graph_layers ::= "graph" "layers" "{" (STRING layer_decl | layer_decl)* "}"
+graph_layers ::= "graph" "layers" "{" layer_decl* "}"
 
-layer_decl ::= "layer" NAME "{" (STRING layer_decl | layer_decl | module_pattern ("|" module_pattern)* ";")* "}"
+layer_decl ::= "layer" NAME "{" (layer_decl | module_pattern ("|" module_pattern)* ";")* "}"
 ```
 
 <!-- example: not checked: a graph layers block is valid only in a file named archwire.jac, beside the modules it groups -->
 ```jac
 graph layers {
-    """What the program stands on."""
     layer platform {
-        """Clocks, and nothing else."""
         layer time { core.clock; }
 
-        """The machine the program runs on."""
         layer machine { core.host | core.posix | core.shared | core.win; }
     }
 
-    """What the user sees."""
     layer screen { app.* | main; }
 }
 
 graph import {
-    """The screen is drawn from the platform."""
     edge Core: platform --> screen;
-    """It reads the clock."""
     edge Clock: time --> screen;
-    """It asks the machine its name."""
     edge Machine: machine --> screen;
-    """A host tells the time."""
     edge Time: time --> machine;
 
     core.clock ++> app.view | main { now }
@@ -60,13 +52,12 @@ A layer holds modules, or it holds other layers. It never holds both (E2212).
   (E2098). A module whose path a dotted name cannot say, a file stem holding a dot, is named by
   its quoted path from the archwire's directory, as in a wire: `layer gen { "web/twice.gen"; }`
   ([A module whose name is no identifier](modules.md#a-module-whose-name-is-no-identifier)). A
-  quoted path the dotted name could say is E2310. A string before a nested `layer` is still that
-  layer's docstring.
+  quoted path the dotted name could say is E2310.
 - **Other layers.** A layer nests to any depth. Modules that would sit beside the layers inside
   one get a layer of their own there, as `machine` is above, so every box of a picture is one kind
   of thing and every rule has a layer to name.
 - A layer holds something: one with no module and no layer is E2203.
-- A docstring before a layer is one line that says what it is for ([Docstrings](modules-wiring.md#docstrings)).
+- A layer has no docstring: its name says what it is for, and a string before one is refused (E0164, or E0165 inside a layer).
 
 `layers` and `layer` are keywords in an `archwire.jac` and names in every other file. A layer is not
 named with a keyword (E0013), an archwire's own among them: the layer that holds a module `app` is
@@ -163,7 +154,6 @@ it runs. They are independent, and a module has one of each.
 |---|---|
 | E0164 | Anything but a layer in a `graph layers` block |
 | E0165 | Anything but layers and module patterns in a layer |
-| E0166 | A docstring that describes nothing |
 | E0077 | A layer named as another layer |
 | E2098 | A layer's pattern matches no module |
 | E2310 | A layer's quoted path to a module whose path is all identifiers |
@@ -175,4 +165,3 @@ it runs. They are independent, and a module has one of each.
 | E2204 | Layers that take from each other |
 | E2099 | A wire between two layers that no rule admits, at any level it crosses |
 | E2210 | A rule that names modules |
-| E2209 | A docstring of more than one line or 120 characters |
