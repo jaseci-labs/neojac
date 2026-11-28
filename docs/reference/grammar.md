@@ -57,7 +57,7 @@ archetype ::= decorators "async"? ("union" | "struct" | "class" | "walker" | "ed
 
 enum_decl ::= decorators "enum" access_tag NAME (":" atomic_chain | "(" atomic_chain ("," atomic_chain)* ")")? ("{" (enum_member "," | module_code)* "}" | ";")
 
-test_decl ::= decorators "test" STRING? block
+test_decl ::= decorators "test" STRING* block
 
 docstring_target ::= STRING (test_decl | enum_decl | type_alias | global_vars | comptime_element | impl_def | module_code | default_element | decorated)
 

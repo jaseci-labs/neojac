@@ -12,7 +12,7 @@ command, its options and its output are in [test](../toolchain/test.md) (`neojac
 ## Syntax
 
 ```ebnf
-test_decl ::= decorators "test" STRING? block
+test_decl ::= decorators "test" STRING* block
 ```
 
 ```jac
@@ -38,7 +38,8 @@ test "doubling zero" {
   (E0046).
 - **Its name is the string after `test`**, which `neojac test` reports and `-k` selects by. The name
   may be any text, and may be left out: a test without one has the empty name. Names need not be
-  unique.
+  unique. A name may be written as several literals side by side, which are joined:
+  `test "adds one " "and one" {` is the test `adds one and one`.
 - **Its body is a block of statements**, run like the body of a function that takes no arguments:
   its assignments make locals of its own, and it sees the module's globals, functions and imports.
   A test annex sees the module's names without importing them.

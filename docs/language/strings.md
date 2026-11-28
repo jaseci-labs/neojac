@@ -69,9 +69,10 @@ b'bytesA' b'\\x41' 4
 
 String literals written one after another, with only whitespace between them, are one string.
 f-strings may take part. The parts are all strings or all bytes; mixing them is E0151. Plain
-literals are joined when the program compiles, into one constant: `len("x" "y" "z")` is `3`, and
-the joined string is the same object each time it is evaluated. Only the parts next to an
-f-string are joined as the program runs.
+literals are joined when the program is read, into one literal: `len("x" "y" "z")` is `3`, the
+joined string is the same object each time it is evaluated, and it stands wherever a single
+literal does, a name given to `getattr` among them. Only the parts next to an f-string are joined
+as the program runs.
 
 ```jac
 with entry {
