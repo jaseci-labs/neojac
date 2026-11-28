@@ -57,6 +57,7 @@ The tools neojac carries read their own variables as they always do: `neojac pyt
 | `NEOJAC_PORT_TO` | rustc, under `neojac port` | The file rustc writes a crate's typed trees to, instead of compiling it: how `neojac port` reads Rust ([port](../toolchain/port.md)) |
 | `NEOJAC_DEPENDENCY_DIGEST` | A build of Rust crates | A digest of a crate's dependencies, which the crate can read with `env!` |
 | `JAC_APP` | An app's launcher, for a node space | The app's name, which picks its `JAC_<APP>_*` variables. Set it to run the launcher as another app's |
+| `JAC_DEV_FRAMED`, `NEOJAC_DEV_TO` | A tool that runs `neojac dev` | A desktop app opens no window of its own, and the file `neojac dev` appends what it does to ([Building apps](../apps/building.md#working-on-an-app)) |
 | `JAC_DEV_LISTEN`, `JAC_DEV_SERVED`, `JAC_DEV_PAGE` | `neojac dev` | Where the app's program listens, the page space a dev server serves in its place, and the page a window opens ([Building apps](../apps/building.md#a-page-from-its-bundlers-dev-server)) |
 
 These are neojac's own plumbing: a program you run under neojac sees them, and you rarely set one yourself.
@@ -65,7 +66,7 @@ These are neojac's own plumbing: a program you run under neojac sees them, and y
 
 `JAC_<NAME>` is how an app's own settings are given where it runs: `JAC_<APP>_LISTEN`, `JAC_<APP>_DATA` and `JAC_<APP>_ARRANGEMENT` for an app, `JAC_REMOTE_<SPACE>` and `JAC_<SPACE>_CODE` for a space, `JAC_<ABSTRACTION>` and `JAC_<SPACE>_<ABSTRACTION>` for the plugin picked, and `JAC_<ABSTRACTION>_<FIELD>` for a setting of the abstraction or of the plugin picked ([Plugins](../apps/plugins.md)). neojac's own variables are `NEOJAC_<NAME>` and can't be one of these, but a few variables with this prefix are read by neojac or by a program's runtime for themselves. They are reserved, and an app or a space whose name would form one of them is refused where it is declared (E2232):
 
-`JAC_THREADS`, `JAC_GC`, `JAC_CUDA`, `JAC_FRESH`, `JAC_APP`, `JAC_DEV_PAGE`, `JAC_DEV_SERVED`, `JAC_DEV_LISTEN`, `JAC_DEPLOY_KEY`, `JAC_TICKS_OFF` and `JAC_REMOTE_TOKEN` (each is in the tables on this page).
+`JAC_THREADS`, `JAC_GC`, `JAC_CUDA`, `JAC_FRESH`, `JAC_APP`, `JAC_DEV_PAGE`, `JAC_DEV_SERVED`, `JAC_DEV_LISTEN`, `JAC_DEV_FRAMED`, `JAC_DEPLOY_KEY`, `JAC_TICKS_OFF` and `JAC_REMOTE_TOKEN` (each is in the tables on this page).
 
 An app named `dev` would be given its address by `JAC_DEV_LISTEN`, which `neojac dev` sets for itself, and a space named `token` its remote by `JAC_REMOTE_TOKEN`: each is E2232. No abstraction has a name that one of these starts with, so no plugin's setting can form one.
 
