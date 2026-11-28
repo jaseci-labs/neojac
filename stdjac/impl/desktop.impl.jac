@@ -12,6 +12,9 @@ impl run_asked_window(title: str, width: int, height: int, min_width: int, min_h
 }
 
 impl WindowProcess.open(port: int) {
+    if os.environ.get("JAC_DEV_FRAMED", "") != "" {
+        return;
+    }
     page = os.environ.get("JAC_DEV_PAGE", "");
     self.proc = subprocess.Popen([
         sys.executable,
