@@ -25,7 +25,7 @@ printed from the table the translation itself reads (`neojac port --mapping c++`
 | `struct Totals { struct Line { int count; }; };`, a nested class | `struct Line { ... }` before `struct Totals { ... }`: a record of the module by its own name |
 | `friend class Statement;` | Nothing: a Jac module's classes reach each other's members |
 | `virtual ~Shape() { ... }` of a class with virtual functions | `def destroy { ... }`, which ends with `super.destroy();` where the base declares a destructor: C++'s destructor, run where `delete` runs it |
-| `Shape *s = new Square(2.0);` of a class with virtual functions, or of one the run makes with `new` anywhere; `int *xs = new int[n];` | `s: Shape = Square(2.0);`: the object, which Jac counts and frees when nothing holds it; `xs: ptr[i32] = ptr[i32](op_new_array(u64.wrap(n) * u64(4)));`: C++'s own `operator new[]`, from `libcxx`, for an array of numbers or pointers |
+| `Shape *s = new Square(2.0);` of a class with virtual functions, or of one the run makes with `new` anywhere; `int *xs = new int[n];` | `s: Shape = Square(2.0);` (`s: dyn Shape = Square(2.0);` where `Shape` is an interface): the object, which Jac counts and frees when nothing holds it; `xs: ptr[i32] = ptr[i32](op_new_array(u64.wrap(n) * u64(4)));`: C++'s own `operator new[]`, from `libcxx`, for an array of numbers or pointers |
 | `delete s;`, `delete[] xs;` | `s.destroy();` where the class or a base declares a destructor, and nothing where none does; `op_delete_array(ptr(xs));`, C++'s own `operator delete[]` |
 | `struct Slot { int tag; Inner *inner; };`, in memory C allocates, holding a pointer to an object of a class port writes as an `obj`: `s->inner = new Inner(5);`, `Inner *in = s->inner;`, `s->inner = NULL;` | `has inner: ptr = ptr();`: the address C holds the object at. `s[0].inner = held_at(held[Inner](hold(Inner(5))));`, `in: Inner \| None = held[Inner](s[0].inner) if not s[0].inner.is_null() else None;` (`held[Inner](s[0].inner)` where it is never null), `s[0].inner = ptr();`. The class is held from its `new` to its `delete` |
 | `reinterpret_cast<Vt *>(this)` and `reinterpret_cast<Tab *>(vt)` of a class whose first member is a C record (`class Tab { Vt base; int n; };`) | `addressof(self.base)`: the member's own address, the record kept in the object; `held[Tab](base=vt)`: the `Tab` C holds whose member `base` is at `vt` (TypeError where C holds none). The class is held from its `new` to its `delete`. Only where the reading lays the member at offset 0; any other conversion between an object's pointer and a record's is refused |
@@ -146,14 +146,22 @@ A class with virtual functions is an `obj`, and so is a class the run makes with
 (`new Addon(env)` in one file makes `Addon` an `obj` in every file of the run), if its base is
 one too. Such a class is held by reference as C++ holds it by
 pointer: `Shape *`, `Shape &` and `const Shape &` are all `Shape`, and a call of a virtual
-function dispatches as C++'s does. Its one base, if it has one, is its base in Jac, from another
+function dispatches as C++'s does. A class of pure virtual functions and other functions, with
+no data member, no constructor and nothing static, whose base, if it has one, is such a class
+too, is an [interface](../language/interfaces.md): its functions with a body are its defaults,
+and a pointer or a reference to it is `dyn Shape`. Its one base, if it has one, is its base in Jac, from another
 file's module where that file declares it. Its constructor is its `init`, a base class
 initializer `super.init(...)` (and `super.init()` where C++ runs the base's default
 constructor), and `new Square(2.0)` is `Square(2.0)`. Its destructor is `def destroy`, ending
 with `super.destroy();` where a base declares one, and `delete s;` is `s.destroy();`: the
 destructors run where `delete` runs them, the subclass's first, and Jac frees the object when
 nothing holds it. A pure virtual function is `abst`, and `Base::area()` called on an object is
-`Base.area(s)`, which does not dispatch.
+`Base.area(s)`, which does not dispatch. Through an interface every call dispatches, so its
+`Shape::name()` called on `this` in a subclass is `super.name()`, the interface's own
+definition, and called on another object it is `Shape.name(s)` where no subclass gives its own
+`name`, and refused where one does. A function that hides a base's function of the same name
+that is not virtual is refused: C++ calls the base's through a pointer to the base, where a Jac
+method of that name overrides it.
 
 An object made by `new` and given where C takes a `void *` (a callback's user data) is lent to
 C: `hold(Tally())`, a counted reference C holds. `static_cast<Tally *>(ctx)` of that address is
