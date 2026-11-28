@@ -408,7 +408,8 @@ impl AccountsAuth.register(username: str, email: str, password: str) -> Session 
     u = username.strip().lower();
     if re.fullmatch(USERNAME, u) is None {
         raise Rejected(
-            detail="a username is 3 to 32 letters, digits, '.', '_' or '-', starting with a letter or a digit",
+            detail="a username is 3 to 32 letters, digits, '.', '_' or '-', starting with a letter "
+                "or a digit",
         );
     }
     e = email.strip().lower();
@@ -459,13 +460,16 @@ impl AccountsAuth.mail_link(user: str, email: str, purpose: str) {
         self.mailed().send_mail(
             email,
             f"Check your address at {place}",
-            f"Follow this link within a day to check that this address is yours, for the account {user} at {site}:\n\n{link}\n\nIf you made no such account, do nothing.\n",
+            f"Follow this link within a day to check that this address is yours, for the account "
+                f"{user} at {site}:\n\n{link}\n\nIf you made no such account, do nothing.\n",
         );
     } else {
         self.mailed().send_mail(
             email,
             f"Set a new password at {place}",
-            f"Follow this link within an hour to set a new password for the account {user} at {site}:\n\n{link}\n\nIf you did not ask for one, do nothing: the password stays as it is.\n",
+            f"Follow this link within an hour to set a new password for the account {user} at "
+                f"{site}:\n\n{link}\n\n"
+                f"If you did not ask for one, do nothing: the password stays as it is.\n",
         );
     }
 }
@@ -488,7 +492,8 @@ impl AccountsAuth.mail_check(headers: dict[str, str], address: str) {
     }
     if ":" in who {
         raise Rejected(
-            detail="this account is one another service vouches for, and has no address to check here",
+            detail="this account is one another service vouches for, and has no address to check "
+                "here",
         );
     }
     retry = self.tried("mail", "user " + who, MAIL_PER_USER, LIMIT_SECONDS);

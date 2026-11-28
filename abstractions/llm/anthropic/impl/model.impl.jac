@@ -137,7 +137,8 @@ impl Anthropic.open(host: dyn Host) {
                     + model
                     + "' is given "
                     + str(len(rate))
-                    + " numbers, and a rate is four: dollars per million tokens of input, of output, read from the cache and written to it",
+                    + " numbers, and a rate is four: dollars per million tokens of input, of "
+                        "output, read from the cache and written to it",
             );
         }
     }

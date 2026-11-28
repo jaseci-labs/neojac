@@ -127,7 +127,8 @@ impl FileBook.expect(code: str, key: str, expires: float, now: float) -> bool {
 impl FileBook.decide(code: str, user: str, now: float) -> bool {
     with self.turn {
         said = self.db.execute(
-            "update devices set answered = 1, user_id = ? where code = ? and answered = 0 and expires > ?",
+            "update devices set answered = 1, user_id = ? where code = ? and answered = 0 and "
+                "expires > ?",
             (user, code, now),
         ).rowcount;
         self.db.commit();
@@ -235,9 +236,12 @@ impl Accounts.open_book(host: dyn AuthHost) -> dyn Book {
             self.kept_as(),
             ACCOUNTS_FORMAT,
             [
-                "create table users (username text primary key, email text, password text not null, created real, checked integer not null default 0)",
-                "create table identities (provider text, external_id text, user_id text not null unique, created real, primary key (provider, external_id))",
-                "create table sessions (token_hash text primary key, user_id text not null, expires real not null)",
+                "create table users (username text primary key, email text, password text not "
+                    "null, created real, checked integer not null default 0)",
+                "create table identities (provider text, external_id text, user_id text not null "
+                    "unique, created real, primary key (provider, external_id))",
+                "create table sessions (token_hash text primary key, user_id text not null, "
+                    "expires real not null)",
                 DEVICES,
                 LINKS,
             ],

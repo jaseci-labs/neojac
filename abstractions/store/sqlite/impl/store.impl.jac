@@ -94,7 +94,8 @@ impl SqliteStore.edges(id: str) -> list[Row] {
     out = [
         row_of(r)
         for r in self.db.execute(
-            f"select {COLUMNS} from rows where kind = 'e' and src = ? union all select {COLUMNS} from rows where kind = 'e' and dst = ? and src != dst order by ord",
+            f"select {COLUMNS} from rows where kind = 'e' and src = ? union all select {COLUMNS} "
+                f"from rows where kind = 'e' and dst = ? and src != dst order by ord",
             (id, id),
         )
     ];
@@ -149,7 +150,8 @@ impl SqliteStore.write(w: Writing) -> int {
                 continue;
             }
             done = db.execute(
-                "update rows set data = ?, version = version + 1, mark = ? where id = ? and version = ?",
+                "update rows set data = ?, version = version + 1, mark = ? where id = ? and "
+                    "version = ?",
                 (r.data, mark, r.id, r.version),
             );
             if done.rowcount != 1 {

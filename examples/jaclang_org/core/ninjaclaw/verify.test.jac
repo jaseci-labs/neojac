@@ -1,5 +1,6 @@
 test "code blocks are the jac fences, in order" {
-    md = "intro\n\n```jac\nwith entry { print(1); }\n```\n\n```bash\njac run x.jac\n```\n\n```jac\nnode A {}\n```\n";
+    md = "intro\n\n```jac\nwith entry { print(1); }\n```\n\n```bash\njac run x.jac\n```\n\n```jac\n"
+        "node A {}\n```\n";
     assert code_blocks(md) == ["with entry { print(1); }", "node A {}"];
 }
 
@@ -50,7 +51,9 @@ test "generated code cannot read or write outside its work dir or reach the netw
         );
         net = verify_block(
             2,
-            'import socket;\n\nwith entry {\n    s = socket.create_connection(("1.1.1.1", 80), timeout=5);\n    print("connected");\n}',
+            'import socket;\n\nwith entry {\n'
+                '    s = socket.create_connection(("1.1.1.1", 80), timeout=5);\n'
+                '    print("connected");\n}',
         );
         if _sandboxed() {
             assert not read.ok and "TOP-SECRET-VALUE" not in read.detail, read.detail;
