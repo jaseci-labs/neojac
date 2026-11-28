@@ -77,6 +77,53 @@ The work in between is in `.jac/build/<app>/` in the project, and a JavaScript s
 tree's, `.jac/build/<app>/` in the tree's directory; compiled modules are in neojac's
 build cache, shared by every project (see [build](../toolchain/build.md)).
 
+### What of an app can be called
+
+A build writes `.jac/build/<app>/calls.json`: every function and walker of the app that a caller
+may call, as the compiler decided it ([Crossings](crossings.md)).
+
+```json
+{
+  "version": 1,
+  "app": "web",
+  "calls": [
+    {
+      "space": "api",
+      "module": "svc",
+      "name": "add",
+      "kind": "function",
+      "access": "pub",
+      "by": "http",
+      "path": "/__jac/call/api/svc/add",
+      "stream": false,
+      "takes": [
+        {"name": "a", "type": "int", "required": true, "schema": {"type": "integer"}},
+        {"name": "b", "type": "int", "required": true, "schema": {"type": "integer"}}
+      ],
+      "gives": {"type": "int", "schema": {"type": "integer"}},
+      "file": "svc.jac",
+      "line": 5
+    }
+  ],
+  "defs": {}
+}
+```
+
+| Key | Is |
+|---|---|
+| `kind` | `function`, or `walker`, whose `takes` are its fields |
+| `access` | `pub`, `prot`, or empty for one only the project's own programs call |
+| `by` | `http` for an endpoint, with its `path`; `wasm` for a wasm space's function, which a page calls in itself |
+| `takes` | Each parameter: its `type` as Jac writes it, whether a caller must give it, and its `schema` |
+| `gives` | What it returns, the same way; a `stream`'s is what each event carries. Left out where it returns nothing |
+| `schema` | A JSON Schema of the value as it is sent ([Serving a space](server.md#arguments)): an enum is its members' names, `bytes` a string of hexadecimal digits, an object a `$ref` into `defs` |
+| `kinds` | Of a wasm function: how each value crosses to JavaScript, a letter for each parameter, `>`, and one for what it gives. `b` is a 64-bit int, `n` a float or a narrower int |
+| `file`, `line` | Where it is declared |
+
+`openapi.json` beside it is the calls over HTTP as an OpenAPI 3.1 document, for a tool that reads
+one: each call a `POST` of its `args` (a walker's `fields`), with the `Authorization` of a session
+where the call needs one and `x-jac-key` where it is the project's own.
+
 ## Artifacts
 
 | The app | Its artifact |
@@ -334,6 +381,14 @@ An app with no page a dev server serves runs as `neojac run` starts it, at its o
 | `JAC_DEV_LISTEN` | Where the program listens, in place of its own address |
 | `JAC_DEV_SERVED` | The page space the dev server serves, of which the program answers nothing |
 | `JAC_DEV_PAGE` | The dev server's page, which a desktop app's window opens |
+
+Two more are for a tool that runs `neojac dev` and shows the app itself, as
+[`neojac arch`](../toolchain/arch.md#running-an-app) does:
+
+| Variable | Is |
+|---|---|
+| `JAC_DEV_FRAMED` | Set to anything: a desktop app opens no window of its own, and serves its page for the tool to frame |
+| `NEOJAC_DEV_TO` | A file `neojac dev` appends what it does to, a JSON object a line: `{"at": "building"}`, `{"at": "built", "changed": <bool>}` or `{"at": "failed"}` for each build, `{"at": "serving", "space": ..., "page": ...}` when a dev server starts, `{"at": "started", "listen": ...}` when the program does and `{"at": "ended", "status": <int>}` when it ends |
 
 ## Deployment values
 

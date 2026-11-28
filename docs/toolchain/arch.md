@@ -86,7 +86,7 @@ neojac arch [<layer> | <module>] --diff [--base <revision>] [<output>]
 | none | The picture is served as a page: see [The viewer](#the-viewer) |
 | `--text` | The picture, on the terminal |
 | `--svg <file>` | The same picture as an SVG. It is the same bytes each time for the same project |
-| `--png <file>` | The SVG as the browser [`neojac browse`](browse.md) drives draws it. The first use fetches that browser |
+| `--png <file>` | The SVG as the browser [`neojac browse`](browse.md) drives draws it. The first use fetches that browser. `--no-sandbox` starts it without its sandbox, as [`neojac browse open`](browse.md) does: a container that gives no user namespaces, or refuses the sandbox's filters, needs it |
 | `--mermaid` | A Mermaid flowchart, for a README, an issue or a pull request, where GitHub draws it |
 | `--steps` | The steps of the project's history, one a line, or with `--json` as data: where the branch left its upstream, each commit since, each turn of an agent, and the project as it stands when that is different |
 | `--json` | What the picture is drawn from: each box and what it holds, each arrow with its wires, the names each carries, the rule that admits it at each level of the layers (`levels`), and its file and line |
@@ -389,11 +389,51 @@ when asked for, a list on the picture.
 
 ## Running an app
 
-A project whose archwire declares [apps](../apps/building.md) has **App** beside **Agent** in
-the panel, with a button for each. Pressing one runs `neojac dev <app>` at a free port and shows
-the app's page there, beside the picture; what the build says is shown until the page is up, and again when a build fails. The
-page is loaded again each time the app starts again, so what an agent changes is seen running.
-**Stop** ends it.
+A project whose archwire declares [apps](../apps/building.md) has **App** at the upper right of
+the picture. It opens a card there, which lists each app with what it shows:
+
+| An app that | Shows | As |
+|---|---|---|
+| serves a browser space | **Page**, one for each | The page, in a frame |
+| runs a browser space (a desktop app) | **Window** | The page in a window of the size `[apps.<app>.window]` gives, with its title, made smaller where the card is |
+| runs a space with an `entry` | **Terminal** | The program on a terminal: what it prints, and what you type |
+| runs a native, node or cpython space with no `entry`, or serves a wasm space | **Calls** | Every function and walker a caller may call, each with a form |
+| runs a hermes space (a phone app) | **Phone** | What Expo says: the address a phone or an emulator loads it from. Its screen is not drawn |
+
+**Run** runs `neojac dev <app>` at a free port, on a terminal of its own, and the card follows it:
+
+- **Its state is beside its name:** building, starting, running, the build failed, how the
+  program ended. A line runs under the card's head while it builds.
+- **Output is that terminal.** It shows the build's steps as they are made, its diagnostics in
+  their colors, and what the program prints. It is shown until the app answers; the card then
+  goes to the app's page. A click on a tab keeps the card on it.
+- **An edit is built as you make it,** or as an agent does. A page is loaded again when its app
+  starts again. A build that fails says so, marks Output, and leaves the last build running.
+- **Stop** ends it, and the arrow beside it stops it, builds it and starts it again.
+- **The card is put away with its ×,** and what is running goes on: **App** then carries its
+  name and its state. The arrows at the card's head give it the picture's whole right side,
+  and give it back; its left edge drags to size it.
+
+**A program's terminal** is a terminal: colors, a cursor, a program that draws its own screen,
+and the keys it reads. The field above it is the program's arguments, and **Run again** starts it
+with them. Ctrl-C is what it is on any terminal `neojac dev` runs on: it ends `neojac dev`.
+
+**Calls** lists what the build says of the app ([Building apps](../apps/building.md#what-of-an-app-can-be-called)):
+
+- **Each call says who may call it:** open (`:pub`), signed in (`:prot`), the project's own
+  (untagged, which another space of the project calls), or in the page (a wasm space's).
+- **A click opens its form:** a field for each parameter, by its type. A number, a text, a
+  switch for a `bool`, a list for an enum; anything else is JSON, begun with the type's shape. A
+  parameter with a default is left out when its field is left empty.
+- **Call sends it** and shows the status, the time and the answer. A call that needs a signed-in
+  caller is sent with the session token written at the head of the list, and one of the
+  project's own with the deployment's key, which the viewer gives the app it runs.
+- **A wasm space's function runs in the viewer's page,** loaded as a page of the app loads it. It
+  takes and gives numbers.
+- **The address beside a call is where it is declared:** a click shows the code.
+- **OpenAPI** is the calls over HTTP as an OpenAPI 3.1 document.
+
+On Windows the app is given no terminal: Output shows what it prints, and it reads nothing.
 
 `--listen <address>` says where it serves (`127.0.0.1:8090` when not given; port 0 is any free
 port). It serves until it is interrupted. It opens no browser: open the address in one, or have
