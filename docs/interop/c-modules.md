@@ -303,6 +303,11 @@ frameworks = ["CoreFoundation"]    # macOS frameworks its code calls
   pointer C has, with its `NULL` and its identity, as the ported C keeps it: a `const char *`
   parameter and result are `ptr[i8]` (a `const unsigned char *` `ptr[u8]`), as a field and a
   global are, where the interface a program writes against the module gives a `str`, a copy.
+  What it takes from another C module read as C++ (a header library's class, function or record)
+  it binds from that module, which owns its classes: a class is one Jac class wherever it is
+  named, and libc++'s templates over it are made by that module's reading. libc++'s own headers
+  are no module's but `libcxx`'s, so a translation unit that includes `<string>` binds
+  `std::string` from `libcxx`, as a header library that includes it does.
   A target table holds a target's own headers, after the base table's. The module's interface proper is read only
   where something other than its own Jac modules binds from it.
 - `interpreter = true` says the module is an interpreter's C API, which the interpreter that
