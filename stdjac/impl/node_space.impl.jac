@@ -31,7 +31,7 @@ impl run_node_space(
             if not loop_serving() {
                 raise RuntimeError(
                     f"node space '{space}' is called from the thread that started the program, and "
-                        f"this program serves nothing for another thread's call to wait on",
+                    f"this program serves nothing for another thread's call to wait on",
                 );
             }
             got: list[tuple[int, bytes]] = [];

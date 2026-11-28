@@ -3,7 +3,7 @@ import from "class-variance-authority" { cva }
 
 glob _fieldVariants: any = cva(
     "data-[invalid=true]:text-destructive gap-2 data-[invalid=true]:text-destructive gap-2 "
-        "group/field flex w-full",
+    "group/field flex w-full",
     {
         "variants": {
             "orientation": {

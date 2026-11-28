@@ -79,7 +79,7 @@ impl open_db(
     if host is not None {
         host.upgraded(
             f"upgraded {os.path.basename(path)} from layout {version} to {format}; the file as it "
-                f"was is kept as {os.path.basename(kept)}",
+            f"was is kept as {os.path.basename(kept)}",
         );
     }
     return db;

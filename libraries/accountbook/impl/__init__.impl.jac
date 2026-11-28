@@ -461,18 +461,18 @@ impl AccountsAuth.mail_link(user: str, email: str, purpose: str) {
             email,
             f"Check your address at {place}",
             f"Follow this link within a day to check that this address is yours, for the account "
-                f"{user} at {site}:\n\n"
-                f"{link}\n\n"
-                f"If you made no such account, do nothing.\n",
+            f"{user} at {site}:\n\n"
+            f"{link}\n\n"
+            f"If you made no such account, do nothing.\n",
         );
     } else {
         self.mailed().send_mail(
             email,
             f"Set a new password at {place}",
             f"Follow this link within an hour to set a new password for the account {user} at "
-                f"{site}:\n\n"
-                f"{link}\n\n"
-                f"If you did not ask for one, do nothing: the password stays as it is.\n",
+            f"{site}:\n\n"
+            f"{link}\n\n"
+            f"If you did not ask for one, do nothing: the password stays as it is.\n",
         );
     }
 }

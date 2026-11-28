@@ -23,11 +23,11 @@ test "a correct program passes and a broken one reports why" {
     good = verify_block(
         0,
         "node Item {\n"
-            "    has label: str = \"one\";\n"
-            "}\n\n"
-            "with entry {\n"
-            "    print(Item().label);\n"
-            "}",
+        "    has label: str = \"one\";\n"
+        "}\n\n"
+        "with entry {\n"
+        "    print(Item().label);\n"
+        "}",
     );
     assert good.ok, good.detail;
     assert good.mode == "run";
@@ -65,10 +65,10 @@ test "generated code cannot read or write outside its work dir or reach the netw
         net = verify_block(
             2,
             'import socket;\n\n'
-                'with entry {\n'
-                '    s = socket.create_connection(("1.1.1.1", 80), timeout=5);\n'
-                '    print("connected");\n'
-                '}',
+            'with entry {\n'
+            '    s = socket.create_connection(("1.1.1.1", 80), timeout=5);\n'
+            '    print("connected");\n'
+            '}',
         );
         if _sandboxed() {
             assert not read.ok and "TOP-SECRET-VALUE" not in read.detail, read.detail;

@@ -20,8 +20,8 @@ test "first h1 skips headings inside fences" {
 test "rewrite links routes relative docs up-level links and images" {
     got = rewrite_links(
         "[a](walkers.md#spawn) ![i](assets/x.png) <img src=\"assets/y.png\">"
-            " [up](../../apps/archwire.md) [skill](../../skills/writing-jac/SKILL.md)"
-            " [ext](https://example.com) https://docs.jaseci.org/learn/",
+        " [up](../../apps/archwire.md) [skill](../../skills/writing-jac/SKILL.md)"
+        " [ext](https://example.com) https://docs.jaseci.org/learn/",
         "v0.2",
         "reference/diagnostics/e13.md",
     );
@@ -237,22 +237,22 @@ impl _tree(base: Path) -> Path {
     }
     (docs / "nav.json").write_text(
         '{"version": 1, "site_name": "neojac", "nav": ['
-            '{"title": "Start here", "items": ['
-            '{"title": "What neojac is", "page": "start/index.md"},'
-            '{"title": "Install", "page": "start/install.md"}]},'
-            '{"title": "Language", "items": ['
-            '{"title": "Basics", "items": ['
-            '{"title": "Variables", "page": "language/variables.md"}]},'
-            '{"title": "Object-spatial programming", "items": ['
-            '{"title": "Walkers", "page": "language/walkers.md"},'
-            '{"title": "Visit", "page": "language/visit.md"}]}]},'
-            '{"title": "Reference", "items": ['
-            '{"title": "Grammar", "page": "reference/grammar.md"},'
-            '{"title": "Diagnostics", "items": ['
-            '{"title": "E13", "page": "reference/diagnostics/e13.md"}]},'
-            '{"title": "Commands", "page": "reference/commands.md"}]},'
-            '{"title": "Skills", "items": ['
-            '{"title": "Writing Jac", "page": "skills/writing-jac/SKILL.md"}]}]}',
+        '{"title": "Start here", "items": ['
+        '{"title": "What neojac is", "page": "start/index.md"},'
+        '{"title": "Install", "page": "start/install.md"}]},'
+        '{"title": "Language", "items": ['
+        '{"title": "Basics", "items": ['
+        '{"title": "Variables", "page": "language/variables.md"}]},'
+        '{"title": "Object-spatial programming", "items": ['
+        '{"title": "Walkers", "page": "language/walkers.md"},'
+        '{"title": "Visit", "page": "language/visit.md"}]}]},'
+        '{"title": "Reference", "items": ['
+        '{"title": "Grammar", "page": "reference/grammar.md"},'
+        '{"title": "Diagnostics", "items": ['
+        '{"title": "E13", "page": "reference/diagnostics/e13.md"}]},'
+        '{"title": "Commands", "page": "reference/commands.md"}]},'
+        '{"title": "Skills", "items": ['
+        '{"title": "Writing Jac", "page": "skills/writing-jac/SKILL.md"}]}]}',
     );
     return docs;
 }

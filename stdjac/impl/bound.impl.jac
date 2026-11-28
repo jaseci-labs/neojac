@@ -15,7 +15,7 @@ impl bound(abstraction: str, offers: Callable[[], Offers] | None = None) -> any 
         if picked not in o.listed {
             sys.stderr.write(
                 f"{name}={picked}: this program was not built with a plugin '{picked}' for "
-                    f"`{abstraction}`, only with: {', '.join(o.listed)}\n",
+                f"`{abstraction}`, only with: {', '.join(o.listed)}\n",
             );
             sys.exit(1);
         }

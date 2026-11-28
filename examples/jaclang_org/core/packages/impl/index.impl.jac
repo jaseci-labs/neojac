@@ -138,7 +138,7 @@ impl Registry.settings -> dict[str, any] {
         if int(data.get("protocol", 0)) != PROTOCOL_VERSION {
             raise RegistryError(
                 f"registry '{self.name}' speaks protocol {data.get('protocol')}; this jac speaks "
-                    f"{PROTOCOL_VERSION}",
+                f"{PROTOCOL_VERSION}",
             );
         }
         self._settings = data;
