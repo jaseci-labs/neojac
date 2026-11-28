@@ -53,6 +53,12 @@ enumerable property, `("m", m_1)`; its accessor is given after the object is mad
 entry after it is, in order, by `Object.defineProperty` with an object literal's descriptor,
 enumerable and configurable.
 
+A class there has exactly what its source declares. One that derives a Jac root, `Obj` or
+`BaseException`, is a Jac object: its `__init__` is its constructor, the roots' own too, its
+fields' defaults are given where JavaScript's `new` makes it, and it is made by
+`new C().$init(...)`; no `$name`, `$key`, `$fields` or `$ctor` is made for it, no constructor
+it does not declare, no `__repr__` and no setter.
+
 A value there is JavaScript's whatever TypeScript says of it: a property read is
 `__js_item(o, "p")` but of `self` and of `globalThis`, a call of a method `__js_method(o, "m", a)`
 but of `self`, `super` and a module, a call of a value that is no function or class of the file
